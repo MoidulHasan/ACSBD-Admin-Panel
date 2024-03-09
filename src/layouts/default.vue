@@ -8,7 +8,7 @@
       <LayoutsHeader />
 
       <main>
-        <div class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+        <div class="page-container mx-auto px-8 py-4">
           <slot />
         </div>
       </main>
@@ -18,4 +18,9 @@
 
 <script setup lang="ts"></script>
 
-<style scoped></style>
+<style scoped lang="scss">
+.page-container {
+  background: #e5e5e5;
+  min-height: calc(100vh - 70px);
+}
+</style>
