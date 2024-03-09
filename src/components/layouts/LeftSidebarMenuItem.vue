@@ -2,7 +2,7 @@
   <li>
     <div
       class="nav-item cursor-pointer flex items-center justify-between"
-      :class="{ rounded: !isRoot }"
+      :class="[{ 'active-nav': isActiveRoute }, { rounded: !isRoot }]"
       @click="handleNavItemClick"
     >
       <div class="flex items-center">
@@ -13,9 +13,7 @@
           :alt="item.label"
         />
 
-        <span class="item-label">
-          {{ item.label }}
-        </span>
+        <span class="item-label"> {{ item.label }} </span>
       </div>
 
       <i
@@ -26,7 +24,7 @@
 
     <ul v-show="item.items" class="sub-items" :class="{ hidden: !isExpanded }">
       <LayoutsLeftSidebarMenuItem
-        v-for="(item, index) in item.items"
+        v-for="item in item.items"
         :key="item.label"
         :item="item"
         :index="index"
@@ -45,7 +43,10 @@ const props = defineProps<{
   isRoot: boolean;
 }>();
 
+const route = useRoute();
+
 const isExpanded = ref(false);
+const isActiveRoute = computed(() => route.path === props.item.navigateTo);
 
 const handleNavItemClick = () => {
   if (props.item.items?.length) {
@@ -67,6 +68,11 @@ const handleNavItemClick = () => {
     background-color: #1476bf;
     color: white;
   }
+}
+
+.active-nav {
+  background-color: #1476bf; // #1476bf;
+  color: white;
 }
 
 .item-label {

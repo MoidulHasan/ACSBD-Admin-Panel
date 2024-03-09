@@ -1,6 +1,6 @@
 <template>
   <aside
-    class="sidebar-container flex h-screen flex-col overflow-y-hidden bg-primary-navy-blue-100 duration-300 ease-linear dark:bg-boxdark lg:static lg:translate-x-0 text-light-gray"
+    class="sidebar-container flex h-screen flex-col overflow-y-hidden bg-primary-color-navy-blue duration-300 ease-linear dark:bg-boxdark lg:static lg:translate-x-0 text-color-light-gray"
   >
     <div
       class="sidebar-logo flex items-center justify-between gap-2 px-6 py-5.5 lg:py-6.5"
