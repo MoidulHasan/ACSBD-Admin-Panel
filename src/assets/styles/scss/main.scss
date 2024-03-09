@@ -1,4 +1,56 @@
 :root {
-  --primary-navy-blue-100: #1D3566;
-  --light-gray: #CFCFCF;
+  /* Primary Colors */
+  --primary-color-envitect-sam-blue: #1476bf;
+  --primary-color-navy-blue: #1d3566;
+  --primary-color-dark-gray: #565656;
+  --primary-color-white: #ffffff;
+
+  /* Shades of Envitect Sam Blue */
+  --envitect-sam-blue-90: #2c84c5;
+  --envitect-sam-blue-80: #4391cc;
+  --envitect-sam-blue-70: #5b9fd2;
+  --envitect-sam-blue-60: #72add9;
+  --envitect-sam-blue-50: #89badf;
+  --envitect-sam-blue-40: #a1c8e5;
+  --envitect-sam-blue-30: #b9d6ec;
+  --envitect-sam-blue-20: #d0e4f2;
+  --envitect-sam-blue-5: #f3f8fc;
+  --envitect-sam-blue-2: #fafcfe;
+
+  /* Shades of Navy Blue */
+  --navy-blue-90: #344975;
+  --navy-blue-80: #4a5d85;
+  --navy-blue-70: #617294;
+  --navy-blue-60: #7786a3;
+  --navy-blue-50: #8e9ab2;
+  --navy-blue-40: #a5aec2;
+  --navy-blue-30: #bbc2d1;
+  --navy-blue-20: #d2d7e0;
+  --navy-blue-10: #e8ebf0;
+
+  /* Shades of Dark Gray */
+  --dark-gray-90: #676767;
+  --dark-gray-80: #787878;
+  --dark-gray-70: #898989;
+  --dark-gray-60: #9a9a9a;
+  --dark-gray-50: #aaaaaa;
+  --dark-gray-40: #bbbbbb;
+  --dark-gray-30: #cccccc;
+  --dark-gray-20: #dddddd;
+  --dark-gray-10: #eeeeee;
+
+  /*Gradient Colors*/
+  --Gradient--Sam-Blue: linear-gradient(90deg, #1476bf 0%, #09f 100%);
+  --Gradient-Navy-Blue: linear-gradient(90deg, #1d3566 0%, #0d40a9 100%);
+  --Gradient-Red: linear-gradient(90deg, #f00000 0%, #de0000 100%);
+
+  /*Other Colors*/
+  --color-success: #53a451;
+  --color-info: #4ba0b5;
+  --color-warning: #f6c244;
+  --color-danger: #cb444a;
+  --color-orange: #f2994a;
+  --color-light-gray: #CFCFCF;
+
+  --product-Front-color: #f9f9f9;
 }

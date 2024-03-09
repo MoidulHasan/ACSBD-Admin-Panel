@@ -17,8 +17,10 @@ module.exports = {
     },
     extend: {
       colors: {
-        "primary-navy-blue-100": "var(--primary-navy-blue-100)",
-        "light-gray": "var(--light-gray)",
+        "primary-color-envitect-sam-blue":
+          "var(--primary-color-envitect-sam-blue)",
+        "primary-color-navy-blue": "var(--primary-color-navy-blue)",
+        "color-light-gray": "var(--color-light-gray)",
       },
     },
   },
