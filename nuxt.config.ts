@@ -6,13 +6,21 @@ export default defineNuxtConfig({
   srcDir: "src/",
   serverDir: "server/",
   css: ["primeicons/primeicons.css", "~/assets/styles/scss/main.scss"],
-  modules: ["nuxt-primevue", "@nuxtjs/tailwindcss", "@nuxtjs/eslint-module"],
+  modules: [
+    "nuxt-primevue",
+    "@nuxtjs/tailwindcss",
+    "@nuxtjs/color-mode",
+    "@nuxtjs/eslint-module",
+  ],
   primevue: {
     unstyled: true,
     ripple: true,
     importPT: {
       from: path.resolve(__dirname, "./src/assets/styles/presets/lara/"),
     },
+  },
+  colorMode: {
+    classSuffix: "",
   },
 
   runtimeConfig: {
