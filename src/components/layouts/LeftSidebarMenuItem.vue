@@ -59,7 +59,7 @@ const handleNavItemClick = () => {
 };
 </script>
 
-<style lang="scss" scoped>
+<style scoped>
 .nav-item {
   height: 40px;
   padding: 24px 10px;
@@ -71,7 +71,7 @@ const handleNavItemClick = () => {
 }
 
 .active-nav {
-  background-color: #1476bf; // #1476bf;
+  background-color: #1476bf;
   color: white;
 }
 
