@@ -9,10 +9,23 @@
         <img src="~/assets/images/icons/menu-close.png" alt="menu close" />
       </button>
     </div>
+
+    <div class="flex justify-between align-middle">
+      <select
+        v-model="colorMode.preference"
+        class="border w-24 h-8 dark:bg-gray-900 dark:text-white dark:border-gray-700"
+      >
+        <option value="system">System</option>
+        <option value="light">Light</option>
+        <option value="dark">Dark</option>
+      </select>
+    </div>
   </header>
 </template>
 
-<script setup lang="ts"></script>
+<script setup lang="ts">
+const colorMode = useColorMode();
+</script>
 
 <style scoped lang="scss">
 .header-container {

@@ -24,4 +24,5 @@ module.exports = {
       },
     },
   },
+  darkMode: "class",
 };
