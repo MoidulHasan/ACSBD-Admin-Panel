@@ -6,11 +6,10 @@
       :rows="5"
       :rows-per-page-options="[5, 10, 20, 50]"
       table-style="min-width: 50rem"
-      :header-class="'border-0'"
     >
       <template #header>
         <div class="flex justify-between">
-          <h3>Product Attributes</h3>
+          <h3 class="table-title">Product Attributes</h3>
 
           <div>
             <InputText placeholder="Keyword Search" />
@@ -40,3 +39,9 @@ definePageMeta({
 
 const { data: attributes } = await useFetch("/api/proxy/admin/attributes/");
 </script>
+
+<style scoped lang="postcss">
+.table-title {
+  @apply font-semibold text-xl leading-7 text-[#4a5d85];
+}
+</style>

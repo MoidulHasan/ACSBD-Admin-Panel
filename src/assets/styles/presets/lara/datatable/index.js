@@ -51,7 +51,7 @@ export default {
       // Shape
       props.showGridlines
         ? 'border-x border-t border-b-0'
-        : 'border-y border-x-0',
+        : 'border-y-0 border-x-0',
 
       // Spacing
       'p-4',
