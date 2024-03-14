@@ -18,7 +18,7 @@
 
 <script setup lang="ts"></script>
 
-<style scoped lang="scss">
+<style scoped>
 .page-container {
   background: #e5e5e5;
   min-height: calc(100vh - 70px);

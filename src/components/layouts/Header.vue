@@ -27,7 +27,7 @@
 const colorMode = useColorMode();
 </script>
 
-<style scoped lang="scss">
+<style scoped>
 .header-container {
   height: 70px;
   padding: 24px 19px;
