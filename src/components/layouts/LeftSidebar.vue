@@ -67,7 +67,7 @@ const items = ref<IMenuItem[]>([
 ]);
 </script>
 
-<style scoped lang="scss">
+<style scoped>
 .sidebar-container {
   width: 280px;
 }
