@@ -11,6 +11,7 @@ export default defineNuxtConfig({
     "@nuxtjs/tailwindcss",
     "@nuxtjs/color-mode",
     "@nuxtjs/eslint-module",
+    "@nuxt/image"
   ],
   primevue: {
     unstyled: true,
