@@ -2,57 +2,57 @@ export default {
   root: {
     class: [
       // Flexbox
-      'flex',
+      "flex",
     ],
   },
   controls: {
     class: [
       // Flexbox & Alignment
-      'flex flex-col justify-center gap-2',
+      "flex flex-col justify-center gap-2",
 
       // Spacing
-      'p-5',
+      "p-5",
     ],
   },
   moveupbutton: {
     root: ({ context }) => ({
       class: [
         // Flexbox & Alignment
-        'relative inline-flex items-center justify-center',
+        "relative inline-flex items-center justify-center",
 
         // Shape
-        'rounded-md',
+        "rounded-md",
 
         // Color
-        'text-white dark:text-surface-900',
-        'bg-primary-500 dark:bg-primary-400',
-        'border border-primary-500 dark:border-primary-400',
+        "text-white dark:text-surface-900",
+        "bg-primary-500 dark:bg-primary-400",
+        "border border-primary-500 dark:border-primary-400",
 
         // Spacing & Size
-        'w-12',
-        'm-0',
-        'px-0 py-3',
+        "w-12",
+        "m-0",
+        "px-0 py-3",
 
         // Transitions
-        'transition duration-200 ease-in-out',
+        "transition duration-200 ease-in-out",
 
         // State
-        'hover:bg-primary-600 dark:hover:bg-primary-300 hover:border-primary-600 dark:hover:border-primary-300',
-        'focus:outline-none focus:outline-offset-0 focus:ring',
-        'focus:ring-primary-400/50 dark:focus:ring-primary-300/50',
-        { 'cursor-default pointer-events-none opacity-60': context.disabled },
+        "hover:bg-primary-600 dark:hover:bg-primary-300 hover:border-primary-600 dark:hover:border-primary-300",
+        "focus:outline-none focus:outline-offset-0 focus:ring",
+        "focus:ring-primary-400/50 dark:focus:ring-primary-300/50",
+        { "cursor-default pointer-events-none opacity-60": context.disabled },
 
         // Interactivity
-        'cursor-pointer user-select-none',
+        "cursor-pointer user-select-none",
       ],
     }),
     label: {
       class: [
         // Flexbox
-        'flex-initial',
+        "flex-initial",
 
         // Size
-        'w-0',
+        "w-0",
       ],
     },
   },
@@ -60,41 +60,41 @@ export default {
     root: ({ context }) => ({
       class: [
         // Flexbox & Alignment
-        'relative inline-flex items-center justify-center',
+        "relative inline-flex items-center justify-center",
 
         // Shape
-        'rounded-md',
+        "rounded-md",
 
         // Color
-        'text-white dark:text-surface-900',
-        'bg-primary-500 dark:bg-primary-400',
-        'border border-primary-500 dark:border-primary-400',
+        "text-white dark:text-surface-900",
+        "bg-primary-500 dark:bg-primary-400",
+        "border border-primary-500 dark:border-primary-400",
 
         // Spacing & Size
-        'w-12',
-        'm-0',
-        'px-0 py-3',
+        "w-12",
+        "m-0",
+        "px-0 py-3",
 
         // Transitions
-        'transition duration-200 ease-in-out',
+        "transition duration-200 ease-in-out",
 
         // State
-        'hover:bg-primary-600 dark:hover:bg-primary-300 hover:border-primary-600 dark:hover:border-primary-300',
-        'focus:outline-none focus:outline-offset-0 focus:ring',
-        'focus:ring-primary-400/50 dark:focus:ring-primary-300/50',
-        { 'cursor-default pointer-events-none opacity-60': context.disabled },
+        "hover:bg-primary-600 dark:hover:bg-primary-300 hover:border-primary-600 dark:hover:border-primary-300",
+        "focus:outline-none focus:outline-offset-0 focus:ring",
+        "focus:ring-primary-400/50 dark:focus:ring-primary-300/50",
+        { "cursor-default pointer-events-none opacity-60": context.disabled },
 
         // Interactivity
-        'cursor-pointer user-select-none',
+        "cursor-pointer user-select-none",
       ],
     }),
     label: {
       class: [
         // Flexbox
-        'flex-initial',
+        "flex-initial",
 
         // Size
-        'w-0',
+        "w-0",
       ],
     },
   },
@@ -102,41 +102,41 @@ export default {
     root: ({ context }) => ({
       class: [
         // Flexbox & Alignment
-        'relative inline-flex items-center justify-center',
+        "relative inline-flex items-center justify-center",
 
         // Shape
-        'rounded-md',
+        "rounded-md",
 
         // Color
-        'text-white dark:text-surface-900',
-        'bg-primary-500 dark:bg-primary-400',
-        'border border-primary-500 dark:border-primary-400',
+        "text-white dark:text-surface-900",
+        "bg-primary-500 dark:bg-primary-400",
+        "border border-primary-500 dark:border-primary-400",
 
         // Spacing & Size
-        'w-12',
-        'm-0',
-        'px-0 py-3',
+        "w-12",
+        "m-0",
+        "px-0 py-3",
 
         // Transitions
-        'transition duration-200 ease-in-out',
+        "transition duration-200 ease-in-out",
 
         // State
-        'hover:bg-primary-600 dark:hover:bg-primary-300 hover:border-primary-600 dark:hover:border-primary-300',
-        'focus:outline-none focus:outline-offset-0 focus:ring',
-        'focus:ring-primary-400/50 dark:focus:ring-primary-300/50',
-        { 'cursor-default pointer-events-none opacity-60': context.disabled },
+        "hover:bg-primary-600 dark:hover:bg-primary-300 hover:border-primary-600 dark:hover:border-primary-300",
+        "focus:outline-none focus:outline-offset-0 focus:ring",
+        "focus:ring-primary-400/50 dark:focus:ring-primary-300/50",
+        { "cursor-default pointer-events-none opacity-60": context.disabled },
 
         // Interactivity
-        'cursor-pointer user-select-none',
+        "cursor-pointer user-select-none",
       ],
     }),
     label: {
       class: [
         // Flexbox
-        'flex-initial',
+        "flex-initial",
 
         // Size
-        'w-0',
+        "w-0",
       ],
     },
   },
@@ -144,123 +144,123 @@ export default {
     root: ({ context }) => ({
       class: [
         // Flexbox & Alignment
-        'relative inline-flex items-center justify-center',
+        "relative inline-flex items-center justify-center",
 
         // Shape
-        'rounded-md',
+        "rounded-md",
 
         // Color
-        'text-white dark:text-surface-900',
-        'bg-primary-500 dark:bg-primary-400',
-        'border border-primary-500 dark:border-primary-400',
+        "text-white dark:text-surface-900",
+        "bg-primary-500 dark:bg-primary-400",
+        "border border-primary-500 dark:border-primary-400",
 
         // Spacing & Size
-        'w-12',
-        'm-0',
-        'px-0 py-3',
+        "w-12",
+        "m-0",
+        "px-0 py-3",
 
         // Transitions
-        'transition duration-200 ease-in-out',
+        "transition duration-200 ease-in-out",
 
         // State
-        'hover:bg-primary-600 dark:hover:bg-primary-300 hover:border-primary-600 dark:hover:border-primary-300',
-        'focus:outline-none focus:outline-offset-0 focus:ring',
-        'focus:ring-primary-400/50 dark:focus:ring-primary-300/50',
-        { 'cursor-default pointer-events-none opacity-60': context.disabled },
+        "hover:bg-primary-600 dark:hover:bg-primary-300 hover:border-primary-600 dark:hover:border-primary-300",
+        "focus:outline-none focus:outline-offset-0 focus:ring",
+        "focus:ring-primary-400/50 dark:focus:ring-primary-300/50",
+        { "cursor-default pointer-events-none opacity-60": context.disabled },
 
         // Interactivity
-        'cursor-pointer user-select-none',
+        "cursor-pointer user-select-none",
       ],
     }),
     label: {
       class: [
         // Flexbox
-        'flex-initial',
+        "flex-initial",
 
         // Size
-        'w-0',
+        "w-0",
       ],
     },
   },
   container: {
-    class: ['flex-auto'],
+    class: ["flex-auto"],
   },
   header: {
     class: [
-      'font-bold',
+      "font-bold",
 
       // Shape
-      'border-b-0 rounded-t-md',
+      "border-b-0 rounded-t-md",
 
       // Spacing
-      'p-5',
+      "p-5",
 
       // Color
-      'text-surface-700 dark:text-white/80',
-      'bg-surface-50 dark:bg-surface-800',
-      'border border-surface-200 dark:border-surface-700',
+      "text-surface-700 dark:text-white/80",
+      "bg-surface-50 dark:bg-surface-800",
+      "border border-surface-200 dark:border-surface-700",
     ],
   },
   list: {
     class: [
       // Spacing
-      'list-none m-0 p-0',
+      "list-none m-0 p-0",
 
       // Size
-      'min-h-[12rem] max-h-[24rem]',
+      "min-h-[12rem] max-h-[24rem]",
 
       // Shape
-      'rounded-b-md',
+      "rounded-b-md",
 
       // Color
-      'text-surface-600 dark:text-white/80',
-      'bg-surface-0 dark:bg-surface-800',
-      'border border-surface-200 dark:border-surface-700',
+      "text-surface-600 dark:text-white/80",
+      "bg-surface-0 dark:bg-surface-800",
+      "border border-surface-200 dark:border-surface-700",
 
       // Spacing
-      'py-3 px-0',
+      "py-3 px-0",
 
       // Focus & Outline
-      'outline-none',
+      "outline-none",
 
       // Misc
-      'overflow-auto',
+      "overflow-auto",
     ],
   },
   item: ({ context }) => ({
     class: [
       // Position
-      'relative',
+      "relative",
 
       // Spacing
-      'py-3 px-5 m-0',
+      "py-3 px-5 m-0",
 
       // Shape
-      'border-none',
+      "border-none",
 
       // Transition
-      'transition duration-200',
+      "transition duration-200",
 
       // Color
-      'text-surface-700 dark:text-white/80',
+      "text-surface-700 dark:text-white/80",
       {
-        'bg-primary-500/20 dark:bg-primary-300/20':
+        "bg-primary-500/20 dark:bg-primary-300/20":
           context.active && !context.focused,
       },
       {
-        'bg-primary-500/30 dark:bg-primary-400/30':
+        "bg-primary-500/30 dark:bg-primary-400/30":
           context.active && context.focused,
       },
       {
-        'bg-surface-100 dark:bg-surface-700/70':
+        "bg-surface-100 dark:bg-surface-700/70":
           !context.active && context.focused,
       },
 
       // State
-      'hover:bg-surface-100 dark:hover:bg-surface-700',
+      "hover:bg-surface-100 dark:hover:bg-surface-700",
 
       // Misc
-      'cursor-pointer overflow-hidden',
+      "cursor-pointer overflow-hidden",
     ],
   }),
-}
+};
