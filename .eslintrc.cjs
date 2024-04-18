@@ -13,4 +13,5 @@ module.exports = {
   rules: {
     // "indent": ["error", 4],
   },
+  "ignorePatterns": ["src/assets/styles/presets/**"]
 };
