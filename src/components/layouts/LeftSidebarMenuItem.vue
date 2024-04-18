@@ -24,9 +24,9 @@
 
     <ul v-show="item.items" class="sub-items" :class="{ hidden: !isExpanded }">
       <LayoutsLeftSidebarMenuItem
-        v-for="item in item.items"
-        :key="item.label"
-        :item="item"
+        v-for="subItem in item.items"
+        :key="subItem.label"
+        :item="subItem"
         :index="index"
         :is-root="false"
       />
