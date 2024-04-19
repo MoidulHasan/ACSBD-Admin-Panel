@@ -2,29 +2,29 @@ export default {
   display: {
     class: [
       // Display
-      'inline',
+      "inline",
 
       // Spacing
-      'px-2.5 py-1.5',
+      "px-2.5 py-1.5",
 
       // Size
-      'text-sm',
+      "text-sm",
 
       // Shape
-      'rounded-md',
+      "rounded-md",
 
       // Colors
-      'text-surface-700 dark:text-white/80',
+      "text-surface-700 dark:text-white/80",
 
       // States
-      'hover:bg-surface-100 hover:text-surface-700 dark:hover:bg-surface-700/80 dark:hover:text-white/80',
+      "hover:bg-surface-100 hover:text-surface-700 dark:hover:bg-surface-700/80 dark:hover:text-white/80",
 
       // Transitions
-      'transition',
-      'duration-200',
+      "transition",
+      "duration-200",
 
       // Misc
-      'cursor-pointer',
+      "cursor-pointer",
     ],
   },
-}
+};
