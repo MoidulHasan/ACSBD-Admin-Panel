@@ -174,5 +174,7 @@ const addABrand = async (event) => {
 </template>
 
 <style scoped>
-
+.add-brand-button{
+  background-color: var(--primary-color-envitect-sam-blue);
+}
 </style>
