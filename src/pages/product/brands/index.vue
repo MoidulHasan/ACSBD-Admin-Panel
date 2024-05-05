@@ -366,7 +366,7 @@ const hideDeleteModal = () => {
   border-radius: 12px;
   padding: 1.5rem;
 }
-.edit-brand-button{
+.edit-brand-button, .add-brand-button{
   background-color: var(--primary-color-envitect-sam-blue);
 }
 .block-edit, .block-delete {
