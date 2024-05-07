@@ -235,7 +235,7 @@ const hideDeleteModal = () => {
         <Column header="Logo">
           <template #body="slotProps">
             <img
-              class="h-12 w-42"
+              class="h-12 w-44"
               :src="slotProps.data.image_url"
               :alt="slotProps.data.name"
             />
