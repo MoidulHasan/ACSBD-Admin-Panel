@@ -19,7 +19,6 @@ const {
   error,
   refresh,
 } = await useFetch("/api/proxy/admin/brands");
-console.log(brands.value)
 
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
