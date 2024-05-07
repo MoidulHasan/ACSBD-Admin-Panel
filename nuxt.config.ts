@@ -11,13 +11,16 @@ export default defineNuxtConfig({
     "@nuxtjs/tailwindcss",
     "@nuxtjs/color-mode",
     "@nuxtjs/eslint-module",
-    "@nuxt/image"
+    "@nuxt/image",
   ],
   primevue: {
     unstyled: true,
     ripple: true,
     importPT: {
       from: path.resolve(__dirname, "./src/assets/styles/presets/lara/"),
+    },
+    composables: {
+      include: ["useToast"],
     },
   },
   colorMode: {
@@ -28,7 +31,7 @@ export default defineNuxtConfig({
     appUrl: "",
     apiBase: "",
     public: {
-      appUrl: ""
-    }
+      appUrl: "",
+    },
   },
 });
