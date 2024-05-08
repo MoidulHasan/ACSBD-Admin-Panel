@@ -12,6 +12,9 @@ module.exports = {
   plugins: [],
   rules: {
     // "indent": ["error", 4],
+      'vue/component-tags-order': ['error', {
+        order: [ 'script', 'template', 'style' ]
+      }],
   },
   "ignorePatterns": ["src/assets/styles/presets/**"]
 };
