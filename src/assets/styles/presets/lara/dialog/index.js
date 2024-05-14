@@ -12,6 +12,7 @@ export default {
       "m-0",
 
       // Color
+        "bg-white",
       "dark:border",
       "dark:border-surface-700",
 

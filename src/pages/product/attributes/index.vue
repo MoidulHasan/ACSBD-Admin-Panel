@@ -134,6 +134,10 @@ const handleAddButtonClick = () => {
   .action-button {
     width: 24px;
     height: 24px;
+
+    &:hover {
+      color: var(--primary-color-navy-blue);
+    }
   }
 }
 </style>
