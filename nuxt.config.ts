@@ -30,6 +30,7 @@ export default defineNuxtConfig({
         "InputText",
         "IconField",
         "InputIcon",
+        "Dialog",
       ],
     },
   },
