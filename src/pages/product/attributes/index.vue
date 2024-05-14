@@ -1,21 +1,59 @@
+<script setup lang="ts">
+import { FilterMatchMode } from "primevue/api";
+import DataTableHeader from "~/components/Common/DataTableHeader.vue";
+
+definePageMeta({
+  name: "product-attributes",
+});
+
+const currentPage = ref(1);
+
+const { data: attributes, pending } = await useFetch(
+  () => `/api/proxy/admin/attributes/?page=${currentPage.value}`,
+  {
+    watch: [currentPage],
+  },
+);
+
+const filters = ref({
+  global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+  name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+  "values.name": { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+});
+
+const handleAddButtonClick = () => {
+  console.log("add button clicked");
+};
+</script>
+
 <template>
-  <div class="bg-white rounded-xl px-5 py-6">
+  <div class="table-container">
     <DataTable
-      :value="attributes.data"
-      paginator
-      :rows="5"
-      :rows-per-page-options="[5, 10, 20, 50]"
+      v-model:filters="filters"
+      :value="attributes?.data"
       table-style="min-width: 50rem"
+      :rows="10"
+      data-key="id"
+      :loading="pending"
+      :global-filter-fields="['name', 'values.name']"
+      striped-rows
     >
       <template #header>
-        <div class="flex justify-between">
-          <h3 class="table-title">Product Attributes</h3>
-
-          <div>
-            <InputText placeholder="Keyword Search" />
-          </div>
-        </div>
+        <DataTableHeader
+          v-model:search-text="filters['global'].value"
+          :add-button-label="'Add Attributes'"
+          :table-header="'Product Attributes'"
+          @on-add-button-clicked="handleAddButtonClick"
+        />
       </template>
+
+      <Column header="SL">
+        <template #body="slotProps">
+          <div>
+            {{ (currentPage - 1) * 10 + slotProps.index + 1 }}
+          </div>
+        </template>
+      </Column>
 
       <Column field="name" header="Name" />
 
@@ -28,20 +66,51 @@
           </ul>
         </template>
       </Column>
+
+      <template #footer>
+        <CommonPagination
+          v-model:current-page="currentPage"
+          :total-page="attributes.meta.last_page"
+        />
+      </template>
     </DataTable>
   </div>
 </template>
 
-<script setup lang="ts">
-definePageMeta({
-  name: "attributes",
-});
-
-const { data: attributes } = await useFetch("/api/proxy/admin/attributes/");
-</script>
-
 <style scoped lang="postcss">
-.table-title {
-  @apply font-semibold text-xl leading-7 text-[#4a5d85];
+.table-container {
+  @apply bg-white rounded-xl  py-6;
+
+  font-style: normal;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px;
+
+  color: var(--dark-gray-80);
+
+  :deep(.p-datatable-header) {
+    @apply p-0;
+  }
+
+  :deep(tr) {
+    @apply px-5 even:bg-color-light-gray-secondary;
+  }
+
+  :deep(th) {
+    @apply bg-white;
+  }
+
+  :deep(td) {
+    font-style: normal;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 20px;
+
+    color: var(--primary-color-dark-gray);
+  }
+
+  :deep(.p-datatable-footer) {
+    border: 0;
+  }
 }
 </style>

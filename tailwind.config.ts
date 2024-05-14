@@ -21,6 +21,7 @@ module.exports = {
           "var(--primary-color-envitect-sam-blue)",
         "primary-color-navy-blue": "var(--primary-color-navy-blue)",
         "color-light-gray": "var(--color-light-gray)",
+        "color-light-gray-secondary": "var(--color-light-gray-secondary)",
       },
     },
   },
