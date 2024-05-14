@@ -1,7 +1,12 @@
 <script setup lang="ts">
 defineProps<{
   tableHeader?: string;
+  addButtonLabel?: string;
   hideActions?: boolean;
+}>();
+
+const emits = defineEmits<{
+  (e: "onAddButtonClicked"): void;
 }>();
 
 const searchText = defineModel("searchText", { type: String });
@@ -24,9 +29,11 @@ const searchText = defineModel("searchText", { type: String });
           </IconField>
 
           <Button
+            v-if="addButtonLabel"
             class="bg-primary-color-envitect-sam-blue px-6"
-            label="Add a Brand"
+            :label="addButtonLabel"
             icon="pi pi-plus"
+            @click="() => emits('onAddButtonClicked')"
           />
         </slot>
       </div>

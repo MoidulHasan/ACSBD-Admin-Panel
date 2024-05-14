@@ -20,6 +20,10 @@ const filters = ref({
   name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
   "values.name": { value: null, matchMode: FilterMatchMode.STARTS_WITH },
 });
+
+const handleAddButtonClick = () => {
+  console.log("add button clicked");
+};
 </script>
 
 <template>
@@ -37,7 +41,9 @@ const filters = ref({
       <template #header>
         <DataTableHeader
           v-model:search-text="filters['global'].value"
+          :add-button-label="'Add Attributes'"
           :table-header="'Product Attributes'"
+          @on-add-button-clicked="handleAddButtonClick"
         />
       </template>
 
