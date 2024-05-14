@@ -19,7 +19,14 @@ export default defineNuxtConfig({
       from: path.resolve(__dirname, "./src/assets/styles/presets/lara/"),
     },
     components: {
-      include: ["Button", "DataTable", "Column", "InputText"],
+      include: [
+        "Button",
+        "DataTable",
+        "Column",
+        "InputText",
+        "IconField",
+        "InputIcon",
+      ],
     },
   },
   colorMode: {
