@@ -59,11 +59,29 @@ const handleAddButtonClick = () => {
 
       <Column field="values" header="Values">
         <template #body="slotProps">
-          <ul class="flex gap-2">
-            <li v-for="item in slotProps.data.values" :key="item.name">
+          <ul class="flex gap-2 flex-wrap">
+            <li
+              v-for="item in slotProps.data.values"
+              :key="item.name"
+              class="border-2 px-2 rounded"
+            >
               {{ item.name }}
             </li>
           </ul>
+        </template>
+      </Column>
+
+      <Column header="Actions">
+        <template #body="slotProps">
+          <div class="flex items-center gap-2">
+            <button class="action-button">
+              <i class="pi pi-file-edit" />
+            </button>
+
+            <button class="action-button">
+              <i class="pi pi-trash" />
+            </button>
+          </div>
         </template>
       </Column>
 
@@ -111,6 +129,11 @@ const handleAddButtonClick = () => {
 
   :deep(.p-datatable-footer) {
     border: 0;
+  }
+
+  .action-button {
+    width: 24px;
+    height: 24px;
   }
 }
 </style>
