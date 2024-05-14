@@ -22,6 +22,16 @@ export default defineNuxtConfig({
     composables: {
       include: ["useToast"],
     },
+    components: {
+      include: [
+        "Button",
+        "DataTable",
+        "Column",
+        "InputText",
+        "IconField",
+        "InputIcon",
+      ],
+    },
   },
   colorMode: {
     classSuffix: "",
@@ -30,8 +40,5 @@ export default defineNuxtConfig({
   runtimeConfig: {
     appUrl: "",
     apiBase: "",
-    public: {
-      appUrl: "",
-    },
   },
 });
