@@ -2,14 +2,20 @@
 import { FilterMatchMode } from "primevue/api";
 import { usePrimeVue } from "primevue/config";
 import { useToast } from "primevue/usetoast";
+import DataTableHeader from "~/components/Common/DataTableHeader.vue";
 
 definePageMeta({
-  name: "brands",
+  name: "product-brands",
 });
+
+const currentPage = ref(1);
+
+// definePageMeta({
+//   name: "brands",
+// });
 
 const $primevue = usePrimeVue();
 const toast = useToast();
-const runtimeConfig = useRuntimeConfig();
 
 // const {data: brands, refresh} = await getBrands();
 
@@ -17,12 +23,15 @@ const {
   data: brands,
   pending,
   error,
-  refresh,
-} = await useFetch("/api/proxy/admin/brands");
+  refresh: refreshAllData,
+} = await useFetch(() => `/api/proxy/admin/brands?page=${currentPage.value}`, {
+  watch: [currentPage],
+});
 
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
   name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+  "values.name": { value: null, matchMode: FilterMatchMode.STARTS_WITH },
 });
 
 const visibleBrandCreationModal = ref(false);
@@ -33,10 +42,10 @@ const statuses = ref([
   { name: "De-active", code: "hidden" },
 ]);
 
-const formatSize = (bytes) => {
+const formatSize = (bytes: number): string => {
   const k = 1024;
   const dm = 3;
-  const sizes = $primevue.config.locale.fileSizeTypes;
+  const sizes = $primevue.config.locale?.fileSizeTypes;
 
   if (bytes === 0) {
     return `0 ${sizes[0]}`;
@@ -52,12 +61,13 @@ const openBrandCreationModal = () => {
 };
 
 const closeBrandCreationModal = () => {
-  refresh();
+  refreshAllData();
   visibleBrandCreationModal.value = false;
 };
 
 // starts edits
 const editableBrandProperties = ref({
+  slug: "",
   name: "",
   metaDescription: "",
   metaTitle: "",
@@ -73,13 +83,15 @@ const onRemoveTemplatingFileEdit = (file, removeFileCallback, index) => {
 const fileToEditUp = ref<File | null>(null);
 const onSelectedFilesforEdit = (event) => {
   const [_file] = event.files;
-  console.log(_file, "EDIT SELECT");
+  // console.log(_file, "EDIT SELECT");
   fileToEditUp.value = _file;
   filesForEdit.value = event.files;
 };
 
 const openEditModal = (brandData) => {
+  // console.log(brandData, "To GO")
   brandInfo.value = brandData;
+  editableBrandProperties.value.slug = brandData.slug;
   editableBrandProperties.value.name = brandData.name;
   editableBrandProperties.value.metaTitle = brandData.meta_title;
   editableBrandProperties.value.metaDescription = brandData.meta_description;
@@ -122,28 +134,28 @@ const editABrand = async (event) => {
   body.append("_method", "PUT");
 
   const { data: responseFromBrandAdded, error } = await useFetch(
-    runtimeConfig.public.appUrl +
-      `/api/proxy/admin/brands/${brandInfo.value.slug}`,
+    `/api/proxy/admin/brands/${editableBrandProperties.value.slug}`,
     {
       method: "POST",
       body,
       onResponse({ request, response, options }) {
         // Process the response data
         if (response.status === 200) {
-          visibleBrandEditModal.value = false;
           toast.add({
             severity: "success",
             summary: "Brand Edited",
             detail: `${response._data.message}`,
             life: 3000,
           });
-          refresh();
+          refreshAllData();
+          visibleBrandEditModal.value = false;
           fileToEditUp.value = null;
+          brandInfo.value = {};
         }
       },
       onResponseError({ request, response, options }) {
         console.log("Error");
-        fileToEditUp.value = null;
+
         // Handle the response errors
       },
     },
@@ -153,13 +165,14 @@ const editABrand = async (event) => {
 // end edits!!
 
 const visibleDeleteModal = ref(false);
+const brandForDelete = ref({});
 const openDeleteModal = (brandData) => {
-  brandInfo.value = brandData;
+  brandForDelete.value = brandData;
   visibleDeleteModal.value = true;
 };
 const deleteTheBrand = async () => {
   const { data: deleteResponse, error } = await useFetch(
-    `/api/proxy/admin/brands/${brandInfo.value.slug}`,
+    `/api/proxy/admin/brands/${brandForDelete.value.slug}`,
     {
       method: "DELETE",
       onResponse({ request, response, options }) {
@@ -172,7 +185,7 @@ const deleteTheBrand = async () => {
             detail: `${response._data.message}`,
             life: 3000,
           });
-          refresh();
+          brandForDelete.value = {};
         }
       },
       onResponseError({ request, response, options }) {
@@ -186,93 +199,99 @@ const deleteTheBrand = async () => {
       },
     },
   );
+  refreshAllData();
 };
 
 const hideDeleteModal = () => {
   visibleDeleteModal.value = false;
-  brandInfo.value = {};
 };
 </script>
 
 <template>
-  <div class="brand-list-container">
-    <div class="order-table">
-      <ClientOnly>
-        <Toast />
-      </ClientOnly>
-      <DataTable
-        v-model:filters="filters"
-        :value="brands.data"
-        :global-filter-fields="['name']"
-      >
-        <template #header>
-          <div class="flex justify-between items-center">
-            <h4 class="text-primary-color-envitect-sam-blue">Brands</h4>
-            <div class="flex gap-3 brands-search-add">
-              <IconField icon-position="right">
-                <InputIcon>
-                  <i class="pi pi-search" />
-                </InputIcon>
-                <InputText
-                  v-model="filters['global'].value"
-                  placeholder="Search Brands"
-                />
-              </IconField>
-              <Button
-                class="add-brand-button px-6"
-                label="Add a Brand"
-                icon="pi pi-plus"
-                @click="openBrandCreationModal"
-              />
-            </div>
+  <div class="table-container">
+    <ClientOnly>
+      <Toast />
+    </ClientOnly>
+    <DataTable
+      v-model:filters="filters"
+      :value="brands.data"
+      :global-filter-fields="['name', 'values.name']"
+      table-style="min-width: 50rem"
+      :rows="10"
+      data-key="id"
+      :loading="pending"
+      striped-rows
+    >
+      <template #header>
+        <DataTableHeader
+          v-model:search-text="filters['global'].value"
+          :add-button-label="'Add A Brand'"
+          :table-header="'Product Brands'"
+          @on-add-button-clicked="openBrandCreationModal"
+        />
+      </template>
+
+      <Column header="SL">
+        <template #body="slotProps">
+          <div>
+            {{ (currentPage - 1) * 10 + slotProps.index + 1 }}
           </div>
         </template>
-        <Column header="SL">
-          <template #body="slotProps">
-            {{ slotProps.index + 1 }}
-          </template>
-        </Column>
-        <Column header="Logo">
-          <template #body="slotProps">
-            <img
-              class="h-12 w-44"
-              :src="slotProps.data.image_url"
-              :alt="slotProps.data.name"
-            />
-          </template>
-        </Column>
-        <Column header="Name" style="min-width: 40%">
-          <template #body="slotProps">
-            {{ slotProps.data.name }}
-          </template>
-        </Column>
-        <Column header="Status">
-          <template #body="slotProps">
-            {{
-              slotProps.data.visibility_status === "public"
-                ? "Active"
-                : "De-actived"
-            }}
-          </template>
-        </Column>
-        <Column header="Actions">
-          <template #body="slotProps">
-            <div class="flex items-center gap-2">
+      </Column>
+      <Column header="Logo">
+        <template #body="slotProps">
+          <img
+            class="h-12 w-44"
+            :src="slotProps.data.image_url"
+            :alt="slotProps.data.name"
+          />
+        </template>
+      </Column>
+      <Column header="Name" style="min-width: 40%">
+        <template #body="slotProps">
+          {{ slotProps.data.name }}
+        </template>
+      </Column>
+
+      <!--      <Column field="name" header="Name" />-->
+      <Column header="Status">
+        <template #body="slotProps">
+          {{
+            slotProps.data.visibility_status === "public"
+              ? "Active"
+              : "De-actived"
+          }}
+        </template>
+      </Column>
+      <Column header="Actions">
+        <template #body="slotProps">
+          <div class="flex items-center gap-2">
+            <button class="action-button">
               <i
-                class="block pi pi-file-edit text-xl block-edit"
+                class="pi pi-file-edit block block-edit"
                 title="Edit Brand Information"
                 @click="openEditModal(slotProps.data)"
               />
+            </button>
+
+            <button class="action-button">
               <i
-                class="block pi pi-trash text-xl block-delete"
+                class="pi pi-trash block block-delete"
                 title="Delete This Brand"
                 @click="openDeleteModal(slotProps.data)"
               />
-            </div>
-          </template>
-        </Column>
-      </DataTable>
-    </div>
+            </button>
+          </div>
+        </template>
+      </Column>
+
+      <template #footer>
+        <CommonPagination
+          v-model:current-page="currentPage"
+          :total-page="brands.meta.last_page"
+        />
+      </template>
+    </DataTable>
     <ClientOnly>
       <!--      Add Brand Modal -->
       <PagesProductBrandsAddBrandModal
@@ -492,7 +511,7 @@ const hideDeleteModal = () => {
           <div class="modal-items">
             <p class="modal-text font-heading-7 font-semibold text-center">
               Are sou sure, <br />
-              you want to Delete Brand - {{ brandInfo.name }}?
+              you want to Delete Brand - {{ brandForDelete.name }}?
             </p>
 
             <div class="flex justify-center items-center gap-3">
@@ -516,12 +535,52 @@ const hideDeleteModal = () => {
   </div>
 </template>
 
-<style scoped>
-.brand-list-container {
-  background-color: var(--primary-color-white);
-  border-radius: 12px;
-  padding: 1.5rem;
+<style scoped lang="postcss">
+.table-container {
+  @apply bg-white rounded-xl  py-6;
+
+  font-style: normal;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px;
+
+  color: var(--dark-gray-80);
+
+  :deep(.p-datatable-header) {
+    @apply p-0;
+  }
+
+  :deep(tr) {
+    @apply px-5 even:bg-color-light-gray-secondary;
+  }
+
+  :deep(th) {
+    @apply bg-white;
+  }
+
+  :deep(td) {
+    font-style: normal;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 20px;
+
+    color: var(--primary-color-dark-gray);
+  }
+
+  :deep(.p-datatable-footer) {
+    border: 0;
+  }
+
+  .action-button {
+    width: 24px;
+    height: 24px;
+
+    &:hover {
+      color: var(--primary-color-navy-blue);
+    }
+  }
 }
+
 .edit-brand-button,
 .add-brand-button {
   background-color: var(--primary-color-envitect-sam-blue);

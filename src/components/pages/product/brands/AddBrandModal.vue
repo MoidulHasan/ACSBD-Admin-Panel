@@ -11,7 +11,6 @@ const emits = defineEmits<{
   (e: "closeBrandAddModal"): void;
 }>();
 
-const runtimeConfig = useRuntimeConfig();
 const statuses = ref([
   { name: "Active", code: "public" },
   { name: "De-active", code: "hidden" },
@@ -49,7 +48,6 @@ const brandToAdd = ref({
   brandVisibilityStatus: {},
 });
 const addABrand = async (event) => {
-  const runtimeConfig = useRuntimeConfig();
   const body = new FormData();
   body.append("name", brandToAdd.value.brandName);
   body.append("meta_title", brandToAdd.value.brandMetaTitle);
