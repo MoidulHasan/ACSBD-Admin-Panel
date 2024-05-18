@@ -9,6 +9,8 @@ definePageMeta({
   name: "product-attributes",
 });
 
+const store = useStore();
+
 const currentPage = ref(1);
 const showAttributeFormModal = ref(false);
 
@@ -32,6 +34,25 @@ const filters = ref({
 const handleFormSubmit = async () => {
   showAttributeFormModal.value = false;
   await refresh();
+};
+
+const handleDeleteButtonClick = async (id: number) => {
+  try {
+    store.setLoading(true);
+    const response = await $fetch(`/api/proxy/admin/attributes/${id}`, {
+      method: "DELETE",
+    });
+    store.setLoading(false);
+
+    console.log(response);
+
+    await refresh();
+  } catch (error) {
+    store.setLoading(false);
+
+    // Handle the error
+    console.error("An error occurred while submitting the form:", error);
+  }
 };
 </script>
 
@@ -87,7 +108,10 @@ const handleFormSubmit = async () => {
               <i class="pi pi-file-edit" />
             </button>
 
-            <button class="action-button">
+            <button
+              class="action-button"
+              @click="() => handleDeleteButtonClick(slotProps.data.id)"
+            >
               <i class="pi pi-trash" />
             </button>
           </div>
