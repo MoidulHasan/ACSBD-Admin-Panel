@@ -1,14 +1,24 @@
 <script setup lang="ts">
 import { FilterMatchMode } from "primevue/api";
-import DataTableHeader from "~/components/Common/DataTableHeader.vue";
+
+useHead({
+  title: "Attributes | Product",
+});
 
 definePageMeta({
   name: "product-attributes",
 });
 
-const currentPage = ref(1);
+const store = useStore();
 
-const { data: attributes, pending } = await useFetch(
+const currentPage = ref(1);
+const showAttributeFormModal = ref(false);
+
+const {
+  data: attributes,
+  pending,
+  refresh,
+} = await useFetch(
   () => `/api/proxy/admin/attributes/?page=${currentPage.value}`,
   {
     watch: [currentPage],
@@ -21,8 +31,28 @@ const filters = ref({
   "values.name": { value: null, matchMode: FilterMatchMode.STARTS_WITH },
 });
 
-const handleAddButtonClick = () => {
-  console.log("add button clicked");
+const handleFormSubmit = async () => {
+  showAttributeFormModal.value = false;
+  await refresh();
+};
+
+const handleDeleteButtonClick = async (id: number) => {
+  try {
+    store.setLoading(true);
+    const response = await $fetch(`/api/proxy/admin/attributes/${id}`, {
+      method: "DELETE",
+    });
+    store.setLoading(false);
+
+    console.log(response);
+
+    await refresh();
+  } catch (error) {
+    store.setLoading(false);
+
+    // Handle the error
+    console.error("An error occurred while submitting the form:", error);
+  }
 };
 </script>
 
@@ -39,11 +69,11 @@ const handleAddButtonClick = () => {
       striped-rows
     >
       <template #header>
-        <DataTableHeader
+        <CommonDataTableHeader
           v-model:search-text="filters['global'].value"
           :add-button-label="'Add Attributes'"
           :table-header="'Product Attributes'"
-          @on-add-button-clicked="handleAddButtonClick"
+          @on-add-button-clicked="showAttributeFormModal = true"
         />
       </template>
 
@@ -78,7 +108,10 @@ const handleAddButtonClick = () => {
               <i class="pi pi-file-edit" />
             </button>
 
-            <button class="action-button">
+            <button
+              class="action-button"
+              @click="() => handleDeleteButtonClick(slotProps.data.id)"
+            >
               <i class="pi pi-trash" />
             </button>
           </div>
@@ -92,6 +125,17 @@ const handleAddButtonClick = () => {
         />
       </template>
     </DataTable>
+
+    <client-only>
+      <Dialog
+        v-model:visible="showAttributeFormModal"
+        modal
+        :draggable="false"
+        header="Add Attribute"
+      >
+        <PagesProductsAttributesForm @on-form-submit="handleFormSubmit" />
+      </Dialog>
+    </client-only>
   </div>
 </template>
 

@@ -51,9 +51,5 @@ const searchText = defineModel("searchText", { type: String });
   .table-title {
     @apply font-semibold text-xl leading-7 text-[#4a5d85];
   }
-
-  :deep(.p-inputtext):focus {
-    @apply ring-0;
-  }
 }
 </style>

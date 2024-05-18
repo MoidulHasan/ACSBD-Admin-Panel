@@ -11,6 +11,8 @@ export default defineNuxtConfig({
     "@nuxtjs/tailwindcss",
     "@nuxtjs/color-mode",
     "@nuxtjs/eslint-module",
+    "@vee-validate/nuxt",
+    "@pinia/nuxt",
     "@nuxt/image",
   ],
   primevue: {
@@ -31,6 +33,7 @@ export default defineNuxtConfig({
         "IconField",
         "InputIcon",
         "Dialog",
+        "InputGroup",
         "FileUpload",
         "Textarea",
         "Dropdown",
@@ -38,8 +41,13 @@ export default defineNuxtConfig({
       ],
     },
   },
+
   colorMode: {
     classSuffix: "",
+  },
+
+  veeValidate: {
+    autoImports: true,
   },
 
   runtimeConfig: {

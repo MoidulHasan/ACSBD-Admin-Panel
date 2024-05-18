@@ -79,3 +79,9 @@
   --surface-900: 15 23 42;
   --surface-950: 3 6 23;
 }
+
+
+.p-inputtext:focus {
+  @apply ring-0;
+  border-color: var(--primary-color-envitect-sam-blue);
+}
