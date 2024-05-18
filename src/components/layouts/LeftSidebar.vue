@@ -1,27 +1,3 @@
-<template>
-  <aside
-    class="sidebar-container flex h-screen flex-col overflow-y-hidden bg-primary-color-navy-blue duration-300 ease-linear dark:bg-boxdark lg:static lg:translate-x-0 text-color-light-gray"
-  >
-    <div
-      class="sidebar-logo flex items-center justify-between gap-2 px-6 py-5.5 lg:py-6.5"
-    >
-      <NuxtLink :to="{ name: 'home-page' }">
-        <img src="~/assets/images/logo/acsbd-logo-white.svg" alt="Logo" />
-      </NuxtLink>
-    </div>
-
-    <ul class="layout-menu">
-      <template v-for="(item, index) in items" :key="item">
-        <LayoutsLeftSidebarMenuItem
-          :item="item"
-          :index="index"
-          :is-root="true"
-        />
-      </template>
-    </ul>
-  </aside>
-</template>
-
 <script setup lang="ts">
 import type { IMenuItem } from "~/app/interfaces/sidebar";
 
@@ -29,6 +5,7 @@ const items = ref<IMenuItem[]>([
   {
     label: "Dashboard",
     icon: "pi pi-th-large",
+    navigateTo: "/",
   },
   {
     label: "Analysis Board",
@@ -66,6 +43,30 @@ const items = ref<IMenuItem[]>([
   },
 ]);
 </script>
+
+<template>
+  <aside
+    class="sidebar-container flex h-screen flex-col overflow-y-hidden bg-primary-color-navy-blue duration-300 ease-linear dark:bg-boxdark lg:static lg:translate-x-0 text-color-light-gray"
+  >
+    <div
+      class="sidebar-logo flex items-center justify-between gap-2 px-6 py-5.5 lg:py-6.5"
+    >
+      <NuxtLink :to="{ name: 'home-page' }">
+        <img src="~/assets/images/logo/acsbd-logo-white.svg" alt="Logo" />
+      </NuxtLink>
+    </div>
+
+    <ul class="layout-menu">
+      <template v-for="(item, index) in items" :key="item">
+        <LayoutsLeftSidebarMenuItem
+          :item="item"
+          :index="index"
+          :is-root="true"
+        />
+      </template>
+    </ul>
+  </aside>
+</template>
 
 <style scoped>
 .sidebar-container {

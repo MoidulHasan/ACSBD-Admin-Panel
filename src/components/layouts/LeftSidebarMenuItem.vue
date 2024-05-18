@@ -1,3 +1,28 @@
+<script setup lang="ts">
+import type { IMenuItem } from "~/app/interfaces/sidebar";
+
+const props = defineProps<{
+  item: IMenuItem;
+  index: number;
+  isRoot: boolean;
+}>();
+
+const route = useRoute();
+
+const isExpanded = ref(false);
+const isActiveRoute = computed(() => route.path === props.item.navigateTo);
+
+const handleNavItemClick = () => {
+  if (props.item.items?.length) {
+    isExpanded.value = !isExpanded.value;
+  }
+
+  if (props.item.navigateTo) {
+    navigateTo(props.item.navigateTo);
+  }
+};
+</script>
+
 <template>
   <li>
     <div
@@ -33,31 +58,6 @@
     </ul>
   </li>
 </template>
-
-<script setup lang="ts">
-import type { IMenuItem } from "~/app/interfaces/sidebar";
-
-const props = defineProps<{
-  item: IMenuItem;
-  index: number;
-  isRoot: boolean;
-}>();
-
-const route = useRoute();
-
-const isExpanded = ref(false);
-const isActiveRoute = computed(() => route.path === props.item.navigateTo);
-
-const handleNavItemClick = () => {
-  if (props.item.items?.length) {
-    isExpanded.value = !isExpanded.value;
-  }
-
-  if (props.item.navigateTo) {
-    navigateTo(props.item.navigateTo);
-  }
-};
-</script>
 
 <style scoped>
 .nav-item {

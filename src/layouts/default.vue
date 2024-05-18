@@ -1,3 +1,5 @@
+<script setup lang="ts"></script>
+
 <template>
   <div class="flex h-screen overflow-hidden">
     <LayoutsLeftSidebar />
@@ -15,8 +17,6 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts"></script>
 
 <style scoped>
 .page-container {
