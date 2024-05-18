@@ -11,12 +11,16 @@ export default defineNuxtConfig({
     "@nuxtjs/tailwindcss",
     "@nuxtjs/color-mode",
     "@nuxtjs/eslint-module",
+    "@nuxt/image",
   ],
   primevue: {
     unstyled: true,
     ripple: true,
     importPT: {
       from: path.resolve(__dirname, "./src/assets/styles/presets/lara/"),
+    },
+    composables: {
+      include: ["useToast"],
     },
     components: {
       include: [
@@ -27,6 +31,10 @@ export default defineNuxtConfig({
         "IconField",
         "InputIcon",
         "Dialog",
+        "FileUpload",
+        "Textarea",
+        "Dropdown",
+        "Toast",
       ],
     },
   },
