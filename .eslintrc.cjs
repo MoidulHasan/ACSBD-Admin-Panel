@@ -11,10 +11,11 @@ module.exports = {
   extends: ["@nuxtjs/eslint-config-typescript", "plugin:prettier/recommended"],
   plugins: [],
   rules: {
-    // "indent": ["error", 4],
       'vue/component-tags-order': ['error', {
         order: [ 'script', 'template', 'style' ]
       }],
+
+    'vue/multi-word-component-names': 'off'
   },
   "ignorePatterns": ["src/assets/styles/presets/**"]
 };
