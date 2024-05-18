@@ -1,14 +1,22 @@
 <script setup lang="ts">
 import { FilterMatchMode } from "primevue/api";
-import DataTableHeader from "~/components/Common/DataTableHeader.vue";
+
+useHead({
+  title: "Attributes | Product",
+});
 
 definePageMeta({
   name: "product-attributes",
 });
 
 const currentPage = ref(1);
+const showAttributeFormModal = ref(false);
 
-const { data: attributes, pending } = await useFetch(
+const {
+  data: attributes,
+  pending,
+  refresh,
+} = await useFetch(
   () => `/api/proxy/admin/attributes/?page=${currentPage.value}`,
   {
     watch: [currentPage],
@@ -21,8 +29,9 @@ const filters = ref({
   "values.name": { value: null, matchMode: FilterMatchMode.STARTS_WITH },
 });
 
-const handleAddButtonClick = () => {
-  console.log("add button clicked");
+const handleFormSubmit = async () => {
+  showAttributeFormModal.value = false;
+  await refresh();
 };
 </script>
 
@@ -39,11 +48,11 @@ const handleAddButtonClick = () => {
       striped-rows
     >
       <template #header>
-        <DataTableHeader
+        <CommonDataTableHeader
           v-model:search-text="filters['global'].value"
           :add-button-label="'Add Attributes'"
           :table-header="'Product Attributes'"
-          @on-add-button-clicked="handleAddButtonClick"
+          @on-add-button-clicked="showAttributeFormModal = true"
         />
       </template>
 
@@ -92,6 +101,17 @@ const handleAddButtonClick = () => {
         />
       </template>
     </DataTable>
+
+    <client-only>
+      <Dialog
+        v-model:visible="showAttributeFormModal"
+        modal
+        :draggable="false"
+        header="Add Attribute"
+      >
+        <PagesProductsAttributesForm @on-form-submit="handleFormSubmit" />
+      </Dialog>
+    </client-only>
   </div>
 </template>
 
