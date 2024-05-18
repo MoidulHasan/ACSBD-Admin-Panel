@@ -13,12 +13,16 @@ export default defineNuxtConfig({
     "@nuxtjs/eslint-module",
     "@vee-validate/nuxt",
     "@pinia/nuxt",
+    "@nuxt/image",
   ],
   primevue: {
     unstyled: true,
     ripple: true,
     importPT: {
       from: path.resolve(__dirname, "./src/assets/styles/presets/lara/"),
+    },
+    composables: {
+      include: ["useToast"],
     },
     components: {
       include: [
@@ -30,6 +34,10 @@ export default defineNuxtConfig({
         "InputIcon",
         "Dialog",
         "InputGroup",
+        "FileUpload",
+        "Textarea",
+        "Dropdown",
+        "Toast",
       ],
     },
   },
