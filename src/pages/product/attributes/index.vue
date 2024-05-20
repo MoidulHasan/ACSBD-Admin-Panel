@@ -10,6 +10,7 @@ definePageMeta({
 });
 
 const store = useStore();
+const { $apiClient } = useNuxtApp();
 
 const currentPage = ref(1);
 const showAttributeFormModal = ref(false);
@@ -18,8 +19,8 @@ const {
   data: attributes,
   pending,
   refresh,
-} = await useFetch(
-  () => `/api/proxy/admin/attributes/?page=${currentPage.value}`,
+} = await useAsyncData(
+  () => $apiClient(`admin/attributes?page=${currentPage.value}`),
   {
     watch: [currentPage],
   },
@@ -121,7 +122,7 @@ const handleDeleteButtonClick = async (id: number) => {
       <template #footer>
         <CommonPagination
           v-model:current-page="currentPage"
-          :total-page="attributes.meta.last_page"
+          :total-page="attributes?.meta?.last_page"
         />
       </template>
     </DataTable>

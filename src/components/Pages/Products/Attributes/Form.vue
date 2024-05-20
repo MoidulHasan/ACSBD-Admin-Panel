@@ -13,6 +13,7 @@ const emits = defineEmits<{
 }>();
 
 const store = useStore();
+const { $apiClient } = useNuxtApp();
 
 const validationSchema = yup.object({
   attributeName: yup.string().required("Attribute name is required"),
@@ -43,13 +44,15 @@ const onSubmit = handleSubmit(async (values) => {
   if (!props.attrName && !props.attrValues) {
     try {
       store.setLoading(true);
-      const response = await $fetch("/api/proxy/admin/attributes", {
+
+      const response = await $apiClient("/admin/attributes", {
         method: "POST",
         body: {
           name: values.attributeName,
           values: values.attributeValues,
         },
       });
+
       store.setLoading(false);
 
       console.log(response);
