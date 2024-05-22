@@ -5,7 +5,7 @@ import { useToast } from "primevue/usetoast";
 import DataTableHeader from "~/components/Common/DataTableHeader.vue";
 
 definePageMeta({
-  name: "Product Brands",
+  name: "product-brands",
 });
 
 useHead({
