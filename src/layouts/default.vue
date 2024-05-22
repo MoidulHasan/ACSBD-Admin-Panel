@@ -15,6 +15,10 @@
         </div>
       </main>
     </div>
+
+    <ClientOnly>
+      <Toast />
+    </ClientOnly>
   </div>
 </template>
 
