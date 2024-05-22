@@ -2,6 +2,10 @@
 definePageMeta({
   name: "home-page",
 });
+
+useHead({
+  title: "Dashboard",
+});
 </script>
 
 <template>
