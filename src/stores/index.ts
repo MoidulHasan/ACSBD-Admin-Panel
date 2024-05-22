@@ -1,11 +1,5 @@
-export const useStore = defineStore("mainStore", {
-  state: () => ({
-    loading: false,
-  }),
+export const useStore = defineStore("mainStore", () => {
+  const loading = ref(false);
 
-  actions: {
-    setLoading(value: boolean) {
-      this.loading = value;
-    },
-  },
+  return { loading };
 });
