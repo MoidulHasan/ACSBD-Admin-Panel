@@ -5,14 +5,14 @@ import { useToast } from "primevue/usetoast";
 import DataTableHeader from "~/components/Common/DataTableHeader.vue";
 
 definePageMeta({
-  name: "product-brands",
+  name: "Product Brands",
+});
+
+useHead({
+  title: "Product Brands",
 });
 
 const currentPage = ref(1);
-
-// definePageMeta({
-//   name: "brands",
-// });
 
 const $primevue = usePrimeVue();
 const toast = useToast();
@@ -22,7 +22,6 @@ const toast = useToast();
 const {
   data: brands,
   pending,
-  error,
   refresh: refreshAllData,
 } = await useFetch(() => `/api/proxy/admin/brands?page=${currentPage.value}`, {
   watch: [currentPage],
@@ -77,18 +76,26 @@ const editableBrandProperties = ref({
 const brandInfo = ref({});
 
 const filesForEdit = ref([]);
-const onRemoveTemplatingFileEdit = (file, removeFileCallback, index) => {
+const onRemoveTemplatingFileEdit = (removeFileCallback: any, index: number) => {
   removeFileCallback(index);
 };
 const fileToEditUp = ref<File | null>(null);
-const onSelectedFilesforEdit = (event) => {
+const onSelectedFilesforEdit = (event: any) => {
   const [_file] = event.files;
   // console.log(_file, "EDIT SELECT");
   fileToEditUp.value = _file;
   filesForEdit.value = event.files;
 };
 
-const openEditModal = (brandData) => {
+export interface BrandData {
+  slug: string;
+  name: string;
+  meta_title: string;
+  meta_description: string;
+  visibility_status: "public" | "hidden";
+  image_url: string;
+}
+const openEditModal = (brandData: BrandData) => {
   // console.log(brandData, "To GO")
   brandInfo.value = brandData;
   editableBrandProperties.value.slug = brandData.slug;
@@ -116,7 +123,7 @@ const removeExistingImage = () => {
   editableBrandProperties.value.image = "";
 };
 
-const editABrand = async (event) => {
+const editABrand = async () => {
   const body = new FormData();
   body.append("name", editableBrandProperties.value.name);
   body.append("meta_title", editableBrandProperties.value.metaTitle);
@@ -126,19 +133,19 @@ const editABrand = async (event) => {
   );
   body.append(
     "visibility_status",
-    editableBrandProperties.value.visibilityStatus.code,
+    editableBrandProperties.value.visibilityStatus?.code,
   );
   if (fileToEditUp.value) {
     body.append("image", fileToEditUp.value, fileToEditUp.value.name);
   }
   body.append("_method", "PUT");
 
-  const { data: responseFromBrandAdded, error } = await useFetch(
+  const { data } = await useFetch(
     `/api/proxy/admin/brands/${editableBrandProperties.value.slug}`,
     {
       method: "POST",
       body,
-      onResponse({ request, response, options }) {
+      onResponse({ response }) {
         // Process the response data
         if (response.status === 200) {
           toast.add({
@@ -153,7 +160,7 @@ const editABrand = async (event) => {
           brandInfo.value = {};
         }
       },
-      onResponseError({ request, response, options }) {
+      onResponseError() {
         console.log("Error");
 
         // Handle the response errors
@@ -165,17 +172,17 @@ const editABrand = async (event) => {
 // end edits!!
 
 const visibleDeleteModal = ref(false);
-const brandForDelete = ref({});
-const openDeleteModal = (brandData) => {
+const brandForDelete = ref<BrandData | {}>({});
+const openDeleteModal = (brandData: BrandData) => {
   brandForDelete.value = brandData;
   visibleDeleteModal.value = true;
 };
 const deleteTheBrand = async () => {
-  const { data: deleteResponse, error } = await useFetch(
+  const { data } = await useFetch(
     `/api/proxy/admin/brands/${brandForDelete.value.slug}`,
     {
       method: "DELETE",
-      onResponse({ request, response, options }) {
+      onResponse({ response }) {
         // Process the response data
         if (response.status === 200) {
           visibleDeleteModal.value = false;
@@ -188,7 +195,7 @@ const deleteTheBrand = async () => {
           brandForDelete.value = {};
         }
       },
-      onResponseError({ request, response, options }) {
+      onResponseError() {
         toast.add({
           severity: "error",
           summary: "Error",
@@ -214,7 +221,7 @@ const hideDeleteModal = () => {
     </ClientOnly>
     <DataTable
       v-model:filters="filters"
-      :value="brands.data"
+      :value="brands?.data"
       :global-filter-fields="['name', 'values.name']"
       table-style="min-width: 50rem"
       :rows="10"
@@ -288,7 +295,7 @@ const hideDeleteModal = () => {
       <template #footer>
         <CommonPagination
           v-model:current-page="currentPage"
-          :total-page="brands.meta.last_page"
+          :total-page="brands?.meta.last_page"
         />
       </template>
     </DataTable>
@@ -303,7 +310,7 @@ const hideDeleteModal = () => {
         v-model:visible="visibleBrandEditModal"
         maximizable
         modal
-        :header="`Edit Brand - ${brandInfo.name}`"
+        :header="`Edit Brand - ${brandInfo?.name}`"
         :style="{ width: '50rem' }"
         :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
         dismissable-mask
@@ -361,14 +368,7 @@ const hideDeleteModal = () => {
                       </div>
                     </div>
                   </template>
-                  <template
-                    #content="{
-                      files,
-                      uploadedFiles,
-                      removeUploadedFileCallback,
-                      removeFileCallback,
-                    }"
-                  >
+                  <template #content="{ files, removeFileCallback }">
                     <div v-if="files.length > 0">
                       <div class="flex flex-wrap p-0 sm:p-5 gap-5">
                         <div
@@ -394,7 +394,6 @@ const hideDeleteModal = () => {
                             severity="danger"
                             @click="
                               onRemoveTemplatingFileEdit(
-                                file,
                                 removeFileCallback,
                                 index,
                               )
@@ -416,7 +415,7 @@ const hideDeleteModal = () => {
                             height="50"
                           />
                         </div>
-                        <span class="font-semibold">{{ brandInfo.name }}</span>
+                        <span class="font-semibold">{{ brandInfo?.name }}</span>
                         <Button
                           icon="pi pi-times"
                           outlined
@@ -511,7 +510,7 @@ const hideDeleteModal = () => {
           <div class="modal-items">
             <p class="modal-text font-heading-7 font-semibold text-center">
               Are sou sure, <br />
-              you want to Delete Brand - {{ brandForDelete.name }}?
+              you want to Delete Brand - {{ brandForDelete?.name }}?
             </p>
 
             <div class="flex justify-center items-center gap-3">
