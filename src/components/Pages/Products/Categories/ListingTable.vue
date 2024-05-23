@@ -1,32 +1,19 @@
 <script setup lang="ts">
 import { usePrimeVue } from "primevue/config";
-import { useToast } from "primevue/usetoast";
 import { FilterMatchMode } from "primevue/api";
 import DataTableHeader from "~/components/Common/DataTableHeader.vue";
 
-useHead({
-  title: "Categories | Product",
-});
+interface Props {
+  currentPage: number;
+  refreshAllData: Function;
+  pending: any;
+  categories: any;
+}
 
-definePageMeta({
-  name: "product-categories",
-});
-const currentPage = ref(1);
+const props = defineProps<Props>();
+
 const $primevue = usePrimeVue();
-const toast = useToast();
 const expandedRows = ref({});
-
-const {
-  data: categories,
-  pending,
-  error,
-  refresh: refreshAllData,
-} = await useFetch(
-  () => `/api/proxy/admin/categories?page=${currentPage.value}`,
-  {
-    watch: [currentPage],
-  },
-);
 
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -37,7 +24,7 @@ const filters = ref({
 const visibleCategoryCreationModal = ref(false);
 const visibleCategoryEditModal = ref(false);
 const expandAll = () => {
-  expandedRows.value = categories.value.reduce(
+  expandedRows.value = props.categories.value?.reduce(
     (acc, p) => (acc[p.id] = true) && acc,
     {},
   );
@@ -151,6 +138,7 @@ const editACategory = async (event) => {
       onResponse({ response }) {
         // Process the response data
         if (response.status === 200) {
+          // toast and refresh
           toast.add({
             severity: "success",
             summary: "Category Edited",
@@ -165,6 +153,7 @@ const editACategory = async (event) => {
       },
       onResponseError({ response }) {
         console.log("Error");
+        // toast
         toast.add({
           severity: "error",
           summary: "Could not edit category.",
@@ -195,6 +184,7 @@ const deleteTheCategory = async () => {
         // Process the response data
         if (response.status === 200) {
           visibleDeleteModal.value = false;
+          // toast
           toast.add({
             severity: "success",
             summary: "Category Deleted",
@@ -205,6 +195,7 @@ const deleteTheCategory = async () => {
         }
       },
       onResponseError() {
+        // toast
         toast.add({
           severity: "error",
           summary: "Error",
@@ -215,19 +206,19 @@ const deleteTheCategory = async () => {
       },
     },
   );
+  // refresh
   refreshAllData();
 };
 
 const hideDeleteModal = () => {
   visibleDeleteModal.value = false;
 };
+
+const showToast = (severity, summary, detail) => {};
 </script>
 
 <template>
-  <div class="table-container">
-    <ClientOnly>
-      <Toast />
-    </ClientOnly>
+  <div class="category-table">
     <DataTable
       v-model:expandedRows="expandedRows"
       v-model:filters="filters"
@@ -440,9 +431,9 @@ const hideDeleteModal = () => {
                             height="50"
                           />
                         </div>
-                        <span class="font-semibold">{{
-                          categoryInfo.name
-                        }}</span>
+                        <span class="font-semibold">
+                          {{ categoryInfo.name }}
+                        </span>
                         <Button
                           icon="pi pi-times"
                           outlined
@@ -563,16 +554,7 @@ const hideDeleteModal = () => {
 </template>
 
 <style scoped>
-.table-container {
-  @apply bg-white rounded-xl  py-6;
-
-  font-style: normal;
-  font-weight: 400;
-  font-size: 14px;
-  line-height: 20px;
-
-  color: var(--dark-gray-80);
-
+.category-table {
   :deep(.p-datatable-header) {
     @apply p-0;
   }
