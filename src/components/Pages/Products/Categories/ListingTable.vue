@@ -1,19 +1,21 @@
 <script setup lang="ts">
 import { usePrimeVue } from "primevue/config";
+import { useToast } from "primevue/usetoast";
 import { FilterMatchMode } from "primevue/api";
-import DataTableHeader from "~/components/Common/DataTableHeader.vue";
-
-interface Props {
-  currentPage: number;
-  refreshAllData: Function;
-  pending: any;
-  categories: any;
-}
-
-const props = defineProps<Props>();
+import { useStore } from "#imports";
 
 const $primevue = usePrimeVue();
+const toast = useToast();
 const expandedRows = ref({});
+const store = useStore();
+
+const props = defineProps<{
+  categories: any;
+}>();
+
+const emit = defineEmits<{
+  (e: "refreshAllCategory"): void;
+}>();
 
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -21,17 +23,9 @@ const filters = ref({
   "values.name": { value: null, matchMode: FilterMatchMode.STARTS_WITH },
 });
 
-const visibleCategoryCreationModal = ref(false);
+// const visibleCategoryCreationModal = ref(false);
+
 const visibleCategoryEditModal = ref(false);
-const expandAll = () => {
-  expandedRows.value = props.categories.value?.reduce(
-    (acc, p) => (acc[p.id] = true) && acc,
-    {},
-  );
-};
-const collapseAll = () => {
-  expandedRows.value = null;
-};
 
 const statuses = ref([
   { name: "Active", code: "public" },
@@ -52,14 +46,14 @@ const formatSize = (bytes: number): string => {
   return `${formattedSize} ${sizes[i]}`;
 };
 
-const openCategoryCreationModal = () => {
-  visibleCategoryCreationModal.value = true;
-};
-
-const closeCategoryCreationModal = () => {
-  refreshAllData();
-  visibleCategoryCreationModal.value = false;
-};
+// const openCategoryCreationModal = () => {
+//   visibleCategoryCreationModal.value = true;
+// };
+//
+// const closeCategoryCreationModal = () => {
+//   refreshAllData();
+//   visibleCategoryCreationModal.value = false;
+// };
 
 // starts edits
 const editableCategoryProperties = ref({
@@ -82,6 +76,10 @@ const onSelectedFilesforEdit = (event) => {
   // console.log(_file, "EDIT SELECT");
   fileToEditUp.value = _file;
   filesForEdit.value = event.files;
+};
+
+const refreshAllData = () => {
+  emit("refreshAllCategory");
 };
 
 const openEditModal = (categoryData) => {
@@ -113,7 +111,7 @@ const removeExistingImage = () => {
   editableCategoryProperties.value.image = "";
 };
 
-const editACategory = async (event) => {
+const editACategory = async () => {
   const body = new FormData();
   body.append("name", editableCategoryProperties.value.name);
   body.append("meta_title", editableCategoryProperties.value.metaTitle);
@@ -138,7 +136,6 @@ const editACategory = async (event) => {
       onResponse({ response }) {
         // Process the response data
         if (response.status === 200) {
-          // toast and refresh
           toast.add({
             severity: "success",
             summary: "Category Edited",
@@ -153,7 +150,6 @@ const editACategory = async (event) => {
       },
       onResponseError({ response }) {
         console.log("Error");
-        // toast
         toast.add({
           severity: "error",
           summary: "Could not edit category.",
@@ -184,7 +180,6 @@ const deleteTheCategory = async () => {
         // Process the response data
         if (response.status === 200) {
           visibleDeleteModal.value = false;
-          // toast
           toast.add({
             severity: "success",
             summary: "Category Deleted",
@@ -195,7 +190,6 @@ const deleteTheCategory = async () => {
         }
       },
       onResponseError() {
-        // toast
         toast.add({
           severity: "error",
           summary: "Error",
@@ -206,7 +200,6 @@ const deleteTheCategory = async () => {
       },
     },
   );
-  // refresh
   refreshAllData();
 };
 
@@ -214,53 +207,37 @@ const hideDeleteModal = () => {
   visibleDeleteModal.value = false;
 };
 
-const showToast = (severity, summary, detail) => {};
+const getParentName = (id: string | number | null) => {
+  if (!id) {
+    return "None";
+  }
+  return store.productCategories?.find((cat) => cat.id === id).name;
+};
 </script>
 
 <template>
   <div class="category-table">
+    <ClientOnly>
+      <Toast />
+    </ClientOnly>
     <DataTable
       v-model:expandedRows="expandedRows"
       v-model:filters="filters"
-      :value="categories.data"
+      :value="categories"
       :global-filter-fields="['name', 'values.name']"
       table-style="min-width: 50rem"
-      :rows="10"
       data-key="id"
-      :loading="pending"
       striped-rows
     >
-      <template #header>
-        <DataTableHeader
-          v-model:search-text="filters['global'].value"
-          :add-button-label="'Add A Category'"
-          :table-header="'Product Categories'"
-          @on-add-button-clicked="openCategoryCreationModal"
-        />
-        <div class="flex flex-wrap justify-content-end gap-2">
-          <Button
-            text
-            icon="pi pi-plus"
-            label="Expand All"
-            @click="expandAll"
-          />
-          <Button
-            text
-            icon="pi pi-minus"
-            label="Collapse All"
-            @click="collapseAll"
-          />
-        </div>
-      </template>
       <Column expander style="width: 2rem" />
       <Column header="SL">
         <template #body="slotProps">
           <div>
-            {{ (currentPage - 1) * 10 + slotProps.index + 1 }}
+            {{ slotProps.index + 1 }}
           </div>
         </template>
       </Column>
-      <Column header="Logo">
+      <Column header="Image">
         <template #body="slotProps">
           <img
             class="h-12 w-44"
@@ -274,8 +251,6 @@ const showToast = (severity, summary, detail) => {};
           {{ slotProps.data.name }}
         </template>
       </Column>
-
-      <!--      <Column field="name" header="Name" />-->
       <Column header="Status">
         <template #body="slotProps">
           {{
@@ -283,6 +258,11 @@ const showToast = (severity, summary, detail) => {};
               ? "Active"
               : "De-actived"
           }}
+        </template>
+      </Column>
+      <Column header="Parent">
+        <template #body="slotProps">
+          {{ getParentName(slotProps.data.parent_id) }}
         </template>
       </Column>
       <Column header="Actions">
@@ -306,22 +286,18 @@ const showToast = (severity, summary, detail) => {};
           </div>
         </template>
       </Column>
-
-      <template #footer>
-        <CommonPagination
-          v-model:current-page="currentPage"
-          :total-page="categories.meta.last_page"
-        />
+      <template #expansion="slotProps">
+        <div v-if="slotProps.data.childrens.length" class="pb-3">
+          <h5 class="pb-2">Children of {{ slotProps.data.name }}</h5>
+          <PagesProductsCategoriesListingTable
+            :categories="slotProps.data.childrens"
+            @refresh-all-category="refreshAllData"
+          />
+        </div>
+        <h3 v-else>No Children found for {{slotProps.data.name}}</h3>
       </template>
     </DataTable>
     <ClientOnly>
-      <!--      Add Brand Modal -->
-      <PagesProductsCategoriesAddCategoryModal
-        v-model:visible="visibleCategoryCreationModal"
-        @close-categoy-add-modal="closeCategoryCreationModal"
-      />
-      <!--      Edit Brand Modal -->
-
       <Dialog
         v-model:visible="visibleCategoryEditModal"
         maximizable
@@ -431,9 +407,9 @@ const showToast = (severity, summary, detail) => {};
                             height="50"
                           />
                         </div>
-                        <span class="font-semibold">
-                          {{ categoryInfo.name }}
-                        </span>
+                        <span class="font-semibold">{{
+                          categoryInfo.name
+                        }}</span>
                         <Button
                           icon="pi pi-times"
                           outlined

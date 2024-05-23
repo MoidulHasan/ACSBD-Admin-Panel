@@ -3,6 +3,7 @@ import { usePrimeVue } from "primevue/config";
 import { useToast } from "primevue/usetoast";
 import { FilterMatchMode } from "primevue/api";
 import DataTableHeader from "~/components/Common/DataTableHeader.vue";
+import { useStore } from "#imports";
 
 useHead({
   title: "Categories | Product",
@@ -16,6 +17,8 @@ const $primevue = usePrimeVue();
 const toast = useToast();
 const expandedRows = ref({});
 
+const store = useStore();
+
 const {
   data: categories,
   pending,
@@ -28,6 +31,37 @@ const {
   },
 );
 
+store.productCategories = categories?.value.data.map((category) => {
+  return {
+    id: category.id,
+    name: category.name,
+    parent_id: category.parent_id,
+  };
+});
+
+const getAllTheCategories = (categories) => {
+  const result = [];
+  categories.forEach((category) => {
+    result.push({
+      id: category.id,
+      name: category.name,
+      parentId: category.parent_id,
+    });
+    if (category.childrens.length) {
+      category.childrens.forEach((category) => {
+        result.push({
+          id: category.id,
+          name: category.name,
+          parentId: category.parent_id,
+        });
+      });
+    }
+  });
+  return result;
+};
+store.productCategories = getAllTheCategories(categories.value.data);
+// console.log(store.productCategories, "CAT");
+
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
   name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
@@ -37,7 +71,7 @@ const filters = ref({
 const visibleCategoryCreationModal = ref(false);
 const visibleCategoryEditModal = ref(false);
 const expandAll = () => {
-  expandedRows.value = categories.value.reduce(
+  expandedRows.value = categories.value.data.reduce(
     (acc, p) => (acc[p.id] = true) && acc,
     {},
   );
@@ -126,7 +160,7 @@ const removeExistingImage = () => {
   editableCategoryProperties.value.image = "";
 };
 
-const editACategory = async (event) => {
+const editACategory = async () => {
   const body = new FormData();
   body.append("name", editableCategoryProperties.value.name);
   body.append("meta_title", editableCategoryProperties.value.metaTitle);
@@ -221,6 +255,18 @@ const deleteTheCategory = async () => {
 const hideDeleteModal = () => {
   visibleDeleteModal.value = false;
 };
+
+export interface Category {
+  id: string;
+  name: string;
+  parentId: string;
+}
+const getParentName = (id: string | number | null) => {
+  if (!id) {
+    return "None";
+  }
+  return store.productCategories!.find((cat: Category) => cat.id === id).name;
+};
 </script>
 
 <template>
@@ -269,7 +315,7 @@ const hideDeleteModal = () => {
           </div>
         </template>
       </Column>
-      <Column header="Logo">
+      <Column header="Image">
         <template #body="slotProps">
           <img
             class="h-12 w-44"
@@ -283,8 +329,6 @@ const hideDeleteModal = () => {
           {{ slotProps.data.name }}
         </template>
       </Column>
-
-      <!--      <Column field="name" header="Name" />-->
       <Column header="Status">
         <template #body="slotProps">
           {{
@@ -292,6 +336,11 @@ const hideDeleteModal = () => {
               ? "Active"
               : "De-actived"
           }}
+        </template>
+      </Column>
+      <Column header="Parent">
+        <template #body="slotProps">
+          {{ getParentName(slotProps.data.parentId) }}
         </template>
       </Column>
       <Column header="Actions">
@@ -315,6 +364,16 @@ const hideDeleteModal = () => {
           </div>
         </template>
       </Column>
+      <template #expansion="slotProps">
+        <div v-if="slotProps.data.childrens.length" class="pb-3">
+          <h5 class="pb-2">Children of {{ slotProps.data.name }}</h5>
+          <PagesProductsCategoriesListingTable
+            :categories="slotProps.data.childrens"
+            @refresh-all-category="refreshAllData"
+          />
+        </div>
+        <h3 v-else>No Children found for {{ slotProps.data.name }}</h3>
+      </template>
 
       <template #footer>
         <CommonPagination
