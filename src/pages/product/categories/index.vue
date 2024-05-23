@@ -38,29 +38,17 @@ store.productCategories = categories?.value.data.map((category) => {
     parent_id: category.parent_id,
   };
 });
-
-const getAllTheCategories = (categories) => {
-  const result = [];
-  categories.forEach((category) => {
-    result.push({
-      id: category.id,
-      name: category.name,
-      parentId: category.parent_id,
-    });
-    if (category.childrens.length) {
-      category.childrens.forEach((category) => {
-        result.push({
-          id: category.id,
-          name: category.name,
-          parentId: category.parent_id,
-        });
-      });
+function flattenDataUsingReduce(categories: any) {
+  return categories.reduce((acc: any, item: any) => {
+    const { childrens, ...rest } = item;
+    acc.push(rest);
+    if (childrens && childrens.length > 0) {
+      acc = acc.concat(flattenDataUsingReduce(childrens));
     }
-  });
-  return result;
+    return acc;
+  }, []);
 };
-store.productCategories = getAllTheCategories(categories.value.data);
-// console.log(store.productCategories, "CAT");
+store.productCategories = flattenDataUsingReduce(categories.value?.data);
 
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
