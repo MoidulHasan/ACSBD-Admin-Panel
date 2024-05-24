@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { usePrimeVue } from "primevue/config";
 import { useToast } from "primevue/usetoast";
+import { useStore } from "#imports";
 const toast = useToast();
 
 defineOptions({
@@ -17,7 +18,7 @@ const statuses = ref([
 ]);
 
 const files = ref([]);
-const onRemoveTemplatingFile = (removeFileCallback, index) => {
+const onRemoveTemplatingFile = (file, removeFileCallback, index) => {
   removeFileCallback(index);
 };
 const fileToUp = ref<File | null>(null);
@@ -46,6 +47,7 @@ const categoryToAdd = ref({
   categoryMetaTitle: "",
   categoryMetaDescription: "",
   categoryVisibilityStatus: {},
+  parent: {},
 });
 const addACategory = async (event) => {
   const body = new FormData();
@@ -56,6 +58,12 @@ const addACategory = async (event) => {
     "visibility_status",
     categoryToAdd.value.categoryVisibilityStatus.code,
   );
+  if (
+    categoryToAdd.value.parent.name &&
+    categoryToAdd.value.parent.id !== 0
+  ) {
+    body.append("parent_id", categoryToAdd.value.parent.id);
+  }
   body.append("image", fileToUp.value, fileToUp.value.name);
   const { data } = await useFetch("/api/proxy/admin/categories", {
     method: "POST",
@@ -74,6 +82,7 @@ const addACategory = async (event) => {
           categoryMetaTitle: "",
           categoryMetaDescription: "",
           categoryVisibilityStatus: {},
+          parent: {},
         };
         emits("closeCategoyAddModal");
         files.value = null;
@@ -94,6 +103,7 @@ const addACategory = async (event) => {
     },
   });
 };
+const store = useStore();
 </script>
 
 <template>
@@ -154,14 +164,7 @@ const addACategory = async (event) => {
                   </div>
                 </div>
               </template>
-              <template
-                #content="{
-                  files,
-                  uploadedFiles,
-                  removeUploadedFileCallback,
-                  removeFileCallback,
-                }"
-              >
+              <template #content="{ files, removeFileCallback }">
                 <div v-if="files.length > 0">
                   <div class="flex flex-wrap p-0 sm:p-5 gap-5">
                     <div
@@ -227,6 +230,18 @@ const addACategory = async (event) => {
               :highlight-on-select="false"
             />
           </div>
+          <Dropdown
+            id="parent"
+            v-model="categoryToAdd.parent"
+            :options="[
+              { id: 0, name: 'Select Patent Category', parent_id: null },
+              ...store.productCategories,
+            ]"
+            filter
+            option-label="name"
+            placeholder="Select Parent Category"
+            checkmark
+          />
           <Textarea
             v-model="categoryToAdd.categoryMetaDescription"
             aria-describedby="text-meta-description"

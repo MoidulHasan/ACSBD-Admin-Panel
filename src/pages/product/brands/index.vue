@@ -8,6 +8,10 @@ definePageMeta({
   name: "product-brands",
 });
 
+useHead({
+  title: "Brands | Product",
+});
+
 const currentPage = ref(1);
 
 // definePageMeta({

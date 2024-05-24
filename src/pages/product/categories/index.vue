@@ -41,13 +41,13 @@ store.productCategories = categories?.value.data.map((category) => {
 function flattenDataUsingReduce(categories: any) {
   return categories.reduce((acc: any, item: any) => {
     const { childrens, ...rest } = item;
-    acc.push(rest);
+    acc.push({ id: rest.id, name: rest.name, parent_id: rest.parent_id });
     if (childrens && childrens.length > 0) {
       acc = acc.concat(flattenDataUsingReduce(childrens));
     }
     return acc;
   }, []);
-};
+}
 store.productCategories = flattenDataUsingReduce(categories.value?.data);
 
 const filters = ref({
@@ -103,6 +103,7 @@ const editableCategoryProperties = ref({
   metaDescription: "",
   metaTitle: "",
   visibilityStatus: {},
+  parent: {},
   image: "",
 });
 const categoryInfo = ref({});
@@ -541,6 +542,32 @@ const getParentName = (id: string | number | null) => {
                   :highlight-on-select="false"
                 />
               </div>
+            </div>
+            <div class="flex flex-col gap-1">
+              <label for="parent">Parent Category</label>
+              <Dropdown
+                  id="parent"
+                v-model="selectedCountry"
+                :options="store.productCategories"
+                filter
+                option-label="name"
+                placeholder="Select Parent Category"
+                class="w-full md:w-14rem"
+              >
+                <template #value="slotProps">
+                  <div v-if="slotProps.value" class="flex align-items-center">
+                    <div>{{ slotProps.value.name }}</div>
+                  </div>
+                  <span v-else>
+                    {{ slotProps.placeholder }}
+                  </span>
+                </template>
+                <template #option="slotProps">
+                  <div class="flex align-items-center">
+                    <div>{{ slotProps.option.name }}</div>
+                  </div>
+                </template>
+              </Dropdown>
             </div>
             <div class="flex flex-col gap-1">
               <label for="meta-desc">Category Meta Description</label>
