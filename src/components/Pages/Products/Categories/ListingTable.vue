@@ -54,24 +54,49 @@ const formatSize = (bytes: number): string => {
 //   refreshAllData();
 //   visibleCategoryCreationModal.value = false;
 // };
-
+export interface CategoryProperty {
+  image: string;
+  metaDescription: string;
+  metaTitle: string;
+  name: string;
+  parentId:
+    | {
+        id: number;
+        name: string;
+        parent_id: number | null;
+      }
+    | {};
+  slug: string;
+  visibilityStatus:
+    | {
+        name: string;
+        code: "public" | "hidden";
+      }
+    | {};
+}
+export interface Category {
+  id: number;
+  name: string;
+  parent_id: number;
+}
 // starts edits
-const editableCategoryProperties = ref({
+const editableCategoryProperties = ref<CategoryProperty>({
   slug: "",
   name: "",
   metaDescription: "",
   metaTitle: "",
   visibilityStatus: {},
   image: "",
+  parentId: {},
 });
-const categoryInfo = ref({});
+const categoryInfo = ref<Category | {}>({});
 
 const filesForEdit = ref([]);
 const onRemoveTemplatingFileEdit = (removeFileCallback: any, index: number) => {
   removeFileCallback(index);
 };
 const fileToEditUp = ref<File | null>(null);
-const onSelectedFilesforEdit = (event) => {
+const onSelectedFilesforEdit = (event: any) => {
   const [_file] = event.files;
   // console.log(_file, "EDIT SELECT");
   fileToEditUp.value = _file;
@@ -82,25 +107,58 @@ const refreshAllData = () => {
   emit("refreshAllCategory");
 };
 
-const openEditModal = (categoryData) => {
+const getParentInfo = (parentId: number) => {
+  return (
+    store.productCategories.find((cat: Category) => cat.id === parentId) ?? {
+      id: null,
+      name: "None",
+      parent_id: 0,
+    }
+  );
+};
+export interface CategoryData {
+  id: number;
+  name: string;
+  slug: string;
+  image_url: string;
+  parent_id: number;
+  meta_title: string;
+  meta_description: string;
+  visibility_status: string;
+  children: Array<CategoryData | []>;
+}
+const openEditModal = (categoryData: CategoryData) => {
   // console.log(categoryData, "To GO")
   categoryInfo.value = categoryData;
   editableCategoryProperties.value.slug = categoryData.slug;
   editableCategoryProperties.value.name = categoryData.name;
   editableCategoryProperties.value.metaTitle = categoryData.meta_title;
+  editableCategoryProperties.value.parentId = getParentInfo(
+    categoryData.parent_id,
+  );
   editableCategoryProperties.value.metaDescription =
     categoryData.meta_description;
-  if (categoryData.visibility_status === "public") {
-    editableCategoryProperties.value.visibilityStatus = {
-      name: "Active",
-      code: "public",
-    };
-  } else {
-    editableCategoryProperties.value.visibilityStatus = {
-      name: "De-active",
-      code: "hidden",
-    };
-  }
+  editableCategoryProperties.value.visibilityStatus =
+    categoryData.visibility_status === "public"
+      ? {
+          name: "Active",
+          code: "public",
+        }
+      : {
+          name: "De-active",
+          code: "hidden",
+        };
+  // if (categoryData.visibility_status === "public") {
+  //   editableCategoryProperties.value.visibilityStatus = {
+  //     name: "Active",
+  //     code: "public",
+  //   };
+  // } else {
+  //   editableCategoryProperties.value.visibilityStatus = {
+  //     name: "De-active",
+  //     code: "hidden",
+  //   };
+  // }
 
   editableCategoryProperties.value.image = categoryData.image_url;
 
@@ -112,6 +170,7 @@ const removeExistingImage = () => {
 };
 
 const editACategory = async () => {
+  // console.log(editableCategoryProperties.value);
   const body = new FormData();
   body.append("name", editableCategoryProperties.value.name);
   body.append("meta_title", editableCategoryProperties.value.metaTitle);
@@ -123,6 +182,7 @@ const editACategory = async () => {
     "visibility_status",
     editableCategoryProperties.value.visibilityStatus.code,
   );
+  body.append("parent_id", editableCategoryProperties.value.parentId.id);
   if (fileToEditUp.value) {
     body.append("image", fileToEditUp.value, fileToEditUp.value.name);
   }
@@ -167,7 +227,7 @@ const editACategory = async () => {
 
 const visibleDeleteModal = ref(false);
 const categoryForDelete = ref({});
-const openDeleteModal = (categoryData) => {
+const openDeleteModal = (categoryData: CategoryData) => {
   categoryForDelete.value = categoryData;
   visibleDeleteModal.value = true;
 };
@@ -211,7 +271,7 @@ const getParentName = (id: string | number | null) => {
   if (!id) {
     return "None";
   }
-  return store.productCategories?.find((cat) => cat.id === id).name;
+  return store.productCategories.find((cat: Category) => cat.id === id).name;
 };
 </script>
 
@@ -294,7 +354,7 @@ const getParentName = (id: string | number | null) => {
             @refresh-all-category="refreshAllData"
           />
         </div>
-        <h3 v-else>No Children found for {{slotProps.data.name}}</h3>
+        <h3 v-else>No Children found for {{ slotProps.data.name }}</h3>
       </template>
     </DataTable>
     <ClientOnly>
@@ -302,7 +362,7 @@ const getParentName = (id: string | number | null) => {
         v-model:visible="visibleCategoryEditModal"
         maximizable
         modal
-        :header="`Edit Category - ${categoryInfo.name}`"
+        :header="`Edit Category - ${(categoryInfo as Category).name}`"
         :style="{ width: '50rem' }"
         :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
         dismissable-mask
@@ -408,7 +468,7 @@ const getParentName = (id: string | number | null) => {
                           />
                         </div>
                         <span class="font-semibold">{{
-                          categoryInfo.name
+                          (categoryInfo as Category).name
                         }}</span>
                         <Button
                           icon="pi pi-times"
@@ -463,6 +523,35 @@ const getParentName = (id: string | number | null) => {
               </div>
             </div>
             <div class="flex flex-col gap-1">
+              <label for="parent">Parent Category</label>
+              <Dropdown
+                id="parent"
+                v-model="editableCategoryProperties.parentId"
+                :options="[
+                  { id: null, name: 'None', parent_id: 0 },
+                  ...store.productCategories,
+                ]"
+                filter
+                option-label="name"
+                placeholder="Select Parent Category"
+                class="w-full md:w-14rem"
+              >
+                <template #value="slotProps">
+                  <div v-if="slotProps.value" class="flex align-items-center">
+                    <div>{{ slotProps.value.name }}</div>
+                  </div>
+                  <span v-else>
+                    {{ slotProps.placeholder }}
+                  </span>
+                </template>
+                <template #option="slotProps">
+                  <div class="flex align-items-center">
+                    <div>{{ slotProps.option.name }}</div>
+                  </div>
+                </template>
+              </Dropdown>
+            </div>
+            <div class="flex flex-col gap-1">
               <label for="meta-desc">Category Meta Description</label>
               <Textarea
                 id="meta-desc"
@@ -484,6 +573,8 @@ const getParentName = (id: string | number | null) => {
                   editableCategoryProperties.metaDescription &&
                 categoryInfo.visibility_status ===
                   editableCategoryProperties.visibilityStatus.code &&
+                categoryInfo.parent_id ===
+                  editableCategoryProperties.parentId.id &&
                 (categoryInfo.image_url === editableCategoryProperties.image ||
                   !fileToEditUp)
               "

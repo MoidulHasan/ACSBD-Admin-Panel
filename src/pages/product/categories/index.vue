@@ -121,13 +121,12 @@ const onSelectedFilesforEdit = (event) => {
 };
 
 const openEditModal = (categoryData) => {
-  // console.log(categoryData, "To GO")
+  console.log(categoryData, "To GO");
   categoryInfo.value = categoryData;
   editableCategoryProperties.value.slug = categoryData.slug;
   editableCategoryProperties.value.name = categoryData.name;
   editableCategoryProperties.value.metaTitle = categoryData.meta_title;
-  editableCategoryProperties.value.metaDescription =
-    categoryData.meta_description;
+  editableCategoryProperties.value.metaDescription = categoryData.meta_description;
   if (categoryData.visibility_status === "public") {
     editableCategoryProperties.value.visibilityStatus = {
       name: "Active",
@@ -547,8 +546,8 @@ const getParentName = (id: string | number | null) => {
               <label for="parent">Parent Category</label>
               <Dropdown
                   id="parent"
-                v-model="selectedCountry"
-                :options="store.productCategories"
+                v-model="editableCategoryProperties.parent"
+                :options="[{id: null, name: 'None', parent_id: 0},...store.productCategories]"
                 filter
                 option-label="name"
                 placeholder="Select Parent Category"

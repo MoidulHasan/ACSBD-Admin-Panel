@@ -234,7 +234,7 @@ const store = useStore();
             id="parent"
             v-model="categoryToAdd.parent"
             :options="[
-              { id: 0, name: 'Select Patent Category', parent_id: null },
+              { id: 0, name: 'None', parent_id: null },
               ...store.productCategories,
             ]"
             filter
