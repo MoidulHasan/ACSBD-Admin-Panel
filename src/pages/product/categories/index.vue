@@ -322,7 +322,7 @@ const getParentName = (id: string | number | null) => {
           :table-header="'Product Categories'"
           @on-add-button-clicked="openCategoryCreationModal"
         />
-        <div class="flex flex-wrap justify-content-end gap-2">
+        <div class="flex flex-wrap justify-end gap-2 p-2">
           <Button
             text
             icon="pi pi-plus"
