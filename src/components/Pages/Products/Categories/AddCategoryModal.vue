@@ -7,12 +7,17 @@ const toast = useToast();
 defineOptions({
   inheritAttrs: false,
 });
+
+export interface Status {
+  name: "Active" | "De-active";
+  code: "public" | "hidden";
+}
 const $primevue = usePrimeVue();
 const emits = defineEmits<{
   (e: "closeCategoyAddModal"): void;
 }>();
 
-const statuses = ref([
+const statuses = ref<Status[]>([
   { name: "Active", code: "public" },
   { name: "De-active", code: "hidden" },
 ]);
@@ -22,7 +27,7 @@ const onRemoveTemplatingFile = (file, removeFileCallback, index) => {
   removeFileCallback(index);
 };
 const fileToUp = ref<File | null>(null);
-const onSelectedFiles = (event) => {
+const onSelectedFiles = (event: any) => {
   const [_file] = event.files;
   fileToUp.value = _file;
   files.value = event.files;
@@ -31,7 +36,7 @@ const onSelectedFiles = (event) => {
 const formatSize = (bytes) => {
   const k = 1024;
   const dm = 3;
-  const sizes = $primevue.config.locale.fileSizeTypes;
+  const sizes = $primevue.config.locale!.fileSizeTypes;
 
   if (bytes === 0) {
     return `0 ${sizes[0]}`;
@@ -49,7 +54,7 @@ const categoryToAdd = ref({
   categoryVisibilityStatus: {},
   parent: {},
 });
-const addACategory = async (event) => {
+const addACategory = async () => {
   const body = new FormData();
   body.append("name", categoryToAdd.value.categoryName);
   body.append("meta_title", categoryToAdd.value.categoryMetaTitle);
@@ -58,10 +63,7 @@ const addACategory = async (event) => {
     "visibility_status",
     categoryToAdd.value.categoryVisibilityStatus.code,
   );
-  if (
-    categoryToAdd.value.parent.name &&
-    categoryToAdd.value.parent.id !== 0
-  ) {
+  if (categoryToAdd.value.parent.name && categoryToAdd.value.parent.id !== 0) {
     body.append("parent_id", categoryToAdd.value.parent.id);
   }
   body.append("image", fileToUp.value, fileToUp.value.name);
@@ -85,7 +87,7 @@ const addACategory = async (event) => {
           parent: {},
         };
         emits("closeCategoyAddModal");
-        files.value = null;
+        files.value = [];
         fileToUp.value = null;
       } else if (response.status === 422) {
         toast.add({
@@ -96,9 +98,9 @@ const addACategory = async (event) => {
         });
       }
     },
-    onResponseError({ request, response, options }) {
+    onResponseError() {
       // Handle the response errors
-      files.value = null;
+      files.value = [];
       fileToUp.value = null;
     },
   });

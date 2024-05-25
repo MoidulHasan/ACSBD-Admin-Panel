@@ -12,6 +12,37 @@ useHead({
 definePageMeta({
   name: "product-categories",
 });
+
+export interface CategoryData {
+  id: number;
+  name: string;
+  slug: string;
+  image_url: string;
+  parent_id: number;
+  meta_title: string;
+  meta_description: string;
+  visibility_status: string;
+  children: Array<CategoryData | []>;
+}
+
+export interface MinifiedCategory {
+  id: number | null;
+  name: string;
+  parent_id: number | null;
+}
+export interface EditableCategoryProperties {
+  image: string;
+  metaDescription: string;
+  metaTitle: string;
+  name: string;
+  parentId: MinifiedCategory;
+  slug: string;
+  visibilityStatus: {
+    name: "Active" | "De-active";
+    code: "public" | "hidden";
+  };
+}
+
 const currentPage = ref(1);
 const $primevue = usePrimeVue();
 const toast = useToast();
@@ -31,13 +62,15 @@ const {
   },
 );
 
-store.productCategories = categories?.value.data.map((category) => {
-  return {
-    id: category.id,
-    name: category.name,
-    parent_id: category.parent_id,
-  };
-});
+store.productCategories = categories.value?.data.map(
+  (category: MinifiedCategory) => {
+    return {
+      id: category.id,
+      name: category.name,
+      parent_id: category.parent_id,
+    };
+  },
+);
 function flattenDataUsingReduce(categories: any) {
   return categories.reduce((acc: any, item: any) => {
     const { childrens, ...rest } = item;
@@ -102,9 +135,9 @@ const editableCategoryProperties = ref({
   name: "",
   metaDescription: "",
   metaTitle: "",
-  visibilityStatus: {},
-  parent: {},
+  visibilityStatus: { name: "Active", code: "public" },
   image: "",
+  parentId: { id: null, name: "None", parent_id: null },
 });
 const categoryInfo = ref({});
 
@@ -113,31 +146,43 @@ const onRemoveTemplatingFileEdit = (removeFileCallback: any, index: number) => {
   removeFileCallback(index);
 };
 const fileToEditUp = ref<File | null>(null);
-const onSelectedFilesforEdit = (event) => {
+const onSelectedFilesforEdit = (event: any) => {
   const [_file] = event.files;
   // console.log(_file, "EDIT SELECT");
   fileToEditUp.value = _file;
   filesForEdit.value = event.files;
 };
-
-const openEditModal = (categoryData) => {
-  console.log(categoryData, "To GO");
+const getParentInfo = (parentId: number) => {
+  return (
+    store.productCategories.find(
+      (cat: MinifiedCategory) => cat.id === parentId,
+    ) ?? {
+      id: null,
+      name: "None",
+      parent_id: 0,
+    }
+  );
+};
+const openEditModal = (categoryData: CategoryData) => {
   categoryInfo.value = categoryData;
   editableCategoryProperties.value.slug = categoryData.slug;
   editableCategoryProperties.value.name = categoryData.name;
   editableCategoryProperties.value.metaTitle = categoryData.meta_title;
-  editableCategoryProperties.value.metaDescription = categoryData.meta_description;
-  if (categoryData.visibility_status === "public") {
-    editableCategoryProperties.value.visibilityStatus = {
-      name: "Active",
-      code: "public",
-    };
-  } else {
-    editableCategoryProperties.value.visibilityStatus = {
-      name: "De-active",
-      code: "hidden",
-    };
-  }
+  editableCategoryProperties.value.metaDescription =
+    categoryData.meta_description;
+  editableCategoryProperties.value.visibilityStatus =
+    categoryData.visibility_status === "public"
+      ? {
+          name: "Active",
+          code: "public",
+        }
+      : {
+          name: "De-active",
+          code: "hidden",
+        };
+  editableCategoryProperties.value.parentId = getParentInfo(
+    categoryData.parent_id,
+  );
 
   editableCategoryProperties.value.image = categoryData.image_url;
 
@@ -160,6 +205,7 @@ const editACategory = async () => {
     "visibility_status",
     editableCategoryProperties.value.visibilityStatus.code,
   );
+  body.append("parent_id", editableCategoryProperties.value.parentId.id);
   if (fileToEditUp.value) {
     body.append("image", fileToEditUp.value, fileToEditUp.value.name);
   }
@@ -204,13 +250,13 @@ const editACategory = async () => {
 
 const visibleDeleteModal = ref(false);
 const categoryForDelete = ref({});
-const openDeleteModal = (categoryData) => {
+const openDeleteModal = (categoryData: CategoryData) => {
   categoryForDelete.value = categoryData;
   visibleDeleteModal.value = true;
 };
 const deleteTheCategory = async () => {
   const { data } = await useFetch(
-    `/api/proxy/admin/categories/${categoryForDelete.value.slug}`,
+    `/api/proxy/admin/categories/${(categoryForDelete.value as CategoryData).slug}`,
     {
       method: "DELETE",
       onResponse({ response }) {
@@ -244,16 +290,12 @@ const hideDeleteModal = () => {
   visibleDeleteModal.value = false;
 };
 
-export interface Category {
-  id: string;
-  name: string;
-  parentId: string;
-}
 const getParentName = (id: string | number | null) => {
   if (!id) {
     return "None";
   }
-  return store.productCategories!.find((cat: Category) => cat.id === id).name;
+  return store.productCategories.find((cat: MinifiedCategory) => cat.id === id)
+    ?.name;
 };
 </script>
 
@@ -382,7 +424,7 @@ const getParentName = (id: string | number | null) => {
         v-model:visible="visibleCategoryEditModal"
         maximizable
         modal
-        :header="`Edit Category - ${categoryInfo.name}`"
+        :header="`Edit Category - ${(categoryInfo as CategoryData).name}`"
         :style="{ width: '50rem' }"
         :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
         dismissable-mask
@@ -488,7 +530,7 @@ const getParentName = (id: string | number | null) => {
                           />
                         </div>
                         <span class="font-semibold">{{
-                          categoryInfo.name
+                          (categoryInfo as CategoryData).name
                         }}</span>
                         <Button
                           icon="pi pi-times"
@@ -543,30 +585,18 @@ const getParentName = (id: string | number | null) => {
               </div>
             </div>
             <div class="flex flex-col gap-1">
-              <label for="parent">Parent Category</label>
               <Dropdown
-                  id="parent"
-                v-model="editableCategoryProperties.parent"
-                :options="[{id: null, name: 'None', parent_id: 0},...store.productCategories]"
+                id="parent"
+                v-model="editableCategoryProperties.parentId"
+                :options="[
+                  { id: null, name: 'None', parent_id: 0 },
+                  ...store.productCategories,
+                ]"
                 filter
                 option-label="name"
                 placeholder="Select Parent Category"
                 class="w-full md:w-14rem"
-              >
-                <template #value="slotProps">
-                  <div v-if="slotProps.value" class="flex align-items-center">
-                    <div>{{ slotProps.value.name }}</div>
-                  </div>
-                  <span v-else>
-                    {{ slotProps.placeholder }}
-                  </span>
-                </template>
-                <template #option="slotProps">
-                  <div class="flex align-items-center">
-                    <div>{{ slotProps.option.name }}</div>
-                  </div>
-                </template>
-              </Dropdown>
+              />
             </div>
             <div class="flex flex-col gap-1">
               <label for="meta-desc">Category Meta Description</label>
@@ -583,14 +613,18 @@ const getParentName = (id: string | number | null) => {
             <Button
               class="button-style edit-category-button"
               :disabled="
-                categoryInfo.name === editableCategoryProperties.name &&
-                categoryInfo.meta_title ===
+                (categoryInfo as CategoryData).name ===
+                  editableCategoryProperties.name &&
+                (categoryInfo as CategoryData).meta_title ===
                   editableCategoryProperties.metaTitle &&
-                categoryInfo.meta_description ===
+                (categoryInfo as CategoryData).meta_description ===
                   editableCategoryProperties.metaDescription &&
-                categoryInfo.visibility_status ===
+                (categoryInfo as CategoryData).visibility_status ===
                   editableCategoryProperties.visibilityStatus.code &&
-                (categoryInfo.image_url === editableCategoryProperties.image ||
+                (categoryInfo as CategoryData).parent_id ===
+                  editableCategoryProperties.parentId.id &&
+                ((categoryInfo as CategoryData).image_url ===
+                  editableCategoryProperties.image ||
                   !fileToEditUp)
               "
               label="Edit Category"
@@ -611,7 +645,8 @@ const getParentName = (id: string | number | null) => {
           <div class="modal-items">
             <p class="modal-text font-heading-7 font-semibold text-center">
               Are sou sure, <br />
-              you want to Delete Category - {{ categoryForDelete.name }}?
+              you want to Delete Category -
+              {{ (categoryForDelete as CategoryData).name }}?
             </p>
 
             <div class="flex justify-center items-center gap-3">
