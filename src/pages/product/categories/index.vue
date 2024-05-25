@@ -53,7 +53,6 @@ const store = useStore();
 const {
   data: categories,
   pending,
-  error,
   refresh: refreshAllData,
 } = await useFetch(
   () => `/api/proxy/admin/categories?page=${currentPage.value}`,
