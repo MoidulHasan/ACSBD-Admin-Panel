@@ -20,7 +20,7 @@ const {
   pending,
   refresh,
 } = await useAsyncData(
-  () => $apiClient(`admin/attributes?page=${currentPage.value}`),
+  () => $apiClient(`admin/attributes?page=${currentPage.value}&limit=10`),
   {
     watch: [currentPage],
   },

@@ -28,7 +28,7 @@ const {
   pending,
   error,
   refresh: refreshAllData,
-} = await useFetch(() => `/api/proxy/admin/brands?page=${currentPage.value}`, {
+} = await useFetch(() => `/api/proxy/admin/brands?page=${currentPage.value}&limit=10`, {
   watch: [currentPage],
 });
 
