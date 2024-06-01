@@ -55,7 +55,7 @@ const {
   pending,
   refresh: refreshAllData,
 } = await useFetch(
-  () => `/api/proxy/admin/categories?page=${currentPage.value}`,
+  () => `/api/proxy/admin/categories?page=${currentPage.value}&limit=10`,
   {
     watch: [currentPage],
   },
@@ -271,11 +271,11 @@ const deleteTheCategory = async () => {
           categoryForDelete.value = {};
         }
       },
-      onResponseError() {
+      onResponseError({ response }) {
         toast.add({
           severity: "error",
           summary: "Error",
-          detail: `Could Not delete Category`,
+          detail: `${response._data.message}`,
           life: 3000,
         });
         // Handle the response errors
