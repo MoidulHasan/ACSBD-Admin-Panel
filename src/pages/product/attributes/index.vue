@@ -20,6 +20,7 @@ const currentPage = ref(1);
 const showAttributeFormModal = ref(false);
 const showDeleteConfirmationModal = ref(false);
 const deletableAttributeSlug = ref<null | string>(null);
+const editableAttributeData = ref<null | IProductAttribute>(null);
 
 const {
   data: attributes,
@@ -48,18 +49,14 @@ const filters = ref({
 
 const handleFormSubmit = async () => {
   showAttributeFormModal.value = false;
+  editableAttributeData.value = null;
   await refresh();
 };
 
-const handleDeleteButtonClick = async (id: number) => {
-  try {
-    store.setLoading(true);
-    const response = await $fetch(`/api/proxy/admin/attributes/${id}`, {
-      method: "DELETE",
-    });
-    store.setLoading(false);
-
-    console.log(response);
+const handleEditButtonClick = (attributeData: IProductAttribute) => {
+  editableAttributeData.value = attributeData;
+  showAttributeFormModal.value = true;
+};
 
 const handleDeleteButtonClick = (slug: string) => {
   showDeleteConfirmationModal.value = true;
@@ -152,7 +149,10 @@ const handleDeleteConfirmation = async () => {
       <Column header="Actions">
         <template #body="slotProps">
           <div class="flex items-center gap-2">
-            <button class="action-button">
+            <button
+              class="action-button"
+              @click="() => handleEditButtonClick(slotProps.data)"
+            >
               <i class="pi pi-file-edit" />
             </button>
 
@@ -184,8 +184,12 @@ const handleDeleteConfirmation = async () => {
         modal
         :draggable="false"
         header="Add Attribute"
+        @hide="() => (editableAttributeData = null)"
       >
-        <PagesProductsAttributesForm @on-form-submit="handleFormSubmit" />
+        <PagesProductsAttributesForm
+          :attribute-data="editableAttributeData"
+          @on-form-submit="handleFormSubmit"
+        />
       </Dialog>
 
       <CommonDeleteConfirmationModal

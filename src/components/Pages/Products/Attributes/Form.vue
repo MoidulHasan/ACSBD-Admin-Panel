@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import * as yup from "yup";
 import type { ICreateResponse } from "~/app/interfaces/common";
+import type { IProductAttribute } from "~/app/interfaces/products";
 
 interface IProps {
-  attrName?: string;
-  attrValues?: string[];
+  attributeData?: IProductAttribute;
 }
 
 const props = defineProps<IProps>();
@@ -22,14 +22,21 @@ const validationSchema = yup.object({
   attributeValues: yup
     .array()
     .of(yup.string().required("Value is required"))
-    .required("Value is required"),
+    .required("Value is required")
+    .test(
+      "unique",
+      "Values must be unique",
+      (values) => values.length === new Set(values).size,
+    ),
 });
 
-const { handleSubmit, errors, submitCount, handleReset } = useForm({
+const { handleSubmit, errors, submitCount, handleReset, meta } = useForm({
   validationSchema,
   initialValues: {
-    attributeName: props.attrName ?? "",
-    attributeValues: props.attrValues ?? [""],
+    attributeName: props.attributeData?.name ?? "",
+    attributeValues: props.attributeData?.values.map((value) => value.name) ?? [
+      "",
+    ],
   },
 });
 
@@ -43,49 +50,69 @@ const {
 const placeHolderValues = ref(["White", "Red", "Blue"]);
 
 const onSubmit = handleSubmit(async (values, actions) => {
-  if (!props.attrName && !props.attrValues) {
-    store.loading = true;
+  const handleResponseErrors = (responseErrors) => {
+    Object.keys(responseErrors).forEach((fieldName) => {
+      if (fieldName === "name") {
+        actions.setFieldError("attributeName", responseErrors[fieldName]);
+      }
 
-    const response = await $apiClient<ICreateResponse>("/admin/attributes", {
-      method: "POST",
-      body: {
-        name: values.attributeName,
-        values: values.attributeValues,
-      },
-    }).catch((error) => error.data);
+      if (fieldName === "values") {
+        actions.setFieldError("attributeValues", responseErrors[fieldName]);
+      }
 
-    store.loading = false;
-
-    if (response.errors) {
-      Object.keys(response.errors).forEach((filedName) => {
-        if (filedName === "name") {
-          actions.setFieldError("attributeName", response.errors[filedName]);
-        }
-
-        if (filedName === "values") {
-          actions.setFieldError("attributeValues", response.errors[filedName]);
-        }
-
-        toast.add({
-          severity: "error",
-          summary: "Request failed",
-          detail: response.errors[filedName].join(" , "),
-          life: 3000,
-        });
+      toast.add({
+        severity: "error",
+        summary: "Request failed",
+        detail: responseErrors[fieldName].join(" , "),
+        life: 3000,
       });
+    });
+  };
 
-      return;
-    }
-
+  const handleSuccess = (message: string) => {
     toast.add({
       severity: "success",
-      summary: "Attribute Created",
-      detail: response.message,
+      summary: "Request Success",
+      detail: message,
       life: 3000,
     });
 
     emits("onFormSubmit");
+  };
+
+  const makeRequest = async (url, method, body) => {
+    store.loading = true;
+    const response = await $apiClient<ICreateResponse>(url, {
+      method,
+      body,
+    }).catch((error) => error.data);
+    store.loading = false;
+    return response;
+  };
+
+  const requestBody = {
+    name: values.attributeName,
+    values: values.attributeValues,
+  };
+
+  let response;
+
+  if (!props.attributeData) {
+    response = await makeRequest("/admin/attributes", "POST", requestBody);
+  } else {
+    response = await makeRequest(
+      `/admin/attributes/${props.attributeData.slug}`,
+      "PUT",
+      requestBody,
+    );
   }
+
+  if (response.errors) {
+    handleResponseErrors(response.errors);
+    return;
+  }
+
+  handleSuccess(response.message);
 });
 </script>
 
@@ -102,6 +129,7 @@ const onSubmit = handleSubmit(async (values, actions) => {
       <div class="mt-5">
         <p class="flex justify-between">
           <label for="attr-values">Attribute Values</label>
+          <span class="text-red-400 text-xs">{{ errors.attributeValues }}</span>
         </p>
 
         <div id="attr-values" class="grid grid-cols-3 gap-4">
@@ -144,7 +172,7 @@ const onSubmit = handleSubmit(async (values, actions) => {
           Reset
         </Button>
         <Button
-          :disabled="store.loading"
+          :disabled="store.loading || !meta.valid || !meta.dirty"
           :loading="store.loading"
           class="action-button submit-button"
           type="submit"
