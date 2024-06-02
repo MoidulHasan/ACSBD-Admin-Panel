@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { FilterMatchMode } from "primevue/api";
+import { useToast } from "primevue/usetoast";
+import type { IPaginatedResponse } from "~/app/interfaces/common";
+import type { IProductAttribute } from "~/app/interfaces/products";
 
 useHead({
   title: "Attributes | Product",
@@ -11,6 +14,7 @@ definePageMeta({
 
 const store = useStore();
 const { $apiClient } = useNuxtApp();
+const toast = useToast();
 
 const currentPage = ref(1);
 const showAttributeFormModal = ref(false);
@@ -19,12 +23,20 @@ const {
   data: attributes,
   pending,
   refresh,
+  error,
 } = await useAsyncData(
-  () => $apiClient(`admin/attributes?page=${currentPage.value}`),
+  () =>
+    $apiClient<IPaginatedResponse<IProductAttribute>>(
+      `/admin/attributes?page=${currentPage.value}&limit=10`,
+    ),
   {
     watch: [currentPage],
   },
 );
+
+if (error.value) {
+  throw createError(error.value);
+}
 
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -62,9 +74,8 @@ const handleDeleteButtonClick = async (id: number) => {
     <DataTable
       v-if="attributes?.data"
       v-model:filters="filters"
-      :value="attributes?.data"
+      :value="attributes.data"
       table-style="min-width: 50rem"
-      :rows="10"
       data-key="id"
       :loading="pending"
       :global-filter-fields="['name', 'values.name']"
