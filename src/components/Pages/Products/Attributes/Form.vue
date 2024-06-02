@@ -43,7 +43,7 @@ const placeHolderValues = ref(["White", "Red", "Blue"]);
 const onSubmit = handleSubmit(async (values) => {
   if (!props.attrName && !props.attrValues) {
     try {
-      store.setLoading(true);
+      store.loading = true;
 
       const response = await $apiClient("/admin/attributes", {
         method: "POST",
@@ -53,13 +53,13 @@ const onSubmit = handleSubmit(async (values) => {
         },
       });
 
-      store.setLoading(false);
+      store.loading = false;
 
       console.log(response);
 
       emits("onFormSubmit");
     } catch (error) {
-      store.setLoading(false);
+      store.loading = false;
 
       // Handle the error
       console.error("An error occurred while submitting the form:", error);

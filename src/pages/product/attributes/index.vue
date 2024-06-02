@@ -37,19 +37,19 @@ const handleFormSubmit = async () => {
   await refresh();
 };
 
-const handleDeleteButtonClick = async (id: number) => {
+const handleDeleteButtonClick = async (slug: string) => {
   try {
-    store.setLoading(true);
-    const response = await $fetch(`/api/proxy/admin/attributes/${id}`, {
+    store.loading = true;
+    const response = await $fetch(`/api/proxy/admin/attributes/${slug}`, {
       method: "DELETE",
     });
-    store.setLoading(false);
+    store.loading = false;
 
     console.log(response);
 
     await refresh();
   } catch (error) {
-    store.setLoading(false);
+    store.loading = false;
 
     // Handle the error
     console.error("An error occurred while submitting the form:", error);
@@ -111,7 +111,7 @@ const handleDeleteButtonClick = async (id: number) => {
 
             <button
               class="action-button"
-              @click="() => handleDeleteButtonClick(slotProps.data.id)"
+              @click="() => handleDeleteButtonClick(slotProps.data.slug)"
             >
               <i class="pi pi-trash" />
             </button>
