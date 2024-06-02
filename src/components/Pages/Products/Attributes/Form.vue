@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import * as yup from "yup";
+import type { ICreateResponse } from "~/app/interfaces/common";
 
 interface IProps {
   attrName?: string;
@@ -13,6 +14,7 @@ const emits = defineEmits<{
 }>();
 
 const store = useStore();
+const toast = useToast();
 const { $apiClient } = useNuxtApp();
 
 const validationSchema = yup.object({
@@ -40,30 +42,49 @@ const {
 
 const placeHolderValues = ref(["White", "Red", "Blue"]);
 
-const onSubmit = handleSubmit(async (values) => {
+const onSubmit = handleSubmit(async (values, actions) => {
   if (!props.attrName && !props.attrValues) {
-    try {
-      store.setLoading(true);
+    store.loading = true;
 
-      const response = await $apiClient("/admin/attributes", {
-        method: "POST",
-        body: {
-          name: values.attributeName,
-          values: values.attributeValues,
-        },
+    const response = await $apiClient<ICreateResponse>("/admin/attributes", {
+      method: "POST",
+      body: {
+        name: values.attributeName,
+        values: values.attributeValues,
+      },
+    }).catch((error) => error.data);
+
+    store.loading = false;
+
+    if (response.errors) {
+      Object.keys(response.errors).forEach((filedName) => {
+        if (filedName === "name") {
+          actions.setFieldError("attributeName", response.errors[filedName]);
+        }
+
+        if (filedName === "values") {
+          actions.setFieldError("attributeValues", response.errors[filedName]);
+        }
+
+        toast.add({
+          severity: "error",
+          summary: "Request failed",
+          detail: response.errors[filedName].join(" , "),
+          life: 3000,
+        });
       });
 
-      store.setLoading(false);
-
-      console.log(response);
-
-      emits("onFormSubmit");
-    } catch (error) {
-      store.setLoading(false);
-
-      // Handle the error
-      console.error("An error occurred while submitting the form:", error);
+      return;
     }
+
+    toast.add({
+      severity: "success",
+      summary: "Attribute Created",
+      detail: response.message,
+      life: 3000,
+    });
+
+    emits("onFormSubmit");
   }
 });
 </script>
