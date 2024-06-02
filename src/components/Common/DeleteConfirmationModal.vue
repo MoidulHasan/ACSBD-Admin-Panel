@@ -17,7 +17,7 @@ const visible = defineModel<boolean>("visible", {
 <template>
   <div>
     <ClientOnly>
-      <Dialog v-model:visible="visible" class="delete-brand-modal" modal>
+      <Dialog v-model:visible="visible" modal>
         <template #container>
           <div class="modal-items">
             <slot name="body">
@@ -38,14 +38,14 @@ const visible = defineModel<boolean>("visible", {
             <div class="flex justify-center items-center gap-3">
               <Button
                 :disabled="disabled"
-                class="modal-button cancel font-heading-7 font-semibold"
+                class="cancel-button font-heading-7 font-semibold"
                 @click="emits('onCancel')"
               >
                 Cancel
               </Button>
               <Button
                 :disabled="disabled"
-                class="modal-button delete-brand font-heading-7 font-semibold"
+                class="delete-button font-heading-7 font-semibold"
                 @click="emits('onConfirm')"
               >
                 Delete
@@ -96,19 +96,7 @@ const visible = defineModel<boolean>("visible", {
   color: #787878;
 }
 
-.modal-button {
-  //display: inline-flex;
-  //padding: 12px 40px;
-  //justify-content: center;
-  //align-items: center;
-  //gap: 12px;
-  //border-radius: 6px;
-}
-
-.cancel {
-  //background-color: var(--envitect-sam-blue-5);
-  //color: var(--primary-color-envitect-sam-blue);
-
+.cancel-button {
   display: flex;
   flex-direction: row;
   justify-content: center;
@@ -120,7 +108,7 @@ const visible = defineModel<boolean>("visible", {
   height: 40px;
 
   /* Dark Gray/20% */
-  background: #dddddd;
+  background: var(--dark-gray-20);
   border-radius: 4px;
 
   font-style: normal;
@@ -129,7 +117,7 @@ const visible = defineModel<boolean>("visible", {
   line-height: 24px;
 
   /* Dark Gray/80% */
-  color: #787878;
+  color: var(--dark-gray-80);
 
   /* Inside auto layout */
   flex: none;
@@ -137,10 +125,7 @@ const visible = defineModel<boolean>("visible", {
   flex-grow: 0;
 }
 
-.delete-brand {
-  //color: var(--primary-color-white);
-  //background-color: var(--color-danger);
-
+.delete-button {
   /* Auto layout */
   display: flex;
   flex-direction: row;
@@ -149,7 +134,7 @@ const visible = defineModel<boolean>("visible", {
   padding: 8px 24px;
   gap: 12px;
 
-  background: #de0000;
+  background: var(--color-danger);
   border-radius: 4px;
 
   width: 106px;
