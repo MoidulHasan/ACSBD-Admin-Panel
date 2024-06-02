@@ -60,6 +60,7 @@ const handleDeleteButtonClick = async (id: number) => {
 <template>
   <div class="table-container">
     <DataTable
+      v-if="attributes?.data"
       v-model:filters="filters"
       :value="attributes?.data"
       table-style="min-width: 50rem"
@@ -126,6 +127,10 @@ const handleDeleteButtonClick = async (id: number) => {
         />
       </template>
     </DataTable>
+
+    <div v-else-if="error" class="h-full">
+      <CommonError :error="error" />
+    </div>
 
     <client-only>
       <Dialog
