@@ -18,6 +18,8 @@ const toast = useToast();
 
 const currentPage = ref(1);
 const showAttributeFormModal = ref(false);
+const showDeleteConfirmationModal = ref(false);
+const deletableAttributeSlug = ref<null | string>(null);
 
 const {
   data: attributes,
@@ -59,12 +61,45 @@ const handleDeleteButtonClick = async (id: number) => {
 
     console.log(response);
 
+const handleDeleteButtonClick = (slug: string) => {
+  showDeleteConfirmationModal.value = true;
+  deletableAttributeSlug.value = slug;
+};
+
+const hideDeleteConfirmationModal = () => {
+  showDeleteConfirmationModal.value = false;
+  deletableAttributeSlug.value = null;
+};
+
+const handleDeleteConfirmation = async () => {
+  try {
+    store.loading = true;
+    const response = await $apiClient(
+      `/admin/attributes/${deletableAttributeSlug.value}`,
+      {
+        method: "DELETE",
+      },
+    );
+    store.loading = false;
+
+    toast.add({
+      severity: "success",
+      summary: "Request Success",
+      detail: response.message,
+      life: 3000,
+    });
+
+    hideDeleteConfirmationModal();
     await refresh();
   } catch (error) {
-    store.setLoading(false);
+    store.loading = false;
 
-    // Handle the error
-    console.error("An error occurred while submitting the form:", error);
+    toast.add({
+      severity: "error",
+      summary: "Request Failed",
+      detail: error.statusMessage,
+      life: 3000,
+    });
   }
 };
 </script>
@@ -123,7 +158,7 @@ const handleDeleteButtonClick = async (id: number) => {
 
             <button
               class="action-button"
-              @click="() => handleDeleteButtonClick(slotProps.data.id)"
+              @click="() => handleDeleteButtonClick(slotProps.data.slug)"
             >
               <i class="pi pi-trash" />
             </button>
@@ -152,6 +187,13 @@ const handleDeleteButtonClick = async (id: number) => {
       >
         <PagesProductsAttributesForm @on-form-submit="handleFormSubmit" />
       </Dialog>
+
+      <CommonDeleteConfirmationModal
+        v-model:visible="showDeleteConfirmationModal"
+        :disabled="store.loading"
+        @on-confirm="handleDeleteConfirmation"
+        @on-cancel="hideDeleteConfirmationModal"
+      />
     </client-only>
   </div>
 </template>
