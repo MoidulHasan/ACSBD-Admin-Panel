@@ -1,35 +1,22 @@
 <script setup lang="ts">
-import { usePrimeVue } from "primevue/config";
 import { useToast } from "primevue/usetoast";
 import { FilterMatchMode } from "primevue/api";
 import DataTableHeader from "~/components/Common/DataTableHeader.vue";
-import { useStore } from "#imports";
+import { formatSize } from "~/utils/formatSize";
+import type { CategoryData, MinifiedCategory } from "~/app/interfaces/products";
+import type { IPaginatedResponse } from "~/app/interfaces/common";
 
 useHead({
   title: "Categories | Product",
 });
-
+import { useStore } from "#imports";
 definePageMeta({
   name: "product-categories",
 });
 
-export interface CategoryData {
-  id: number;
-  name: string;
-  slug: string;
-  image_url: string;
-  parent_id: number;
-  meta_title: string;
-  meta_description: string;
-  visibility_status: string;
-  children: Array<CategoryData | []>;
-}
+const toast = useToast();
+const { $apiClient } = useNuxtApp();
 
-export interface MinifiedCategory {
-  id: number | null;
-  name: string;
-  parent_id: number | null;
-}
 export interface EditableCategoryProperties {
   image: string;
   metaDescription: string;
@@ -42,24 +29,25 @@ export interface EditableCategoryProperties {
     code: "public" | "hidden";
   };
 }
-
 const currentPage = ref(1);
-const $primevue = usePrimeVue();
-const toast = useToast();
-const expandedRows = ref({});
-
 const store = useStore();
+
+const expandedRows = ref({});
 
 const {
   data: categories,
   pending,
   refresh: refreshAllData,
-} = await useFetch(
-  () => `/api/proxy/admin/categories?page=${currentPage.value}&limit=10`,
+  error,
+} = await useAsyncData<IPaginatedResponse<CategoryData[]>>(
+  () => $apiClient(`/admin/categories?page=${currentPage}&limit=10`),
   {
     watch: [currentPage],
   },
 );
+if (error.value) {
+  throw createError(error.value);
+}
 
 store.productCategories = categories.value?.data.map(
   (category: MinifiedCategory) => {
@@ -104,20 +92,6 @@ const statuses = ref([
   { name: "Active", code: "public" },
   { name: "De-active", code: "hidden" },
 ]);
-
-const formatSize = (bytes: number): string => {
-  const k = 1024;
-  const dm = 3;
-  const sizes = $primevue.config.locale?.fileSizeTypes;
-
-  if (bytes === 0) {
-    return `0 ${sizes[0]}`;
-  }
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  const formattedSize = parseFloat((bytes / Math.pow(k, i)).toFixed(dm));
-
-  return `${formattedSize} ${sizes[i]}`;
-};
 
 const openCategoryCreationModal = () => {
   visibleCategoryCreationModal.value = true;
