@@ -1,11 +1,15 @@
 <script setup lang="ts">
 definePageMeta({
-  name: "create-new-product",
+  name: "product-details",
+});
+
+useHead({
+  title: "Details | Products",
 });
 </script>
 
 <template>
-  <div>product create page</div>
+  <div>product details</div>
 </template>
 
 <style scoped></style>
