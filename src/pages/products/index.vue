@@ -36,6 +36,16 @@ const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
 });
 
+const getSeverity = (status) => {
+  switch (status) {
+    case "public":
+      return "success";
+
+    case "hidden":
+      return "info";
+  }
+};
+
 const handleCreateNewProduct = async () => {
   await navigateTo({ name: "product-create-new" });
 };
@@ -162,13 +172,12 @@ const handleDeleteConfirmation = async () => {
         </template>
       </Column>
 
-      <Column header="Status">
-        <template #body="slotProps">
-          {{
-            slotProps.data.visibility_status === "public"
-              ? "Active"
-              : "Inactive"
-          }}
+      <Column header="Status" field="visibility_status">
+        <template #body="{ data }">
+          <Tag
+            :value="data.visibility_status === 'public' ? 'Active' : 'Inactive'"
+            :severity="getSeverity(data.visibility_status)"
+          />
         </template>
       </Column>
 
