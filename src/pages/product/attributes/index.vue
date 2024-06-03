@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { FilterMatchMode } from "primevue/api";
+import { useToast } from "primevue/usetoast";
+import type { IPaginatedResponse } from "~/app/interfaces/common";
+import type { IProductAttribute } from "~/app/interfaces/products";
 
 useHead({
   title: "Attributes | Product",
@@ -11,20 +14,32 @@ definePageMeta({
 
 const store = useStore();
 const { $apiClient } = useNuxtApp();
+const toast = useToast();
 
 const currentPage = ref(1);
 const showAttributeFormModal = ref(false);
+const showDeleteConfirmationModal = ref(false);
+const deletableAttributeSlug = ref<null | string>(null);
+const editableAttributeData = ref<null | IProductAttribute>(null);
 
 const {
   data: attributes,
   pending,
   refresh,
+  error,
 } = await useAsyncData(
-  () => $apiClient(`admin/attributes?page=${currentPage.value}&limit=10`),
+  () =>
+    $apiClient<IPaginatedResponse<IProductAttribute>>(
+      `/admin/attributes?page=${currentPage.value}&limit=10`,
+    ),
   {
     watch: [currentPage],
   },
 );
+
+if (error.value) {
+  throw createError(error.value);
+}
 
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -34,25 +49,54 @@ const filters = ref({
 
 const handleFormSubmit = async () => {
   showAttributeFormModal.value = false;
+  editableAttributeData.value = null;
   await refresh();
 };
 
-const handleDeleteButtonClick = async (slug: string) => {
+const handleEditButtonClick = (attributeData: IProductAttribute) => {
+  editableAttributeData.value = attributeData;
+  showAttributeFormModal.value = true;
+};
+
+const handleDeleteButtonClick = (slug: string) => {
+  showDeleteConfirmationModal.value = true;
+  deletableAttributeSlug.value = slug;
+};
+
+const hideDeleteConfirmationModal = () => {
+  showDeleteConfirmationModal.value = false;
+  deletableAttributeSlug.value = null;
+};
+
+const handleDeleteConfirmation = async () => {
   try {
     store.loading = true;
-    const response = await $fetch(`/api/proxy/admin/attributes/${slug}`, {
-      method: "DELETE",
-    });
+    const response = await $apiClient(
+      `/admin/attributes/${deletableAttributeSlug.value}`,
+      {
+        method: "DELETE",
+      },
+    );
     store.loading = false;
 
-    console.log(response);
+    toast.add({
+      severity: "success",
+      summary: "Request Success",
+      detail: response.message,
+      life: 3000,
+    });
 
+    hideDeleteConfirmationModal();
     await refresh();
   } catch (error) {
     store.loading = false;
 
-    // Handle the error
-    console.error("An error occurred while submitting the form:", error);
+    toast.add({
+      severity: "error",
+      summary: "Request Failed",
+      detail: error.statusMessage,
+      life: 3000,
+    });
   }
 };
 </script>
@@ -60,10 +104,10 @@ const handleDeleteButtonClick = async (slug: string) => {
 <template>
   <div class="table-container">
     <DataTable
+      v-if="attributes?.data"
       v-model:filters="filters"
-      :value="attributes?.data"
+      :value="attributes.data"
       table-style="min-width: 50rem"
-      :rows="10"
       data-key="id"
       :loading="pending"
       :global-filter-fields="['name', 'values.name']"
@@ -105,7 +149,10 @@ const handleDeleteButtonClick = async (slug: string) => {
       <Column header="Actions">
         <template #body="slotProps">
           <div class="flex items-center gap-2">
-            <button class="action-button">
+            <button
+              class="action-button"
+              @click="() => handleEditButtonClick(slotProps.data)"
+            >
               <i class="pi pi-file-edit" />
             </button>
 
@@ -127,15 +174,30 @@ const handleDeleteButtonClick = async (slug: string) => {
       </template>
     </DataTable>
 
+    <div v-else-if="error" class="h-full">
+      <CommonError :error="error" />
+    </div>
+
     <client-only>
       <Dialog
         v-model:visible="showAttributeFormModal"
         modal
         :draggable="false"
         header="Add Attribute"
+        @hide="() => (editableAttributeData = null)"
       >
-        <PagesProductsAttributesForm @on-form-submit="handleFormSubmit" />
+        <PagesProductsAttributesForm
+          :attribute-data="editableAttributeData"
+          @on-form-submit="handleFormSubmit"
+        />
       </Dialog>
+
+      <CommonDeleteConfirmationModal
+        v-model:visible="showDeleteConfirmationModal"
+        :disabled="store.loading"
+        @on-confirm="handleDeleteConfirmation"
+        @on-cancel="hideDeleteConfirmationModal"
+      />
     </client-only>
   </div>
 </template>

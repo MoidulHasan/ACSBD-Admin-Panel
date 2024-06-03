@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import * as yup from "yup";
+import type { ICreateResponse } from "~/app/interfaces/common";
+import type { IProductAttribute } from "~/app/interfaces/products";
 
 interface IProps {
-  attrName?: string;
-  attrValues?: string[];
+  attributeData?: IProductAttribute;
 }
 
 const props = defineProps<IProps>();
@@ -13,6 +14,7 @@ const emits = defineEmits<{
 }>();
 
 const store = useStore();
+const toast = useToast();
 const { $apiClient } = useNuxtApp();
 
 const validationSchema = yup.object({
@@ -20,14 +22,21 @@ const validationSchema = yup.object({
   attributeValues: yup
     .array()
     .of(yup.string().required("Value is required"))
-    .required("Value is required"),
+    .required("Value is required")
+    .test(
+      "unique",
+      "Values must be unique",
+      (values) => values.length === new Set(values).size,
+    ),
 });
 
-const { handleSubmit, errors, submitCount, handleReset } = useForm({
+const { handleSubmit, errors, submitCount, handleReset, meta } = useForm({
   validationSchema,
   initialValues: {
-    attributeName: props.attrName ?? "",
-    attributeValues: props.attrValues ?? [""],
+    attributeName: props.attributeData?.name ?? "",
+    attributeValues: props.attributeData?.values.map((value) => value.name) ?? [
+      "",
+    ],
   },
 });
 
@@ -40,31 +49,70 @@ const {
 
 const placeHolderValues = ref(["White", "Red", "Blue"]);
 
-const onSubmit = handleSubmit(async (values) => {
-  if (!props.attrName && !props.attrValues) {
-    try {
-      store.loading = true;
+const onSubmit = handleSubmit(async (values, actions) => {
+  const handleResponseErrors = (responseErrors) => {
+    Object.keys(responseErrors).forEach((fieldName) => {
+      if (fieldName === "name") {
+        actions.setFieldError("attributeName", responseErrors[fieldName]);
+      }
 
-      const response = await $apiClient("/admin/attributes", {
-        method: "POST",
-        body: {
-          name: values.attributeName,
-          values: values.attributeValues,
-        },
+      if (fieldName === "values") {
+        actions.setFieldError("attributeValues", responseErrors[fieldName]);
+      }
+
+      toast.add({
+        severity: "error",
+        summary: "Request failed",
+        detail: responseErrors[fieldName].join(" , "),
+        life: 3000,
       });
+    });
+  };
 
-      store.loading = false;
+  const handleSuccess = (message: string) => {
+    toast.add({
+      severity: "success",
+      summary: "Request Success",
+      detail: message,
+      life: 3000,
+    });
 
-      console.log(response);
+    emits("onFormSubmit");
+  };
 
-      emits("onFormSubmit");
-    } catch (error) {
-      store.loading = false;
+  const makeRequest = async (url, method, body) => {
+    store.loading = true;
+    const response = await $apiClient<ICreateResponse>(url, {
+      method,
+      body,
+    }).catch((error) => error.data);
+    store.loading = false;
+    return response;
+  };
 
-      // Handle the error
-      console.error("An error occurred while submitting the form:", error);
-    }
+  const requestBody = {
+    name: values.attributeName,
+    values: values.attributeValues,
+  };
+
+  let response;
+
+  if (!props.attributeData) {
+    response = await makeRequest("/admin/attributes", "POST", requestBody);
+  } else {
+    response = await makeRequest(
+      `/admin/attributes/${props.attributeData.slug}`,
+      "PUT",
+      requestBody,
+    );
   }
+
+  if (response.errors) {
+    handleResponseErrors(response.errors);
+    return;
+  }
+
+  handleSuccess(response.message);
 });
 </script>
 
@@ -81,6 +129,7 @@ const onSubmit = handleSubmit(async (values) => {
       <div class="mt-5">
         <p class="flex justify-between">
           <label for="attr-values">Attribute Values</label>
+          <span class="text-red-400 text-xs">{{ errors.attributeValues }}</span>
         </p>
 
         <div id="attr-values" class="grid grid-cols-3 gap-4">
@@ -123,7 +172,7 @@ const onSubmit = handleSubmit(async (values) => {
           Reset
         </Button>
         <Button
-          :disabled="store.loading"
+          :disabled="store.loading || !meta.valid || !meta.dirty"
           :loading="store.loading"
           class="action-button submit-button"
           type="submit"
