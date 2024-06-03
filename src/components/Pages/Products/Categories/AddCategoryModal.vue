@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { usePrimeVue } from "primevue/config";
 import { useToast } from "primevue/usetoast";
-import { useStore } from "#imports";
+import { formatSize } from "~/utils/formatSize";
+
 const toast = useToast();
 
 defineOptions({
@@ -12,7 +12,7 @@ export interface Status {
   name: "Active" | "De-active";
   code: "public" | "hidden";
 }
-const $primevue = usePrimeVue();
+
 const emits = defineEmits<{
   (e: "closeCategoyAddModal"): void;
 }>();
@@ -23,7 +23,7 @@ const statuses = ref<Status[]>([
 ]);
 
 const files = ref([]);
-const onRemoveTemplatingFile = (file, removeFileCallback, index) => {
+const onRemoveTemplatingFile = (removeFileCallback: Function, index: number) => {
   removeFileCallback(index);
 };
 const fileToUp = ref<File | null>(null);
@@ -31,20 +31,6 @@ const onSelectedFiles = (event: any) => {
   const [_file] = event.files;
   fileToUp.value = _file;
   files.value = event.files;
-};
-
-const formatSize = (bytes) => {
-  const k = 1024;
-  const dm = 3;
-  const sizes = $primevue.config.locale!.fileSizeTypes;
-
-  if (bytes === 0) {
-    return `0 ${sizes[0]}`;
-  }
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  const formattedSize = parseFloat((bytes / Math.pow(k, i)).toFixed(dm));
-
-  return `${formattedSize} ${sizes[i]}`;
 };
 
 const categoryToAdd = ref({
