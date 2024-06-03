@@ -1,14 +1,17 @@
 <script setup lang="ts">
-import { usePrimeVue } from "primevue/config";
 import { useToast } from "primevue/usetoast";
 import { FilterMatchMode } from "primevue/api";
-import { useStore } from "#imports";
-import type { CategoryData, MinifiedCategory, EditableCategoryProperties } from "~/pages/product/categories/index.vue";
+import type {
+  CategoryData,
+  MinifiedCategory,
+  EditableCategoryProperties,
+} from "~/pages/product/categories/index.vue";
+import { formatSize } from "#imports";
 
-const $primevue = usePrimeVue();
 const toast = useToast();
 const expandedRows = ref({});
 const store = useStore();
+const { $apiClient } = useNuxtApp();
 
 const props = defineProps<{
   categories: any;
@@ -17,8 +20,6 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: "refreshAllCategory"): void;
 }>();
-
-
 
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -34,20 +35,6 @@ const statuses = ref([
   { name: "Active", code: "public" },
   { name: "De-active", code: "hidden" },
 ]);
-
-const formatSize = (bytes: number): string => {
-  const k = 1024;
-  const dm = 3;
-  const sizes = $primevue.config.locale?.fileSizeTypes;
-
-  if (bytes === 0) {
-    return `0 ${sizes[0]}`;
-  }
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  const formattedSize = parseFloat((bytes / Math.pow(k, i)).toFixed(dm));
-
-  return `${formattedSize} ${sizes[i]}`;
-};
 
 // starts edits
 const editableCategoryProperties = ref<EditableCategoryProperties>({
@@ -172,49 +159,6 @@ const editACategory = async () => {
 };
 
 // end edits!!
-
-const visibleDeleteModal = ref(false);
-const categoryForDelete = ref({});
-const openDeleteModal = (categoryData: CategoryData) => {
-  categoryForDelete.value = categoryData;
-  visibleDeleteModal.value = true;
-};
-const deleteTheCategory = async () => {
-  const { data } = await useFetch(
-    `/api/proxy/admin/categories/${(categoryForDelete.value as CategoryData).slug}`,
-    {
-      method: "DELETE",
-      onResponse({ response }) {
-        // Process the response data
-        if (response.status === 200) {
-          visibleDeleteModal.value = false;
-          toast.add({
-            severity: "success",
-            summary: "Category Deleted",
-            detail: `${response._data.message}`,
-            life: 3000,
-          });
-          categoryForDelete.value = {};
-        }
-      },
-      onResponseError() {
-        toast.add({
-          severity: "error",
-          summary: "Error",
-          detail: `Could Not delete Category`,
-          life: 3000,
-        });
-        // Handle the response errors
-      },
-    },
-  );
-  refreshAllData();
-};
-
-const hideDeleteModal = () => {
-  visibleDeleteModal.value = false;
-};
-
 const getParentName = (id: string | number | null) => {
   if (!id) {
     return "None";
@@ -222,6 +166,48 @@ const getParentName = (id: string | number | null) => {
 
   return store.productCategories.find((cat: MinifiedCategory) => cat.id === id)
     ?.name;
+};
+
+const showDeleteConfirmationModal = ref(false);
+const categorySlugToDelete = ref<null | string>(null);
+const handleDeleteButtonClick = (slug: string) => {
+  showDeleteConfirmationModal.value = true;
+  categorySlugToDelete.value = slug;
+};
+const hideDeleteConfirmationModal = () => {
+  showDeleteConfirmationModal.value = false;
+  categorySlugToDelete.value = null;
+};
+const handleDeleteConfirmation = async () => {
+  try {
+    store.loading = true;
+    const response = await $apiClient(
+      `/admin/categories/${categorySlugToDelete.value}`,
+      {
+        method: "DELETE",
+      },
+    );
+    store.loading = false;
+
+    toast.add({
+      severity: "success",
+      summary: "Request Success",
+      detail: response.message,
+      life: 3000,
+    });
+
+    hideDeleteConfirmationModal();
+    await refreshAllData();
+  } catch (error) {
+    store.loading = false;
+
+    toast.add({
+      severity: "error",
+      summary: "Request Failed",
+      detail: error.statusMessage,
+      life: 3000,
+    });
+  }
 };
 </script>
 
@@ -287,7 +273,7 @@ const getParentName = (id: string | number | null) => {
               <i
                 class="pi pi-trash block block-delete"
                 title="Delete This Category"
-                @click="openDeleteModal(slotProps.data)"
+                @click="() => handleDeleteButtonClick(slotProps.data.slug)"
               />
             </button>
           </div>
@@ -535,37 +521,12 @@ const getParentName = (id: string | number | null) => {
       </Dialog>
 
       <!--      delete modal -->
-      <Dialog
-        v-model:visible="visibleDeleteModal"
-        class="delete-category-modal"
-        close-on-escape
-        modal
-      >
-        <template #container>
-          <div class="modal-items">
-            <p class="modal-text font-heading-7 font-semibold text-center">
-              Are sou sure, <br />
-              you want to Delete Category -
-              {{ (categoryForDelete as CategoryData).name }}?
-            </p>
-
-            <div class="flex justify-center items-center gap-3">
-              <Button
-                class="modal-button cancel font-heading-7 font-semibold"
-                @click="hideDeleteModal"
-              >
-                Cancel
-              </Button>
-              <Button
-                class="modal-button delete-category font-heading-7 font-semibold"
-                @click="deleteTheCategory"
-              >
-                Delete
-              </Button>
-            </div>
-          </div>
-        </template>
-      </Dialog>
+      <CommonDeleteConfirmationModal
+        v-model:visible="showDeleteConfirmationModal"
+        :disabled="store.loading"
+        @on-confirm="handleDeleteConfirmation"
+        @on-cancel="hideDeleteConfirmationModal"
+      />
     </ClientOnly>
   </div>
 </template>

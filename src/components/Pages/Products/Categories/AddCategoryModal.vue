@@ -23,7 +23,10 @@ const statuses = ref<Status[]>([
 ]);
 
 const files = ref([]);
-const onRemoveTemplatingFile = (removeFileCallback: Function, index: number) => {
+const onRemoveTemplatingFile = (
+  removeFileCallback: Function,
+  index: number,
+) => {
   removeFileCallback(index);
 };
 const fileToUp = ref<File | null>(null);
@@ -177,11 +180,7 @@ const store = useStore();
                         rounded
                         severity="danger"
                         @click="
-                          onRemoveTemplatingFile(
-                            file,
-                            removeFileCallback,
-                            index,
-                          )
+                          onRemoveTemplatingFile(removeFileCallback, index)
                         "
                       />
                     </div>

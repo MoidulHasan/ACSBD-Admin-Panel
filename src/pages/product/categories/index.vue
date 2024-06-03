@@ -9,7 +9,7 @@ import type { IPaginatedResponse } from "~/app/interfaces/common";
 useHead({
   title: "Categories | Product",
 });
-import { useStore } from "#imports";
+
 definePageMeta({
   name: "product-categories",
 });
@@ -40,7 +40,7 @@ const {
   refresh: refreshAllData,
   error,
 } = await useAsyncData<IPaginatedResponse<CategoryData[]>>(
-  () => $apiClient(`/admin/categories?page=${currentPage}&limit=10`),
+  () => $apiClient(`/admin/categories?page=${currentPage.value}&limit=10`),
   {
     watch: [currentPage],
   },
@@ -127,7 +127,7 @@ const onSelectedFilesforEdit = (event: any) => {
 };
 const getParentInfo = (parentId: number) => {
   return (
-    store.productCategories.find(
+    store.productCategories?.find(
       (cat: MinifiedCategory) => cat.id === parentId,
     ) ?? {
       id: null,
@@ -220,55 +220,54 @@ const editACategory = async () => {
 };
 
 // end edits!!
-
-const visibleDeleteModal = ref(false);
-const categoryForDelete = ref({});
-const openDeleteModal = (categoryData: CategoryData) => {
-  categoryForDelete.value = categoryData;
-  visibleDeleteModal.value = true;
-};
-const deleteTheCategory = async () => {
-  const { data } = await useFetch(
-    `/api/proxy/admin/categories/${(categoryForDelete.value as CategoryData).slug}`,
-    {
-      method: "DELETE",
-      onResponse({ response }) {
-        // Process the response data
-        if (response.status === 200) {
-          visibleDeleteModal.value = false;
-          toast.add({
-            severity: "success",
-            summary: "Category Deleted",
-            detail: `${response._data.message}`,
-            life: 3000,
-          });
-          categoryForDelete.value = {};
-        }
-      },
-      onResponseError({ response }) {
-        toast.add({
-          severity: "error",
-          summary: "Error",
-          detail: `${response._data.message}`,
-          life: 3000,
-        });
-        // Handle the response errors
-      },
-    },
-  );
-  refreshAllData();
-};
-
-const hideDeleteModal = () => {
-  visibleDeleteModal.value = false;
-};
-
 const getParentName = (id: string | number | null) => {
   if (!id) {
     return "None";
   }
   return store.productCategories.find((cat: MinifiedCategory) => cat.id === id)
     ?.name;
+};
+
+const showDeleteConfirmationModal = ref(false);
+const categorySlugToDelete = ref<null | string>(null);
+const handleDeleteButtonClick = (slug: string) => {
+  showDeleteConfirmationModal.value = true;
+  categorySlugToDelete.value = slug;
+};
+const hideDeleteConfirmationModal = () => {
+  showDeleteConfirmationModal.value = false;
+  categorySlugToDelete.value = null;
+};
+const handleDeleteConfirmation = async () => {
+  try {
+    store.loading = true;
+    const response = await $apiClient(
+      `/admin/categories/${categorySlugToDelete.value}`,
+      {
+        method: "DELETE",
+      },
+    );
+    store.loading = false;
+
+    toast.add({
+      severity: "success",
+      summary: "Request Success",
+      detail: response.message,
+      life: 3000,
+    });
+
+    hideDeleteConfirmationModal();
+    await refreshAllData();
+  } catch (error) {
+    store.loading = false;
+
+    toast.add({
+      severity: "error",
+      summary: "Request Failed",
+      detail: error.statusMessage,
+      life: 3000,
+    });
+  }
 };
 </script>
 
@@ -356,12 +355,11 @@ const getParentName = (id: string | number | null) => {
                 @click="openEditModal(slotProps.data)"
               />
             </button>
-
             <button class="action-button">
               <i
                 class="pi pi-trash block block-delete"
                 title="Delete This Category"
-                @click="openDeleteModal(slotProps.data)"
+                @click="() => handleDeleteButtonClick(slotProps.data.slug)"
               />
             </button>
           </div>
@@ -608,37 +606,12 @@ const getParentName = (id: string | number | null) => {
       </Dialog>
 
       <!--      delete modal -->
-      <Dialog
-        v-model:visible="visibleDeleteModal"
-        class="delete-category-modal"
-        close-on-escape
-        modal
-      >
-        <template #container>
-          <div class="modal-items">
-            <p class="modal-text font-heading-7 font-semibold text-center">
-              Are sou sure, <br />
-              you want to Delete Category -
-              {{ (categoryForDelete as CategoryData).name }}?
-            </p>
-
-            <div class="flex justify-center items-center gap-3">
-              <Button
-                class="modal-button cancel font-heading-7 font-semibold"
-                @click="hideDeleteModal"
-              >
-                Cancel
-              </Button>
-              <Button
-                class="modal-button delete-category font-heading-7 font-semibold"
-                @click="deleteTheCategory"
-              >
-                Delete
-              </Button>
-            </div>
-          </div>
-        </template>
-      </Dialog>
+      <CommonDeleteConfirmationModal
+        v-model:visible="showDeleteConfirmationModal"
+        :disabled="store.loading"
+        @on-confirm="handleDeleteConfirmation"
+        @on-cancel="hideDeleteConfirmationModal"
+      />
     </ClientOnly>
   </div>
 </template>
@@ -690,9 +663,6 @@ const getParentName = (id: string | number | null) => {
 }
 
 .edit-category-button,
-.add-category-button {
-  background-color: var(--primary-color-envitect-sam-blue);
-}
 .block-edit,
 .block-delete {
   transition: 0.5s;
@@ -704,39 +674,5 @@ const getParentName = (id: string | number | null) => {
 }
 .block-delete:hover {
   color: var(--color-danger);
-}
-
-.modal-items {
-  background-color: #fff;
-  border-radius: 6px;
-  padding: 61px 63px;
-  @include media-query(sm) {
-    padding: 61px 20px;
-    border-radius: 12px;
-  }
-}
-
-.modal-text {
-  color: var(--navy-blue-80);
-  margin-bottom: 40px;
-}
-
-.modal-button {
-  display: inline-flex;
-  padding: 12px 40px;
-  justify-content: center;
-  align-items: center;
-  gap: 12px;
-  border-radius: 6px;
-}
-
-.cancel {
-  background-color: var(--envitect-sam-blue-5);
-  color: var(--primary-color-envitect-sam-blue);
-}
-
-.delete-category {
-  color: var(--primary-color-white);
-  background-color: var(--color-danger);
 }
 </style>
