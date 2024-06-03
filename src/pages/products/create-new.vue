@@ -9,7 +9,9 @@ definePageMeta({
 </script>
 
 <template>
-  <div>create new product</div>
+  <div>
+    <CommonCommingSoon />
+  </div>
 </template>
 
 <style scoped></style>

@@ -9,7 +9,9 @@ useHead({
 </script>
 
 <template>
-  <div>product details</div>
+  <div>
+    <CommonCommingSoon />
+  </div>
 </template>
 
 <style scoped></style>
