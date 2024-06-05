@@ -26,6 +26,7 @@ const {
   refresh,
   error,
 } = await useAsyncData<IPaginatedResponse<IProduct>>(
+  `/admin/products?page=${currentPage.value}&limit=10`,
   () => $apiClient(`/admin/products?page=${currentPage.value}&limit=10`),
   {
     watch: [currentPage],
