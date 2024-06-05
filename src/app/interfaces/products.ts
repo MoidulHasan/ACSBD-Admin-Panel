@@ -24,7 +24,7 @@ export interface CategoryData {
   meta_title: string;
   meta_description: string;
   visibility_status: string;
-  children: CategoryData[] | [];
+  children?: CategoryData[] | [];
 }
 
 export interface MinifiedCategory {
@@ -60,19 +60,6 @@ export interface IBrand {
   updated_at: string;
 }
 
-export interface ICategory {
-  id: number;
-  name: string;
-  slug: string;
-  image_url: string;
-  parent_id: number | null;
-  visibility_status: string;
-  meta_title: string;
-  meta_description: string;
-  created_at: string;
-  updated_at: string;
-}
-
 export interface IImage {
   id: number;
   imageable_id: number;
@@ -91,7 +78,7 @@ export interface IProduct {
   warranty_and_services: IWarrantyAndServices;
   price: IPrice;
   brand: IBrand;
-  category: ICategory;
+  category: CategoryData;
   images: IImage[];
   created_at: string;
   updated_at: string;
