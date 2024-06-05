@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
-import { useForm, useField } from "vee-validate";
 import * as yup from "yup";
 
 import type { CategoryData } from "~/app/interfaces/products";
