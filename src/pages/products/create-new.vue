@@ -10,7 +10,7 @@ definePageMeta({
 
 <template>
   <div>
-    <CommonCommingSoon />
+    <PagesProductForm />
   </div>
 </template>
 
