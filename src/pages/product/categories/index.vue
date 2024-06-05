@@ -3,10 +3,7 @@ import { useToast } from "primevue/usetoast";
 import { FilterMatchMode } from "primevue/api";
 import DataTableHeader from "~/components/Common/DataTableHeader.vue";
 
-import type {
-  CategoryData,
-  MinifiedCategory,
-} from "~/app/interfaces/products";
+import type { CategoryData, MinifiedCategory } from "~/app/interfaces/products";
 import type { IPaginatedResponse } from "~/app/interfaces/common";
 
 useHead({
@@ -40,15 +37,10 @@ if (error.value) {
   throw createError(error.value);
 }
 
-store.productCategories = categories.value?.data.map(
-  (category: MinifiedCategory) => {
-    return {
-      id: category.id,
-      name: category.name,
-      parent_id: category.parent_id,
-    };
-  },
+const { data: allCategories, refresh: refreshCategories } = await useAsyncData(
+  () => $apiClient(`/admin/categories`),
 );
+
 function flattenDataUsingReduce(categories: any) {
   return categories.reduce((acc: any, item: any) => {
     const { childrens, ...rest } = item;
@@ -59,7 +51,13 @@ function flattenDataUsingReduce(categories: any) {
     return acc;
   }, []);
 }
-store.productCategories = flattenDataUsingReduce(categories.value?.data);
+
+const refreshAllCategoryData = () => {
+  store.productCategories = flattenDataUsingReduce(allCategories.value?.data);
+};
+if (categories.value?.data.length) {
+  refreshAllCategoryData();
+}
 
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -88,10 +86,16 @@ const getParentName = (id: string | number | null) => {
 const showCategoryFormModal = ref(false);
 const editableCategoryData = ref(null);
 
+const refreshCategoryInfo = async () => {
+  await refreshAllData();
+  await refreshCategories();
+  refreshAllCategoryData();
+};
+
 const handleFormSubmit = async () => {
   showCategoryFormModal.value = false;
   editableCategoryData.value = null;
-  await refreshAllData();
+  await refreshCategoryInfo();
 };
 
 // edit
@@ -133,7 +137,7 @@ const handleDeleteConfirmation = async () => {
     });
 
     hideDeleteConfirmationModal();
-    await refreshAllData();
+    await refreshCategoryInfo();
   } catch (error) {
     store.loading = false;
 
@@ -244,7 +248,7 @@ const handleDeleteConfirmation = async () => {
           <h5 class="pb-2">Children of {{ slotProps.data.name }}</h5>
           <PagesProductsCategoriesListingTable
             :categories="slotProps.data.childrens"
-            @refresh-all-category="refreshAllData"
+            @refresh-all-category="refreshCategoryInfo"
           />
         </div>
         <h3 v-else>No Children found for {{ slotProps.data.name }}</h3>

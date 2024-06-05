@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import { useToast } from "primevue/usetoast";
 import { FilterMatchMode } from "primevue/api";
-import type {
-  CategoryData,
-  MinifiedCategory,
-} from "~/app/interfaces/products";
+import type { CategoryData, MinifiedCategory } from "~/app/interfaces/products";
 
 const toast = useToast();
 const expandedRows = ref({});
@@ -30,11 +27,15 @@ const refreshAllData = async () => {
 };
 
 const getParentName = (id: string | number | null) => {
+  console.log(id);
   if (!id) {
     return "None";
   }
-  return store.productCategories.find((cat: MinifiedCategory) => cat.id === id)
-    ?.name;
+  console.log(store.productCategories);
+  return (
+    store.productCategories.find((cat: MinifiedCategory) => cat.id === id)
+      ?.name ?? "None"
+  );
 };
 
 const showCategoryFormModal = ref(false);

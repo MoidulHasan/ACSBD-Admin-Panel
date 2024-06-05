@@ -6,7 +6,7 @@ import type { ICreateResponse } from "~/app/interfaces/common";
 import { formatSize } from "~/utils/formatSize";
 
 export interface Status {
-  name: "Active" | "De-active";
+  name: "Active" | "Inactive";
   code: "public" | "hidden";
 }
 
@@ -25,7 +25,7 @@ const { $apiClient } = useNuxtApp();
 
 const statuses = ref<Status[]>([
   { name: "Active", code: "public" },
-  { name: "De-active", code: "hidden" },
+  { name: "Inactive", code: "hidden" },
 ]);
 
 const files = ref([]);
@@ -144,7 +144,7 @@ const onSubmit = handleSubmit(async (values, actions) => {
     store.loading = true;
     const response = await $apiClient<ICreateResponse>(url, {
       method,
-      body
+      body,
     }).catch((error) => error.data);
     store.loading = false;
     return response;
@@ -159,13 +159,15 @@ const onSubmit = handleSubmit(async (values, actions) => {
     requestBody.append("image", fileToUp.value, fileToUp.value.name);
   }
   requestBody.append("parent_id", values.categoryParent);
-  requestBody.append("_method", "PUT");
-
+  if (props.categoryData) {
+    requestBody.append("_method", "PUT");
+  }
 
   let response;
   if (!props.categoryData) {
     response = await makeRequest("/admin/categories", "POST", requestBody);
   } else {
+    console.log("HERE ", props.categoryData);
     response = await makeRequest(
       `/admin/categories/${props.categoryData.slug}`,
       "POST",
