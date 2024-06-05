@@ -1,31 +1,25 @@
 <script setup lang="ts">
-import { FilterMatchMode } from "primevue/api";
-import { usePrimeVue } from "primevue/config";
 import { useToast } from "primevue/usetoast";
-import DataTableHeader from "~/components/Common/DataTableHeader.vue";
+import { FilterMatchMode } from "primevue/api";
+import type {
+  CategoryData,
+  MinifiedCategory,
+  EditableCategoryProperties,
+} from "~/pages/product/categories/index.vue";
+import { formatSize } from "#imports";
 
-definePageMeta({
-  name: "product-brands",
-});
-
-useHead({
-  title: "Brands | Product",
-});
-
-const currentPage = ref(1);
-
-const $primevue = usePrimeVue();
 const toast = useToast();
+const expandedRows = ref({});
+const store = useStore();
+const { $apiClient } = useNuxtApp();
 
-// const {data: brands, refresh} = await getBrands();
+const props = defineProps<{
+  categories: any;
+}>();
 
-const {
-  data: brands,
-  pending,
-  refresh: refreshAllData,
-} = await useFetch(() => `/api/proxy/admin/brands?page=${currentPage.value}&limit=10`, {
-  watch: [currentPage],
-});
+const emit = defineEmits<{
+  (e: "refreshAllCategory"): void;
+}>();
 
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -33,47 +27,26 @@ const filters = ref({
   "values.name": { value: null, matchMode: FilterMatchMode.STARTS_WITH },
 });
 
-const visibleBrandCreationModal = ref(false);
-const visibleBrandEditModal = ref(false);
+// const visibleCategoryCreationModal = ref(false);
+
+const visibleCategoryEditModal = ref(false);
 
 const statuses = ref([
   { name: "Active", code: "public" },
   { name: "De-active", code: "hidden" },
 ]);
 
-const formatSize = (bytes: number): string => {
-  const k = 1024;
-  const dm = 3;
-  const sizes = $primevue.config.locale?.fileSizeTypes;
-
-  if (bytes === 0) {
-    return `0 ${sizes[0]}`;
-  }
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  const formattedSize = parseFloat((bytes / Math.pow(k, i)).toFixed(dm));
-
-  return `${formattedSize} ${sizes[i]}`;
-};
-
-const openBrandCreationModal = () => {
-  visibleBrandCreationModal.value = true;
-};
-
-const closeBrandCreationModal = () => {
-  refreshAllData();
-  visibleBrandCreationModal.value = false;
-};
-
 // starts edits
-const editableBrandProperties = ref({
+const editableCategoryProperties = ref<EditableCategoryProperties>({
   slug: "",
   name: "",
   metaDescription: "",
   metaTitle: "",
-  visibilityStatus: {},
+  visibilityStatus: { name: "Active", code: "public" },
   image: "",
+  parentId: { id: 0, name: "None", parent_id: null },
 });
-const brandInfo = ref({});
+const categoryInfo = ref({});
 
 const filesForEdit = ref([]);
 const onRemoveTemplatingFileEdit = (removeFileCallback: any, index: number) => {
@@ -87,61 +60,71 @@ const onSelectedFilesforEdit = (event: any) => {
   filesForEdit.value = event.files;
 };
 
-export interface BrandData {
-  slug: string;
-  name: string;
-  meta_title: string;
-  meta_description: string;
-  visibility_status: "public" | "hidden";
-  image_url: string;
-}
-const openEditModal = (brandData: BrandData) => {
-  // console.log(brandData, "To GO")
-  brandInfo.value = brandData;
-  editableBrandProperties.value.slug = brandData.slug;
-  editableBrandProperties.value.name = brandData.name;
-  editableBrandProperties.value.metaTitle = brandData.meta_title;
-  editableBrandProperties.value.metaDescription = brandData.meta_description;
-  if (brandData.visibility_status === "public") {
-    editableBrandProperties.value.visibilityStatus = {
-      name: "Active",
-      code: "public",
-    };
-  } else {
-    editableBrandProperties.value.visibilityStatus = {
-      name: "De-active",
-      code: "hidden",
-    };
-  }
+const refreshAllData = () => {
+  emit("refreshAllCategory");
+};
 
-  editableBrandProperties.value.image = brandData.image_url;
+const getParentInfo = (parentId: number) => {
+  return (
+    store.productCategories.find(
+      (cat: MinifiedCategory) => cat.id === parentId,
+    ) ?? {
+      id: null,
+      name: "None",
+      parent_id: 0,
+    }
+  );
+};
 
-  visibleBrandEditModal.value = true;
+const openEditModal = (categoryData: CategoryData) => {
+  // console.log(categoryData, "To GO")
+  categoryInfo.value = categoryData;
+  editableCategoryProperties.value.slug = categoryData.slug;
+  editableCategoryProperties.value.name = categoryData.name;
+  editableCategoryProperties.value.metaTitle = categoryData.meta_title;
+  editableCategoryProperties.value.parentId = getParentInfo(
+    categoryData.parent_id,
+  );
+  editableCategoryProperties.value.metaDescription =
+    categoryData.meta_description;
+  editableCategoryProperties.value.visibilityStatus =
+    categoryData.visibility_status === "public"
+      ? {
+          name: "Active",
+          code: "public",
+        }
+      : {
+          name: "De-active",
+          code: "hidden",
+        };
+  editableCategoryProperties.value.image = categoryData.image_url;
+  visibleCategoryEditModal.value = true;
 };
 
 const removeExistingImage = () => {
-  editableBrandProperties.value.image = "";
+  editableCategoryProperties.value.image = "";
 };
 
-const editABrand = async () => {
+const editACategory = async () => {
   const body = new FormData();
-  body.append("name", editableBrandProperties.value.name);
-  body.append("meta_title", editableBrandProperties.value.metaTitle);
+  body.append("name", editableCategoryProperties.value.name);
+  body.append("meta_title", editableCategoryProperties.value.metaTitle);
   body.append(
     "meta_description",
-    editableBrandProperties.value.metaDescription,
+    editableCategoryProperties.value.metaDescription,
   );
   body.append(
     "visibility_status",
-    editableBrandProperties.value.visibilityStatus?.code,
+    editableCategoryProperties.value.visibilityStatus.code,
   );
+  body.append("parent_id", editableCategoryProperties.value.parentId.id);
   if (fileToEditUp.value) {
     body.append("image", fileToEditUp.value, fileToEditUp.value.name);
   }
   body.append("_method", "PUT");
 
   const { data } = await useFetch(
-    `/api/proxy/admin/brands/${editableBrandProperties.value.slug}`,
+    `/api/proxy/admin/categories/${editableCategoryProperties.value.slug}`,
     {
       method: "POST",
       body,
@@ -150,18 +133,24 @@ const editABrand = async () => {
         if (response.status === 200) {
           toast.add({
             severity: "success",
-            summary: "Brand Edited",
+            summary: "Category Edited",
             detail: `${response._data.message}`,
             life: 3000,
           });
           refreshAllData();
-          visibleBrandEditModal.value = false;
+          visibleCategoryEditModal.value = false;
           fileToEditUp.value = null;
-          brandInfo.value = {};
+          categoryInfo.value = {};
         }
       },
-      onResponseError() {
+      onResponseError({ response }) {
         console.log("Error");
+        toast.add({
+          severity: "error",
+          summary: "Could not edit category.",
+          detail: `${response._data.message}`,
+          life: 3000,
+        });
 
         // Handle the response errors
       },
@@ -170,82 +159,78 @@ const editABrand = async () => {
 };
 
 // end edits!!
+const getParentName = (id: string | number | null) => {
+  if (!id) {
+    return "None";
+  }
 
-const visibleDeleteModal = ref(false);
-const brandForDelete = ref<BrandData | {}>({});
-const openDeleteModal = (brandData: BrandData) => {
-  brandForDelete.value = brandData;
-  visibleDeleteModal.value = true;
-};
-const deleteTheBrand = async () => {
-  const { data } = await useFetch(
-    `/api/proxy/admin/brands/${brandForDelete.value.slug}`,
-    {
-      method: "DELETE",
-      onResponse({ response }) {
-        // Process the response data
-        if (response.status === 200) {
-          visibleDeleteModal.value = false;
-          toast.add({
-            severity: "success",
-            summary: "Brand Deleted",
-            detail: `${response._data.message}`,
-            life: 3000,
-          });
-          brandForDelete.value = {};
-        }
-      },
-      onResponseError() {
-        toast.add({
-          severity: "error",
-          summary: "Error",
-          detail: `Could Not delete brand`,
-          life: 3000,
-        });
-        // Handle the response errors
-      },
-    },
-  );
-  refreshAllData();
+  return store.productCategories.find((cat: MinifiedCategory) => cat.id === id)
+    ?.name;
 };
 
-const hideDeleteModal = () => {
-  visibleDeleteModal.value = false;
+const showDeleteConfirmationModal = ref(false);
+const categorySlugToDelete = ref<null | string>(null);
+const handleDeleteButtonClick = (slug: string) => {
+  showDeleteConfirmationModal.value = true;
+  categorySlugToDelete.value = slug;
+};
+const hideDeleteConfirmationModal = () => {
+  showDeleteConfirmationModal.value = false;
+  categorySlugToDelete.value = null;
+};
+const handleDeleteConfirmation = async () => {
+  try {
+    store.loading = true;
+    const response = await $apiClient(
+      `/admin/categories/${categorySlugToDelete.value}`,
+      {
+        method: "DELETE",
+      },
+    );
+    store.loading = false;
+
+    toast.add({
+      severity: "success",
+      summary: "Request Success",
+      detail: response.message,
+      life: 3000,
+    });
+
+    hideDeleteConfirmationModal();
+    await refreshAllData();
+  } catch (error) {
+    store.loading = false;
+
+    toast.add({
+      severity: "error",
+      summary: "Request Failed",
+      detail: error.statusMessage,
+      life: 3000,
+    });
+  }
 };
 </script>
 
 <template>
-  <div class="table-container">
-    <ClientOnly>
-      <Toast />
-    </ClientOnly>
+  <div class="category-table">
     <DataTable
+      v-model:expandedRows="expandedRows"
       v-model:filters="filters"
-      :value="brands?.data"
+      :value="categories"
       :global-filter-fields="['name', 'values.name']"
       table-style="min-width: 50rem"
-      :rows="10"
       data-key="id"
-      :loading="pending"
       striped-rows
     >
-      <template #header>
-        <DataTableHeader
-          v-model:search-text="filters['global'].value"
-          :add-button-label="'Add A Brand'"
-          :table-header="'Product Brands'"
-          @on-add-button-clicked="openBrandCreationModal"
-        />
-      </template>
-
+      <Column expander style="width: 2rem" />
       <Column header="SL">
         <template #body="slotProps">
           <div>
-            {{ (currentPage - 1) * 10 + slotProps.index + 1 }}
+            {{ slotProps.index + 1 }}
           </div>
         </template>
       </Column>
-      <Column header="Logo">
+      <Column header="Image">
         <template #body="slotProps">
           <img
             class="h-12 w-44"
@@ -259,8 +244,6 @@ const hideDeleteModal = () => {
           {{ slotProps.data.name }}
         </template>
       </Column>
-
-      <!--      <Column field="name" header="Name" />-->
       <Column header="Status">
         <template #body="slotProps">
           {{
@@ -270,13 +253,18 @@ const hideDeleteModal = () => {
           }}
         </template>
       </Column>
+      <Column header="Parent">
+        <template #body="slotProps">
+          {{ getParentName(slotProps.data.parent_id) }}
+        </template>
+      </Column>
       <Column header="Actions">
         <template #body="slotProps">
           <div class="flex items-center gap-2">
             <button class="action-button">
               <i
                 class="pi pi-file-edit block block-edit"
-                title="Edit Brand Information"
+                title="Edit Category Information"
                 @click="openEditModal(slotProps.data)"
               />
             </button>
@@ -284,33 +272,30 @@ const hideDeleteModal = () => {
             <button class="action-button">
               <i
                 class="pi pi-trash block block-delete"
-                title="Delete This Brand"
-                @click="openDeleteModal(slotProps.data)"
+                title="Delete This Category"
+                @click="() => handleDeleteButtonClick(slotProps.data.slug)"
               />
             </button>
           </div>
         </template>
       </Column>
-
-      <template #footer>
-        <CommonPagination
-          v-model:current-page="currentPage"
-          :total-page="brands?.meta.last_page"
-        />
+      <template #expansion="slotProps">
+        <div v-if="slotProps.data.childrens.length" class="pb-3">
+          <h5 class="pb-2">Children of {{ slotProps.data.name }}</h5>
+          <PagesProductsCategoriesListingTable
+            :categories="slotProps.data.childrens"
+            @refresh-all-category="refreshAllData"
+          />
+        </div>
+        <h3 v-else>No Children found for {{ slotProps.data.name }}</h3>
       </template>
     </DataTable>
     <ClientOnly>
-      <!--      Add Brand Modal -->
-      <PagesProductBrandsAddBrandModal
-        v-model:visible="visibleBrandCreationModal"
-        @close-brand-add-modal="closeBrandCreationModal"
-      />
-      <!--      Edit Brand Modal -->
       <Dialog
-        v-model:visible="visibleBrandEditModal"
+        v-model:visible="visibleCategoryEditModal"
         maximizable
         modal
-        :header="`Edit Brand - ${brandInfo?.name}`"
+        :header="`Edit Category - ${(categoryInfo as CategoryData).name}`"
         :style="{ width: '50rem' }"
         :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
         dismissable-mask
@@ -320,26 +305,26 @@ const hideDeleteModal = () => {
           <form
             class="flex flex-col gap-3"
             enctype="multipart/form-data"
-            @submit.prevent="editABrand()"
+            @submit.prevent="editACategory()"
           >
             <div class="flex flex-col gap-1">
-              <label for="brandName">Brand Name</label>
+              <label for="categoryName">Category Name</label>
               <InputText
-                id="brandName"
-                v-model="editableBrandProperties.name"
+                id="categoryName"
+                v-model="editableCategoryProperties.name"
                 class="mt-1"
                 aria-describedby="text-name"
-                placeholder="Enter Brand Name"
+                placeholder="Enter Category Name"
                 required
                 type="text"
               />
             </div>
             <div class="card">
               <div class="flex flex-col gap-1">
-                <label for="brandImage">Brand Image</label>
+                <label for="categoryImage">Category Image</label>
                 <FileUpload
                   :file-limit="1"
-                  name="brandImage"
+                  name="categoryImage"
                   url="/api/upload"
                   accept="image/*"
                   :max-file-size="1000000"
@@ -402,20 +387,22 @@ const hideDeleteModal = () => {
                         </div>
                       </div>
                     </div>
-                    <div v-else-if="editableBrandProperties.image">
+                    <div v-else-if="editableCategoryProperties.image">
                       <div
                         class="card w-full m-0 px-6 flex justify-between border-1 surface-border items-center gap-3"
                       >
                         <div>
                           <img
                             role="presentation"
-                            :alt="editableBrandProperties.name"
-                            :src="editableBrandProperties.image"
+                            :alt="editableCategoryProperties.name"
+                            :src="editableCategoryProperties.image"
                             width="100"
                             height="50"
                           />
                         </div>
-                        <span class="font-semibold">{{ brandInfo?.name }}</span>
+                        <span class="font-semibold">{{
+                          (categoryInfo as CategoryData).name
+                        }}</span>
                         <Button
                           icon="pi pi-times"
                           outlined
@@ -428,14 +415,14 @@ const hideDeleteModal = () => {
                   </template>
                   <template #empty>
                     <div
-                      v-if="!editableBrandProperties.image"
+                      v-if="!editableCategoryProperties.image"
                       class="flex items-center justify-center flex-col"
                     >
                       <i
                         class="pi pi-cloud-upload border-2 rounded-full p-5 text-3xl text-400 border-400"
                       />
                       <p class="mt-4 mb-0">
-                        Drag and drop Brand Logo to here to upload.
+                        Drag and drop Category Picture to here to upload.
                       </p>
                     </div>
                   </template>
@@ -445,21 +432,21 @@ const hideDeleteModal = () => {
 
             <div class="grid grid-cols-2 gap-3 mt-1">
               <div class="flex flex-col gap-1">
-                <label for="meta-title">Brand Meta Title</label>
+                <label for="meta-title">Category Meta Title</label>
                 <InputText
                   id="meta-title"
-                  v-model="editableBrandProperties.metaTitle"
+                  v-model="editableCategoryProperties.metaTitle"
                   aria-describedby="text-meta-title"
-                  placeholder="Enter Meta-title of the brand"
+                  placeholder="Enter Meta-title of the Category"
                   required
                   type="text"
                 />
               </div>
               <div class="flex flex-col gap-1">
-                <label for="status-dropdown">Brand Visibility Status</label>
+                <label for="status-dropdown">Category Visibility Status</label>
                 <Dropdown
                   id="status-dropdown"
-                  v-model="editableBrandProperties.visibilityStatus"
+                  v-model="editableCategoryProperties.visibilityStatus"
                   :options="statuses"
                   option-label="name"
                   placeholder="Select a Status"
@@ -469,10 +456,39 @@ const hideDeleteModal = () => {
               </div>
             </div>
             <div class="flex flex-col gap-1">
-              <label for="meta-desc">Brand Meta Description</label>
+              <label for="parent">Parent Category</label>
+              <Dropdown
+                id="parent"
+                v-model="editableCategoryProperties.parentId"
+                :options="[
+                  { id: null, name: 'None', parent_id: 0 },
+                  ...store.productCategories,
+                ]"
+                filter
+                option-label="name"
+                placeholder="Select Parent Category"
+                class="w-full md:w-14rem"
+              >
+                <template #value="slotProps">
+                  <div v-if="slotProps.value" class="flex align-items-center">
+                    <div>{{ slotProps.value.name }}</div>
+                  </div>
+                  <span v-else>
+                    {{ slotProps.placeholder }}
+                  </span>
+                </template>
+                <template #option="slotProps">
+                  <div class="flex align-items-center">
+                    <div>{{ slotProps.option.name }}</div>
+                  </div>
+                </template>
+              </Dropdown>
+            </div>
+            <div class="flex flex-col gap-1">
+              <label for="meta-desc">Category Meta Description</label>
               <Textarea
                 id="meta-desc"
-                v-model="editableBrandProperties.metaDescription"
+                v-model="editableCategoryProperties.metaDescription"
                 aria-describedby="text-meta-description"
                 auto-resize
                 placeholder="Enter Meta Description"
@@ -481,18 +497,23 @@ const hideDeleteModal = () => {
               />
             </div>
             <Button
-              class="button-style edit-brand-button"
+              class="button-style edit-category-button"
               :disabled="
-                brandInfo.name === editableBrandProperties.name &&
-                brandInfo.meta_title === editableBrandProperties.metaTitle &&
-                brandInfo.meta_description ===
-                  editableBrandProperties.metaDescription &&
-                brandInfo.visibility_status ===
-                  editableBrandProperties.visibilityStatus.code &&
-                (brandInfo.image_url === editableBrandProperties.image ||
+                (categoryInfo as CategoryData).name ===
+                  editableCategoryProperties.name &&
+                (categoryInfo as CategoryData).meta_title ===
+                  editableCategoryProperties.metaTitle &&
+                (categoryInfo as CategoryData).meta_description ===
+                  editableCategoryProperties.metaDescription &&
+                (categoryInfo as CategoryData).visibility_status ===
+                  editableCategoryProperties.visibilityStatus.code &&
+                (categoryInfo as CategoryData).parent_id ===
+                  editableCategoryProperties.parentId.id &&
+                ((categoryInfo as CategoryData).image_url ===
+                  editableCategoryProperties.image ||
                   !fileToEditUp)
               "
-              label="Edit Brand"
+              label="Edit Category"
               type="submit"
             />
           </form>
@@ -500,51 +521,18 @@ const hideDeleteModal = () => {
       </Dialog>
 
       <!--      delete modal -->
-      <Dialog
-        v-model:visible="visibleDeleteModal"
-        class="delete-brand-modal"
-        close-on-escape
-        modal
-      >
-        <template #container>
-          <div class="modal-items">
-            <p class="modal-text font-heading-7 font-semibold text-center">
-              Are sou sure, <br />
-              you want to Delete Brand - {{ brandForDelete?.name }}?
-            </p>
-
-            <div class="flex justify-center items-center gap-3">
-              <Button
-                class="modal-button cancel font-heading-7 font-semibold"
-                @click="hideDeleteModal"
-              >
-                Cancel
-              </Button>
-              <Button
-                class="modal-button delete-brand font-heading-7 font-semibold"
-                @click="deleteTheBrand"
-              >
-                Delete
-              </Button>
-            </div>
-          </div>
-        </template>
-      </Dialog>
+      <CommonDeleteConfirmationModal
+        v-model:visible="showDeleteConfirmationModal"
+        :disabled="store.loading"
+        @on-confirm="handleDeleteConfirmation"
+        @on-cancel="hideDeleteConfirmationModal"
+      />
     </ClientOnly>
   </div>
 </template>
 
-<style scoped lang="postcss">
-.table-container {
-  @apply bg-white rounded-xl  py-6;
-
-  font-style: normal;
-  font-weight: 400;
-  font-size: 14px;
-  line-height: 20px;
-
-  color: var(--dark-gray-80);
-
+<style scoped>
+.category-table {
   :deep(.p-datatable-header) {
     @apply p-0;
   }
@@ -580,10 +568,7 @@ const hideDeleteModal = () => {
   }
 }
 
-.edit-brand-button,
-.add-brand-button {
-  background-color: var(--primary-color-envitect-sam-blue);
-}
+.edit-category-button,
 .block-edit,
 .block-delete {
   transition: 0.5s;
@@ -595,39 +580,5 @@ const hideDeleteModal = () => {
 }
 .block-delete:hover {
   color: var(--color-danger);
-}
-
-.modal-items {
-  background-color: #fff;
-  border-radius: 6px;
-  padding: 61px 63px;
-  @include media-query(sm) {
-    padding: 61px 20px;
-    border-radius: 12px;
-  }
-}
-
-.modal-text {
-  color: var(--navy-blue-80);
-  margin-bottom: 40px;
-}
-
-.modal-button {
-  display: inline-flex;
-  padding: 12px 40px;
-  justify-content: center;
-  align-items: center;
-  gap: 12px;
-  border-radius: 6px;
-}
-
-.cancel {
-  background-color: var(--envitect-sam-blue-5);
-  color: var(--primary-color-envitect-sam-blue);
-}
-
-.delete-brand {
-  color: var(--primary-color-white);
-  background-color: var(--color-danger);
 }
 </style>

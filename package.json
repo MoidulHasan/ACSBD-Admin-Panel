@@ -17,6 +17,7 @@
     "@vee-validate/nuxt": "^4.12.8",
     "nuxt": "^3.10.3",
     "primevue": "^3.49.1",
+    "quip": "^0.2.0",
     "vue": "^3.4.19",
     "vue-router": "^4.3.0",
     "yup": "^1.4.0"
