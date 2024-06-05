@@ -38,6 +38,7 @@ export default defineNuxtConfig({
         "Textarea",
         "Dropdown",
         "Toast",
+        "Editor",
         "Tag",
       ],
     },

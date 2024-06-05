@@ -15,6 +15,23 @@ export interface IProductAttribute {
   values: IProductAttributeValue[];
 }
 
+export interface CategoryData {
+  id: number;
+  name: string;
+  slug: string;
+  image_url: string;
+  parent_id: number;
+  meta_title: string;
+  meta_description: string;
+  visibility_status: string;
+  children: CategoryData[] | [];
+}
+
+export interface MinifiedCategory {
+  id: number | null;
+  name: string;
+  parent_id: number | null;
+}
 export interface IWarrantyAndServices {
   Service: string;
   Warranty: string;
