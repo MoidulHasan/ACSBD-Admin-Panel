@@ -2,10 +2,9 @@
 import { useToast } from "primevue/usetoast";
 import { FilterMatchMode } from "primevue/api";
 import DataTableHeader from "~/components/Common/DataTableHeader.vue";
-import { formatSize } from "~/utils/formatSize";
+
 import type {
   CategoryData,
-  IProductAttribute,
   MinifiedCategory,
 } from "~/app/interfaces/products";
 import type { IPaginatedResponse } from "~/app/interfaces/common";
@@ -21,18 +20,6 @@ definePageMeta({
 const toast = useToast();
 const { $apiClient } = useNuxtApp();
 
-export interface EditableCategoryProperties {
-  image: string;
-  metaDescription: string;
-  metaTitle: string;
-  name: string;
-  parentId: MinifiedCategory;
-  slug: string;
-  visibilityStatus: {
-    name: "Active" | "De-active";
-    code: "public" | "hidden";
-  };
-}
 const currentPage = ref(1);
 const store = useStore();
 
@@ -80,8 +67,6 @@ const filters = ref({
   "values.name": { value: null, matchMode: FilterMatchMode.STARTS_WITH },
 });
 
-const visibleCategoryCreationModal = ref(false);
-const visibleCategoryEditModal = ref(false);
 const expandAll = () => {
   expandedRows.value = categories.value.data.reduce(
     (acc, p) => (acc[p.id] = true) && acc,
@@ -91,139 +76,7 @@ const expandAll = () => {
 const collapseAll = () => {
   expandedRows.value = null;
 };
-
-const statuses = ref([
-  { name: "Active", code: "public" },
-  { name: "De-active", code: "hidden" },
-]);
-
-const openCategoryCreationModal = () => {
-  visibleCategoryCreationModal.value = true;
-};
-
-const closeCategoryCreationModal = () => {
-  refreshAllData();
-  visibleCategoryCreationModal.value = false;
-};
-
-// starts edits
-const editableCategoryProperties = ref({
-  slug: "",
-  name: "",
-  metaDescription: "",
-  metaTitle: "",
-  visibilityStatus: { name: "Active", code: "public" },
-  image: "",
-  parentId: { id: null, name: "None", parent_id: null },
-});
-const categoryInfo = ref({});
-
-const filesForEdit = ref([]);
-const onRemoveTemplatingFileEdit = (removeFileCallback: any, index: number) => {
-  removeFileCallback(index);
-};
-const fileToEditUp = ref<File | null>(null);
-const onSelectedFilesforEdit = (event: any) => {
-  const [_file] = event.files;
-  // console.log(_file, "EDIT SELECT");
-  fileToEditUp.value = _file;
-  filesForEdit.value = event.files;
-};
-const getParentInfo = (parentId: number) => {
-  return (
-    store.productCategories?.find(
-      (cat: MinifiedCategory) => cat.id === parentId,
-    ) ?? {
-      id: null,
-      name: "None",
-      parent_id: 0,
-    }
-  );
-};
-const openEditModal = (categoryData: CategoryData) => {
-  categoryInfo.value = categoryData;
-  editableCategoryProperties.value.slug = categoryData.slug;
-  editableCategoryProperties.value.name = categoryData.name;
-  editableCategoryProperties.value.metaTitle = categoryData.meta_title;
-  editableCategoryProperties.value.metaDescription =
-    categoryData.meta_description;
-  editableCategoryProperties.value.visibilityStatus =
-    categoryData.visibility_status === "public"
-      ? {
-          name: "Active",
-          code: "public",
-        }
-      : {
-          name: "De-active",
-          code: "hidden",
-        };
-  editableCategoryProperties.value.parentId = getParentInfo(
-    categoryData.parent_id,
-  );
-
-  editableCategoryProperties.value.image = categoryData.image_url;
-
-  visibleCategoryEditModal.value = true;
-};
-
-const removeExistingImage = () => {
-  editableCategoryProperties.value.image = "";
-};
-
-const editACategory = async () => {
-  const body = new FormData();
-  body.append("name", editableCategoryProperties.value.name);
-  body.append("meta_title", editableCategoryProperties.value.metaTitle);
-  body.append(
-    "meta_description",
-    editableCategoryProperties.value.metaDescription,
-  );
-  body.append(
-    "visibility_status",
-    editableCategoryProperties.value.visibilityStatus.code,
-  );
-  body.append("parent_id", editableCategoryProperties.value.parentId.id);
-  if (fileToEditUp.value) {
-    body.append("image", fileToEditUp.value, fileToEditUp.value.name);
-  }
-  body.append("_method", "PUT");
-
-  const { data } = await useFetch(
-    `/api/proxy/admin/categories/${editableCategoryProperties.value.slug}`,
-    {
-      method: "POST",
-      body,
-      onResponse({ response }) {
-        // Process the response data
-        if (response.status === 200) {
-          toast.add({
-            severity: "success",
-            summary: "Category Edited",
-            detail: `${response._data.message}`,
-            life: 3000,
-          });
-          refreshAllData();
-          visibleCategoryEditModal.value = false;
-          fileToEditUp.value = null;
-          categoryInfo.value = {};
-        }
-      },
-      onResponseError({ response }) {
-        console.log("Error");
-        toast.add({
-          severity: "error",
-          summary: "Could not edit category.",
-          detail: `${response._data.message}`,
-          life: 3000,
-        });
-
-        // Handle the response errors
-      },
-    },
-  );
-};
-
-// end edits!!
+// new forms
 const getParentName = (id: string | number | null) => {
   if (!id) {
     return "None";
@@ -408,12 +261,6 @@ const handleDeleteConfirmation = async () => {
       <CommonError :error="error" />
     </div>
     <ClientOnly>
-      <!--      Add Brand Modal -->
-      <!--      <PagesProductsCategoriesAddCategoryModal-->
-      <!--        v-model:visible="visibleCategoryCreationModal"-->
-      <!--        @close-categoy-add-modal="closeCategoryCreationModal"-->
-      <!--      />-->
-
       <Dialog
         v-model:visible="showCategoryFormModal"
         modal
@@ -426,222 +273,6 @@ const handleDeleteConfirmation = async () => {
           @on-form-submit="handleFormSubmit"
         />
       </Dialog>
-      <!--      Edit Brand Modal -->
-
-      <Dialog
-        v-model:visible="visibleCategoryEditModal"
-        maximizable
-        modal
-        :header="`Edit Category - ${(categoryInfo as CategoryData).name}`"
-        :style="{ width: '50rem' }"
-        :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
-        dismissable-mask
-        close-on-escape
-      >
-        <div class="w-full">
-          <form
-            class="flex flex-col gap-3"
-            enctype="multipart/form-data"
-            @submit.prevent="editACategory()"
-          >
-            <div class="flex flex-col gap-1">
-              <label for="categoryName">Category Name</label>
-              <InputText
-                id="categoryName"
-                v-model="editableCategoryProperties.name"
-                class="mt-1"
-                aria-describedby="text-name"
-                placeholder="Enter Category Name"
-                required
-                type="text"
-              />
-            </div>
-            <div class="card">
-              <div class="flex flex-col gap-1">
-                <label for="categoryImage">Category Image</label>
-                <FileUpload
-                  :file-limit="1"
-                  name="categoryImage"
-                  url="/api/upload"
-                  accept="image/*"
-                  :max-file-size="1000000"
-                  required
-                  @select="onSelectedFilesforEdit"
-                >
-                  <template #header="{ chooseCallback, clearCallback, files }">
-                    <div
-                      class="flex flex-wrap justify-between items-center flex-1 gap-2"
-                    >
-                      <div class="flex gap-2">
-                        <Button
-                          icon="pi pi-images"
-                          rounded
-                          outlined
-                          @click="chooseCallback()"
-                        ></Button>
-                        <Button
-                          icon="pi pi-times"
-                          rounded
-                          outlined
-                          severity="danger"
-                          :disabled="!files || files.length === 0"
-                          @click="clearCallback()"
-                        ></Button>
-                      </div>
-                    </div>
-                  </template>
-                  <template #content="{ files, removeFileCallback }">
-                    <div v-if="files.length > 0">
-                      <div class="flex flex-wrap p-0 sm:p-5 gap-5">
-                        <div
-                          v-for="(file, index) of files"
-                          :key="file.name + file.type + file.size"
-                          class="card w-full m-0 px-6 flex justify-between border-1 surface-border items-center gap-3"
-                        >
-                          <div>
-                            <img
-                              role="presentation"
-                              :alt="file.name"
-                              :src="file.objectURL"
-                              width="100"
-                              height="50"
-                            />
-                          </div>
-                          <span class="font-semibold">{{ file.name }}</span>
-                          <div>{{ formatSize(file.size) }}</div>
-                          <Button
-                            icon="pi pi-times"
-                            outlined
-                            rounded
-                            severity="danger"
-                            @click="
-                              onRemoveTemplatingFileEdit(
-                                removeFileCallback,
-                                index,
-                              )
-                            "
-                          />
-                        </div>
-                      </div>
-                    </div>
-                    <div v-else-if="editableCategoryProperties.image">
-                      <div
-                        class="card w-full m-0 px-6 flex justify-between border-1 surface-border items-center gap-3"
-                      >
-                        <div>
-                          <img
-                            role="presentation"
-                            :alt="editableCategoryProperties.name"
-                            :src="editableCategoryProperties.image"
-                            width="100"
-                            height="50"
-                          />
-                        </div>
-                        <span class="font-semibold">{{
-                          (categoryInfo as CategoryData).name
-                        }}</span>
-                        <Button
-                          icon="pi pi-times"
-                          outlined
-                          rounded
-                          severity="danger"
-                          @click="removeExistingImage"
-                        />
-                      </div>
-                    </div>
-                  </template>
-                  <template #empty>
-                    <div
-                      v-if="!editableCategoryProperties.image"
-                      class="flex items-center justify-center flex-col"
-                    >
-                      <i
-                        class="pi pi-cloud-upload border-2 rounded-full p-5 text-3xl text-400 border-400"
-                      />
-                      <p class="mt-4 mb-0">
-                        Drag and drop Category Picture to here to upload.
-                      </p>
-                    </div>
-                  </template>
-                </FileUpload>
-              </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-3 mt-1">
-              <div class="flex flex-col gap-1">
-                <label for="meta-title">Category Meta Title</label>
-                <InputText
-                  id="meta-title"
-                  v-model="editableCategoryProperties.metaTitle"
-                  aria-describedby="text-meta-title"
-                  placeholder="Enter Meta-title of the Category"
-                  required
-                  type="text"
-                />
-              </div>
-              <div class="flex flex-col gap-1">
-                <label for="status-dropdown">Category Visibility Status</label>
-                <Dropdown
-                  id="status-dropdown"
-                  v-model="editableCategoryProperties.visibilityStatus"
-                  :options="statuses"
-                  option-label="name"
-                  placeholder="Select a Status"
-                  checkmark
-                  :highlight-on-select="false"
-                />
-              </div>
-            </div>
-            <div class="flex flex-col gap-1">
-              <Dropdown
-                id="parent"
-                v-model="editableCategoryProperties.parentId"
-                :options="[
-                  { id: null, name: 'None', parent_id: 0 },
-                  ...store.productCategories,
-                ]"
-                filter
-                option-label="name"
-                placeholder="Select Parent Category"
-                class="w-full md:w-14rem"
-              />
-            </div>
-            <div class="flex flex-col gap-1">
-              <label for="meta-desc">Category Meta Description</label>
-              <Textarea
-                id="meta-desc"
-                v-model="editableCategoryProperties.metaDescription"
-                aria-describedby="text-meta-description"
-                auto-resize
-                placeholder="Enter Meta Description"
-                required
-                rows="3"
-              />
-            </div>
-            <Button
-              class="button-style edit-category-button"
-              :disabled="
-                (categoryInfo as CategoryData).name ===
-                  editableCategoryProperties.name &&
-                (categoryInfo as CategoryData).meta_title ===
-                  editableCategoryProperties.metaTitle &&
-                (categoryInfo as CategoryData).meta_description ===
-                  editableCategoryProperties.metaDescription &&
-                (categoryInfo as CategoryData).visibility_status ===
-                  editableCategoryProperties.visibilityStatus.code &&
-                (categoryInfo as CategoryData).parent_id ===
-                  editableCategoryProperties.parentId.id &&
-                ((categoryInfo as CategoryData).image_url ===
-                  editableCategoryProperties.image ||
-                  !fileToEditUp)
-              "
-              label="Edit Category"
-              type="submit"
-            />
-          </form>
-        </div>
-      </Dialog>
-
       <!--      delete modal -->
       <CommonDeleteConfirmationModal
         v-model:visible="showDeleteConfirmationModal"
@@ -699,7 +330,6 @@ const handleDeleteConfirmation = async () => {
   }
 }
 
-.edit-category-button,
 .block-edit,
 .block-delete {
   transition: 0.5s;

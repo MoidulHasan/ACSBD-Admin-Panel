@@ -93,21 +93,6 @@ const { value: categoryVisibilityStatus } = useField(
 const { value: categoryImage } = useField("categoryImage");
 const { value: categoryParent } = useField("categoryParent");
 
-watch(
-  () => props.categoryData,
-  (newData) => {
-    if (newData) {
-      categoryName.value = newData.name || "";
-      categoryMetaTitle.value = newData.meta_title || "";
-      categoryMetaDescription.value = newData.meta_description || "";
-      categoryVisibilityStatus.value = newData.visibility_status || "";
-      categoryImage.value = newData.image_url || "";
-      categoryParent.value = newData.parent_id || "";
-    }
-  },
-  { immediate: true },
-);
-
 const onSubmit = handleSubmit(async (values, actions) => {
   console.log("Form values before submit:", values);
 
@@ -176,8 +161,8 @@ const onSubmit = handleSubmit(async (values, actions) => {
     requestBody.append("image", fileToUp.value, fileToUp.value.name);
   }
   requestBody.append("parent_id", values.categoryParent);
+  requestBody.append("_method", "PUT");
 
-console.log(requestBody, "REQUESTBODY")
 
   let response;
   if (!props.categoryData) {
@@ -185,7 +170,7 @@ console.log(requestBody, "REQUESTBODY")
   } else {
     response = await makeRequest(
       `/admin/categories/${props.categoryData.slug}`,
-      "PUT",
+      "POST",
       requestBody,
     );
   }

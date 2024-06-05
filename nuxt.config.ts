@@ -39,6 +39,7 @@ export default defineNuxtConfig({
         "Dropdown",
         "Toast",
         "Editor",
+        "TreeTable",
       ],
     },
   },
