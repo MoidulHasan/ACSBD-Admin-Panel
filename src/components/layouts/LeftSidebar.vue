@@ -41,6 +41,20 @@ const items = ref<IMenuItem[]>([
       },
     ],
   },
+  {
+    label: "Orders",
+    icon: "pi pi-book",
+    items: [
+      {
+        label: "Product",
+        navigateTo: "/orders/products",
+      },
+      {
+        label: "Services",
+        navigateTo: "/orders/services",
+      },
+    ],
+  },
 ]);
 </script>
 
