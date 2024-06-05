@@ -94,7 +94,7 @@ const onSubmit = handleSubmit(async (values, actions) => {
     name: values.attributeName,
     values: values.attributeValues,
   };
-
+  console.log(requestBody, "REQUEST BODY")
   let response;
 
   if (!props.attributeData) {

@@ -569,9 +569,6 @@ const handleDeleteConfirmation = async () => {
 }
 
 .edit-category-button,
-.add-category-button {
-  background-color: var(--primary-color-envitect-sam-blue);
-}
 .block-edit,
 .block-delete {
   transition: 0.5s;
@@ -583,39 +580,5 @@ const handleDeleteConfirmation = async () => {
 }
 .block-delete:hover {
   color: var(--color-danger);
-}
-
-.modal-items {
-  background-color: #fff;
-  border-radius: 6px;
-  padding: 61px 63px;
-  @include media-query(sm) {
-    padding: 61px 20px;
-    border-radius: 12px;
-  }
-}
-
-.modal-text {
-  color: var(--navy-blue-80);
-  margin-bottom: 40px;
-}
-
-.modal-button {
-  display: inline-flex;
-  padding: 12px 40px;
-  justify-content: center;
-  align-items: center;
-  gap: 12px;
-  border-radius: 6px;
-}
-
-.cancel {
-  background-color: var(--envitect-sam-blue-5);
-  color: var(--primary-color-envitect-sam-blue);
-}
-
-.delete-category {
-  color: var(--primary-color-white);
-  background-color: var(--color-danger);
 }
 </style>

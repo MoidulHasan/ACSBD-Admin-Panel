@@ -3,7 +3,11 @@ import { useToast } from "primevue/usetoast";
 import { FilterMatchMode } from "primevue/api";
 import DataTableHeader from "~/components/Common/DataTableHeader.vue";
 import { formatSize } from "~/utils/formatSize";
-import type { CategoryData, MinifiedCategory } from "~/app/interfaces/products";
+import type {
+  CategoryData,
+  IProductAttribute,
+  MinifiedCategory,
+} from "~/app/interfaces/products";
 import type { IPaginatedResponse } from "~/app/interfaces/common";
 
 useHead({
@@ -228,6 +232,25 @@ const getParentName = (id: string | number | null) => {
     ?.name;
 };
 
+const showCategoryFormModal = ref(false);
+const editableCategoryData = ref(null);
+
+const handleFormSubmit = async () => {
+  showCategoryFormModal.value = false;
+  editableCategoryData.value = null;
+  await refreshAllData();
+};
+
+// edit
+
+const handleEditButtonClick = (categoryData: CategoryData) => {
+  editableCategoryData.value = categoryData;
+  console.log(editableCategoryData.value, "EDIT");
+  showCategoryFormModal.value = true;
+};
+
+// delete starts
+
 const showDeleteConfirmationModal = ref(false);
 const categorySlugToDelete = ref<null | string>(null);
 const handleDeleteButtonClick = (slug: string) => {
@@ -273,10 +296,8 @@ const handleDeleteConfirmation = async () => {
 
 <template>
   <div class="table-container">
-    <ClientOnly>
-      <Toast />
-    </ClientOnly>
     <DataTable
+      v-if="categories?.data"
       v-model:expandedRows="expandedRows"
       v-model:filters="filters"
       :value="categories.data"
@@ -292,7 +313,7 @@ const handleDeleteConfirmation = async () => {
           v-model:search-text="filters['global'].value"
           :add-button-label="'Add A Category'"
           :table-header="'Product Categories'"
-          @on-add-button-clicked="openCategoryCreationModal"
+          @on-add-button-clicked="showCategoryFormModal = true"
         />
         <div class="flex flex-wrap justify-end gap-2 p-2">
           <Button
@@ -352,7 +373,7 @@ const handleDeleteConfirmation = async () => {
               <i
                 class="pi pi-file-edit block block-edit"
                 title="Edit Category Information"
-                @click="openEditModal(slotProps.data)"
+                @click="handleEditButtonClick(slotProps.data)"
               />
             </button>
             <button class="action-button">
@@ -383,12 +404,28 @@ const handleDeleteConfirmation = async () => {
         />
       </template>
     </DataTable>
+    <div v-else-if="error" class="h-full">
+      <CommonError :error="error" />
+    </div>
     <ClientOnly>
       <!--      Add Brand Modal -->
-      <PagesProductsCategoriesAddCategoryModal
-        v-model:visible="visibleCategoryCreationModal"
-        @close-categoy-add-modal="closeCategoryCreationModal"
-      />
+      <!--      <PagesProductsCategoriesAddCategoryModal-->
+      <!--        v-model:visible="visibleCategoryCreationModal"-->
+      <!--        @close-categoy-add-modal="closeCategoryCreationModal"-->
+      <!--      />-->
+
+      <Dialog
+        v-model:visible="showCategoryFormModal"
+        modal
+        :draggable="false"
+        header="Add A Category"
+        @hide="() => (editableCategoryData = null)"
+      >
+        <PagesProductsCategoriesForm
+          :category-data="editableCategoryData"
+          @on-form-submit="handleFormSubmit"
+        />
+      </Dialog>
       <!--      Edit Brand Modal -->
 
       <Dialog
