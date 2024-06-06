@@ -33,7 +33,7 @@ const getParentName = (id: string | number | null) => {
   }
   console.log(store.productCategories);
   return (
-    store.productCategories.find((cat: MinifiedCategory) => cat.id === id)
+      store.flattenedCategories.find((cat: MinifiedCategory) => cat.id === id)
       ?.name ?? "None"
   );
 };
@@ -51,7 +51,6 @@ const handleFormSubmit = async () => {
 
 const handleEditButtonClick = (categoryData: CategoryData) => {
   editableCategoryData.value = categoryData;
-  console.log(editableCategoryData.value, "EDIT");
   showCategoryFormModal.value = true;
 };
 
