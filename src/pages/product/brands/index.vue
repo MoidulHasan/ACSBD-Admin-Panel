@@ -23,9 +23,12 @@ const {
   data: brands,
   pending,
   refresh: refreshAllData,
-} = await useFetch(() => `/api/proxy/admin/brands?page=${currentPage.value}&limit=10`, {
-  watch: [currentPage],
-});
+} = await useFetch(
+  () => `/api/proxy/admin/brands?page=${currentPage.value}&limit=10`,
+  {
+    watch: [currentPage],
+  },
+);
 
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -301,7 +304,7 @@ const hideDeleteModal = () => {
     </DataTable>
     <ClientOnly>
       <!--      Add Brand Modal -->
-      <PagesProductBrandsAddBrandModal
+      <PagesProductsBrandsAddBrandModal
         v-model:visible="visibleBrandCreationModal"
         @close-brand-add-modal="closeBrandCreationModal"
       />

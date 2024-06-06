@@ -45,7 +45,7 @@ export default defineNuxtConfig({
   },
 
   colorMode: {
-    classSuffix: "",
+    classSuffix: "light",
   },
 
   veeValidate: {
