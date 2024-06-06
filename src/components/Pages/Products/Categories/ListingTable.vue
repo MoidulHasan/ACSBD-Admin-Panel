@@ -138,7 +138,7 @@ const handleDeleteConfirmation = async () => {
           {{
             slotProps.data.visibility_status === "public"
               ? "Active"
-              : "De-actived"
+              : "Inactive"
           }}
         </template>
       </Column>

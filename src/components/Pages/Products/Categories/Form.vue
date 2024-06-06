@@ -92,8 +92,6 @@ const { value: categoryImage } = useField("categoryImage");
 const { value: categoryParent } = useField("categoryParent");
 
 const onSubmit = handleSubmit(async (values, actions) => {
-  console.log("Form values before submit:", values);
-
   const handleResponseErrors = (responseErrors) => {
     Object.keys(responseErrors).forEach((fieldName) => {
       if (fieldName === "name") {
@@ -167,7 +165,6 @@ const onSubmit = handleSubmit(async (values, actions) => {
   if (!props.categoryData) {
     response = await makeRequest("/admin/categories", "POST", requestBody);
   } else {
-    console.log("HERE ", props.categoryData);
     response = await makeRequest(
       `/admin/categories/${props.categoryData.slug}`,
       "POST",

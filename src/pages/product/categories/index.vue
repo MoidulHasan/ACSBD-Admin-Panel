@@ -19,27 +19,24 @@ const { $apiClient } = useNuxtApp();
 
 const currentPage = ref(1);
 const store = useStore();
-
 const expandedRows = ref({});
 
 const {
-  data: categories,
+  data: allCategories,
+  refresh: refreshCategories,
   pending,
-  refresh: refreshAllData,
   error,
-} = await useAsyncData<IPaginatedResponse<CategoryData[]>>(
-  () => $apiClient(`/admin/categories?page=${currentPage.value}&limit=10`),
-  {
-    watch: [currentPage],
-  },
-);
+} = await useAsyncData<CategoryData[]>(() => $apiClient(`/admin/categories`));
 if (error.value) {
   throw createError(error.value);
 }
+const refreshCategoryDataInEverywhere = () => {
+  store.setAllCategoryData(allCategories.value?.data);
+};
 
-const { data: allCategories, refresh: refreshCategories } = await useAsyncData(
-  () => $apiClient(`/admin/categories`),
-);
+if (allCategories.value?.data.length) {
+  refreshCategoryDataInEverywhere();
+}
 
 function flattenDataUsingReduce(categories: any) {
   return categories.reduce((acc: any, item: any) => {
@@ -54,10 +51,8 @@ function flattenDataUsingReduce(categories: any) {
 
 const refreshAllCategoryData = () => {
   store.productCategories = flattenDataUsingReduce(allCategories.value?.data);
+  refreshCategoryDataInEverywhere();
 };
-if (categories.value?.data.length) {
-  refreshAllCategoryData();
-}
 
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -66,7 +61,7 @@ const filters = ref({
 });
 
 const expandAll = () => {
-  expandedRows.value = categories.value.data.reduce(
+  expandedRows.value = allCategories.value.data.reduce(
     (acc, p) => (acc[p.id] = true) && acc,
     {},
   );
@@ -74,20 +69,21 @@ const expandAll = () => {
 const collapseAll = () => {
   expandedRows.value = null;
 };
-// new forms
+
 const getParentName = (id: string | number | null) => {
   if (!id) {
     return "None";
   }
-  return store.productCategories.find((cat: MinifiedCategory) => cat.id === id)
-    ?.name;
+  return (
+    store.flattenedCategories.find((cat: MinifiedCategory) => cat.id === id)
+      ?.name ?? "None"
+  );
 };
 
 const showCategoryFormModal = ref(false);
 const editableCategoryData = ref(null);
 
 const refreshCategoryInfo = async () => {
-  await refreshAllData();
   await refreshCategories();
   refreshAllCategoryData();
 };
@@ -102,12 +98,10 @@ const handleFormSubmit = async () => {
 
 const handleEditButtonClick = (categoryData: CategoryData) => {
   editableCategoryData.value = categoryData;
-  console.log(editableCategoryData.value, "EDIT");
   showCategoryFormModal.value = true;
 };
 
 // delete starts
-
 const showDeleteConfirmationModal = ref(false);
 const categorySlugToDelete = ref<null | string>(null);
 const handleDeleteButtonClick = (slug: string) => {
@@ -149,15 +143,19 @@ const handleDeleteConfirmation = async () => {
     });
   }
 };
+
+watch(currentPage, () => {
+  store.setCurrentPage(currentPage.value);
+});
 </script>
 
 <template>
   <div class="table-container">
     <DataTable
-      v-if="categories?.data"
+      v-if="allCategories?.data"
       v-model:expandedRows="expandedRows"
       v-model:filters="filters"
-      :value="categories.data"
+      :value="store.getPaginatedCategories"
       :global-filter-fields="['name', 'values.name']"
       table-style="min-width: 50rem"
       :rows="10"
@@ -214,7 +212,7 @@ const handleDeleteConfirmation = async () => {
           {{
             slotProps.data.visibility_status === "public"
               ? "Active"
-              : "De-actived"
+              : "Inactive"
           }}
         </template>
       </Column>
@@ -257,7 +255,7 @@ const handleDeleteConfirmation = async () => {
       <template #footer>
         <CommonPagination
           v-model:current-page="currentPage"
-          :total-page="categories.meta.last_page"
+          :total-page="Math.ceil(allCategories.data.length / 10)"
         />
       </template>
     </DataTable>
