@@ -15,7 +15,7 @@ export interface IProductAttribute {
   values: IProductAttributeValue[];
 }
 
-export interface CategoryData {
+export interface ICategoryData {
   key: string;
   data: {
     id: number;
@@ -27,10 +27,10 @@ export interface CategoryData {
     slug: string;
     visibility_status: string;
   };
-  children: CategoryData[] | [];
+  children: ICategoryData[] | [];
 }
 
-export interface MinifiedCategory {
+export interface IMinifiedCategory {
   id: number | null;
   name: string;
   parent_id: number | null;

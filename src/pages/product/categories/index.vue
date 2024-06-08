@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { useToast } from "primevue/usetoast";
-import { FilterMatchMode } from "primevue/api";
 import DataTableHeader from "~/components/Common/DataTableHeader.vue";
 
-import type { CategoryData, MinifiedCategory } from "~/app/interfaces/products";
-import type { IPaginatedResponse } from "~/app/interfaces/common";
+import type { ICategoryData, IMinifiedCategory } from "~/app/interfaces/products";
+import type { ICategoryResponse } from "~/app/interfaces/common";
 
 useHead({
   title: "Categories | Product",
@@ -21,7 +20,10 @@ const currentPage = ref(1);
 const store = useStore();
 const expandedRows = ref({});
 
-const transformNode = (node: CategoryData[], currentIndex: number) => {
+const transformNode = (
+  node: ICategoryData[],
+  currentIndex: number = 1,
+): ICategoryData[] => {
   if (Array.isArray(node)) {
     return node.map((item, index) => transformNode(item, index + 1));
   } else if (typeof node === "object" && node !== null) {
@@ -44,7 +46,7 @@ const transformNode = (node: CategoryData[], currentIndex: number) => {
       data,
       children:
         childrens && childrens.length > 0
-          ? childrens?.map((child: CategoryData[], index: number) =>
+          ? childrens?.map((child: ICategoryData[], index: number) =>
               transformNode(child, index + 1),
             )
           : [],
@@ -58,9 +60,12 @@ const {
   refresh: refreshCategories,
   pending,
   error,
-} = await useAsyncData<CategoryData[]>(() => $apiClient(`/admin/categories`), {
-  transform: (data) => transformNode(data.data),
-});
+} = await useAsyncData<ICategoryResponse<ICategoryData[]>>(
+  () => $apiClient(`/admin/categories`),
+  {
+    transform: (data) => transformNode(data.data),
+  },
+);
 if (error.value) {
   throw createError(error.value);
 }
@@ -124,7 +129,7 @@ const getParentName = (id: string | number | null) => {
   console.log(id, "IDD");
   return (
     store.flattenedCategories.find(
-      (cat: MinifiedCategory) => String(cat.id) === String(id),
+      (cat: IMinifiedCategory) => String(cat.id) === String(id),
     )?.name ?? "None"
   );
 };
@@ -145,7 +150,7 @@ const handleFormSubmit = async () => {
 
 // edit
 
-const handleEditButtonClick = (categoryData: CategoryData) => {
+const handleEditButtonClick = (categoryData: ICategoryData) => {
   editableCategoryData.value = categoryData;
   showCategoryFormModal.value = true;
 };
@@ -238,7 +243,12 @@ watch(currentPage, () => {
           />
         </template>
       </Column>
-      <Column field="name" header="Name" header-class="min-w-42" body-class="min-w-42" />
+      <Column
+        field="name"
+        header="Name"
+        header-class="min-w-42"
+        body-class="min-w-42"
+      />
       <Column field="visibility_status" header="Status" />
       <Column header="Parent">
         <template #body="slotProps">

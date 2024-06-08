@@ -28,6 +28,10 @@ export interface IPaginatedResponse<T> {
   meta?: Meta;
 }
 
+export interface ICategoryResponse<T> {
+  data: T;
+}
+
 export interface ICreateResponse {
   message: string;
 }

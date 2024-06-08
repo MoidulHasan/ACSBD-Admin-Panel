@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import * as yup from "yup";
-
-import type { CategoryData } from "~/app/interfaces/products";
 import type { ICreateResponse } from "~/app/interfaces/common";
 import { formatSize } from "~/utils/formatSize";
 
@@ -9,9 +7,18 @@ export interface Status {
   name: "Active" | "Inactive";
   code: "public" | "hidden";
 }
-
+export interface PropCategory {
+  id: number;
+  image_url: string;
+  meta_description: string;
+  meta_title: string;
+  name: string;
+  parent_id: number;
+  slug: string;
+  visibility_status: string;
+}
 interface Props {
-  categoryData?: CategoryData;
+  categoryData?: PropCategory;
 }
 
 const props = defineProps<Props>();
@@ -264,7 +271,7 @@ const onSubmit = handleSubmit(async (values, actions) => {
                     rounded
                     severity="danger"
                     @click="onRemoveTemplatingFile(removeFileCallback, index)"
-                  />
+                  />MinifiedCategory
                 </div>
               </div>
             </div>
