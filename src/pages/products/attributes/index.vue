@@ -237,14 +237,5 @@ const handleDeleteConfirmation = async () => {
   :deep(.p-datatable-footer) {
     border: 0;
   }
-
-  .action-button {
-    width: 24px;
-    height: 24px;
-
-    &:hover {
-      color: var(--primary-color-navy-blue);
-    }
-  }
 }
 </style>
