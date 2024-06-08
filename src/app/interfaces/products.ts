@@ -15,23 +15,40 @@ export interface IProductAttribute {
   values: IProductAttributeValue[];
 }
 
-export interface CategoryData {
+export interface ICategoryResponse {
   id: number;
-  name: string;
-  slug: string;
   image_url: string;
-  parent_id: number;
-  meta_title: string;
   meta_description: string;
+  meta_title: string;
+  name: string;
+  parent_id: number;
+  slug: string;
   visibility_status: string;
-  children?: CategoryData[] | [];
+  childrens?: ICategoryResponse[] | [];
+  index?: number;
 }
 
-export interface MinifiedCategory {
+export interface ICategoryData {
+  key: string;
+  data: {
+    id: number;
+    image_url: string;
+    meta_description: string;
+    meta_title: string;
+    name: string;
+    parent_id: number;
+    slug: string;
+    visibility_status: string;
+  };
+  children: ICategoryData[] | [];
+}
+
+export interface IMinifiedCategory {
   id: number | null;
   name: string;
   parent_id: number | null;
 }
+
 export interface IWarrantyAndServices {
   Service: string;
   Warranty: string;
@@ -78,7 +95,7 @@ export interface IProduct {
   warranty_and_services: IWarrantyAndServices;
   price: IPrice;
   brand: IBrand;
-  category: CategoryData;
+  category: ICategoryResponse;
   images: IImage[];
   created_at: string;
   updated_at: string;

@@ -1,19 +1,24 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
-import { useForm, useField } from "vee-validate";
 import * as yup from "yup";
-
-import type { CategoryData } from "~/app/interfaces/products";
 import type { ICreateResponse } from "~/app/interfaces/common";
 import { formatSize } from "~/utils/formatSize";
 
 export interface Status {
-  name: "Active" | "De-active";
+  name: "Active" | "Inactive";
   code: "public" | "hidden";
 }
-
+export interface PropCategory {
+  id: number;
+  image_url: string;
+  meta_description: string;
+  meta_title: string;
+  name: string;
+  parent_id: number;
+  slug: string;
+  visibility_status: string;
+}
 interface Props {
-  categoryData?: CategoryData;
+  categoryData?: PropCategory;
 }
 
 const props = defineProps<Props>();
@@ -27,7 +32,7 @@ const { $apiClient } = useNuxtApp();
 
 const statuses = ref<Status[]>([
   { name: "Active", code: "public" },
-  { name: "De-active", code: "hidden" },
+  { name: "Inactive", code: "hidden" },
 ]);
 
 const files = ref([]);
@@ -72,13 +77,22 @@ const validationSchema = yup.object({
   categoryParent: yup.mixed(),
 });
 
+const getVisibilityStatus = (status: string) => {
+  if (status === "active") {
+    return "public";
+  }
+  return "hidden";
+};
+
 const { handleSubmit, errors, resetForm, meta } = useForm({
   validationSchema,
   initialValues: {
     categoryName: props.categoryData?.name ?? "",
     categoryMetaTitle: props.categoryData?.meta_title ?? "",
     categoryMetaDescription: props.categoryData?.meta_description ?? "",
-    categoryVisibilityStatus: props.categoryData?.visibility_status ?? "",
+    categoryVisibilityStatus: props.categoryData
+      ? getVisibilityStatus(props.categoryData?.visibility_status)
+      : "",
     categoryImage: props.categoryData?.image_url ?? "",
     categoryParent: props.categoryData?.parent_id ?? "",
   },
@@ -93,24 +107,7 @@ const { value: categoryVisibilityStatus } = useField(
 const { value: categoryImage } = useField("categoryImage");
 const { value: categoryParent } = useField("categoryParent");
 
-watch(
-  () => props.categoryData,
-  (newData) => {
-    if (newData) {
-      categoryName.value = newData.name || "";
-      categoryMetaTitle.value = newData.meta_title || "";
-      categoryMetaDescription.value = newData.meta_description || "";
-      categoryVisibilityStatus.value = newData.visibility_status || "";
-      categoryImage.value = newData.image_url || "";
-      categoryParent.value = newData.parent_id || "";
-    }
-  },
-  { immediate: true },
-);
-
 const onSubmit = handleSubmit(async (values, actions) => {
-  console.log("Form values before submit:", values);
-
   const handleResponseErrors = (responseErrors) => {
     Object.keys(responseErrors).forEach((fieldName) => {
       if (fieldName === "name") {
@@ -161,7 +158,7 @@ const onSubmit = handleSubmit(async (values, actions) => {
     store.loading = true;
     const response = await $apiClient<ICreateResponse>(url, {
       method,
-      body
+      body,
     }).catch((error) => error.data);
     store.loading = false;
     return response;
@@ -176,8 +173,9 @@ const onSubmit = handleSubmit(async (values, actions) => {
     requestBody.append("image", fileToUp.value, fileToUp.value.name);
   }
   requestBody.append("parent_id", values.categoryParent);
-
-console.log(requestBody, "REQUESTBODY")
+  if (props.categoryData) {
+    requestBody.append("_method", "PUT");
+  }
 
   let response;
   if (!props.categoryData) {
@@ -185,7 +183,7 @@ console.log(requestBody, "REQUESTBODY")
   } else {
     response = await makeRequest(
       `/admin/categories/${props.categoryData.slug}`,
-      "PUT",
+      "POST",
       requestBody,
     );
   }
@@ -273,7 +271,7 @@ console.log(requestBody, "REQUESTBODY")
                     rounded
                     severity="danger"
                     @click="onRemoveTemplatingFile(removeFileCallback, index)"
-                  />
+                  />MinifiedCategory
                 </div>
               </div>
             </div>
@@ -319,28 +317,35 @@ console.log(requestBody, "REQUESTBODY")
       <span class="text-red-400 text-xs">{{ errors.categoryImage }}</span>
 
       <div class="grid grid-cols-2 gap-3">
-        <InputText
-          id="meta-title"
-          v-model="categoryMetaTitle"
-          aria-describedby="text-meta-title"
-          placeholder="Enter Meta-title of the category"
-          required
-          type="text"
-        />
-        <span class="text-red-400 text-xs">{{ errors.categoryMetaTitle }}</span>
-
-        <Dropdown
-          v-model="categoryVisibilityStatus"
-          :options="statuses"
-          option-label="name"
-          option-value="code"
-          placeholder="Select a Status"
-          checkmark
-          :highlight-on-select="false"
-        />
-        <span class="text-red-400 text-xs">{{
-          errors.categoryVisibilityStatus
-        }}</span>
+        <div>
+          <InputText
+            id="meta-title"
+            v-model="categoryMetaTitle"
+            aria-describedby="text-meta-title"
+            placeholder="Enter Meta-title of the category"
+            required
+            type="text"
+            class="w-full"
+          />
+          <span class="text-red-400 text-xs">{{
+            errors.categoryMetaTitle
+          }}</span>
+        </div>
+        <div>
+          <Dropdown
+            v-model="categoryVisibilityStatus"
+            :options="statuses"
+            option-label="name"
+            option-value="code"
+            placeholder="Select a Status"
+            checkmark
+            :highlight-on-select="false"
+            class="w-full"
+          />
+          <span class="text-red-400 text-xs">{{
+            errors.categoryVisibilityStatus
+          }}</span>
+        </div>
       </div>
 
       <Dropdown
@@ -348,7 +353,7 @@ console.log(requestBody, "REQUESTBODY")
         v-model="categoryParent"
         :options="[
           { id: '', name: 'None', parent_id: null },
-          ...store.productCategories,
+          ...store.flattenedCategories,
         ]"
         filter
         option-label="name"

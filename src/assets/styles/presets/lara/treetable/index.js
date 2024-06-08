@@ -118,7 +118,7 @@ export default {
           context.selected,
       },
       {
-        "bg-surface-0 text-surface-600 dark:bg-surface-800": !context.selected,
+        " text-surface-600 dark:bg-surface-800": !context.selected,
       },
 
       // Hover & Flexbox
@@ -283,7 +283,7 @@ export default {
         { "first:border-l border-r border-b": context?.showGridlines },
 
         // Color
-        "bg-surface-0 dark:bg-surface-800",
+        "dark:bg-surface-800",
 
         // Spacing
         context?.size === "small"
@@ -423,7 +423,7 @@ export default {
 
           // Colors
           {
-            "border-surface-200 bg-surface-0 dark:border-surface-700 dark:bg-surface-900":
+            "border-surface-200 dark:border-surface-700 dark:bg-surface-900":
               !context.checked,
             "border-primary-500 bg-primary-500 dark:border-primary-400 dark:bg-primary-400":
               context.checked,
