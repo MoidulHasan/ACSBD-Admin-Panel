@@ -186,7 +186,7 @@ const handleDeleteConfirmation = async () => {
         header="Add Attribute"
         @hide="() => (editableAttributeData = null)"
       >
-        <PagesProductsAttributesForm
+        <PagesProductAttributesForm
           :attribute-data="editableAttributeData"
           @on-form-submit="handleFormSubmit"
         />

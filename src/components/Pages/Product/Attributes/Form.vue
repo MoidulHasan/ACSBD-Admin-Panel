@@ -94,7 +94,7 @@ const onSubmit = handleSubmit(async (values, actions) => {
     name: values.attributeName,
     values: values.attributeValues,
   };
-  console.log(requestBody, "REQUEST BODY")
+
   let response;
 
   if (!props.attributeData) {
@@ -122,14 +122,21 @@ const onSubmit = handleSubmit(async (values, actions) => {
       <div class="flex flex-col gap-2">
         <label for="attr-name">Attribute Name</label>
 
-        <InputText id="attr-name" v-model="attributeName" placeholder="Color" />
+        <InputText
+          id="attr-name"
+          v-model="attributeName"
+          :invalid="!!errors.attributeName"
+          placeholder="Color"
+        />
         <span class="text-red-400 text-xs">{{ errors.attributeName }}</span>
       </div>
 
       <div class="mt-5">
         <p class="flex justify-between">
           <label for="attr-values">Attribute Values</label>
-          <span class="text-red-400 text-xs">{{ errors.attributeValues }}</span>
+          <span v-if="submitCount" class="text-red-400 text-xs">
+            {{ errors.attributeValues }}
+          </span>
         </p>
 
         <div id="attr-values" class="grid grid-cols-3 gap-4">
@@ -142,6 +149,9 @@ const onSubmit = handleSubmit(async (values, actions) => {
               <InputText
                 v-model="attrValue.value"
                 :placeholder="placeHolderValues[index]"
+                :invalid="
+                  !!(errors[`attributeValues[${index}]`] && submitCount)
+                "
               />
               <Button
                 :disabled="attributeValues.length === 1"
@@ -195,28 +205,5 @@ const onSubmit = handleSubmit(async (values, actions) => {
     border-color: var(--primary-color-envitect-sam-blue);
     color: var(--primary-color-envitect-sam-blue);
   }
-}
-
-.action-button {
-  width: 154px;
-  height: 48px;
-
-  box-sizing: border-box;
-
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  padding: 12px 48px;
-  gap: 12px;
-
-  border-radius: 4px;
-
-  background: #f8f8f8;
-  color: #a5a5a5;
-}
-
-.submit-button {
-  background: var(--primary-color-envitect-sam-blue);
-  color: var(--primary-color-white);
 }
 </style>
