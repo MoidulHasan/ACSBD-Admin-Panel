@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import type { IMenuItem } from "~/app/interfaces/sidebar";
-
 const props = defineProps<{
   item: IMenuItem;
   index: number;
@@ -9,8 +7,9 @@ const props = defineProps<{
 
 const route = useRoute();
 
-const isExpanded = ref(false);
 const isActiveRoute = computed(() => route.path === props.item.navigateTo);
+
+const isExpanded = ref(hasActiveChild(props.item));
 
 const handleNavItemClick = () => {
   if (props.item.items?.length) {
@@ -21,6 +20,22 @@ const handleNavItemClick = () => {
     navigateTo(props.item.navigateTo);
   }
 };
+
+function hasActiveChild(menuItem: IMenuItem) {
+  if (route.path === menuItem.navigateTo) {
+    return true;
+  }
+
+  if (menuItem.items) {
+    for (const child of menuItem.items) {
+      if (hasActiveChild(child)) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
 </script>
 
 <template>

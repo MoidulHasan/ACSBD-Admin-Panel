@@ -21,23 +21,37 @@ const items = ref<IMenuItem[]>([
     items: [
       {
         label: "Categories",
-        navigateTo: "/product/categories",
+        navigateTo: "/products/categories",
       },
       {
         label: "Brands",
-        navigateTo: "/product/brands",
+        navigateTo: "/products/brands",
       },
       {
         label: "Attributes",
-        navigateTo: "/product/attributes",
+        navigateTo: "/products/attributes",
       },
       {
         label: "Collections",
-        navigateTo: "/product/product-collections",
+        navigateTo: "/products/product-collections",
       },
       {
         label: "Products",
-        navigateTo: "/product/products",
+        navigateTo: "/products",
+      },
+    ],
+  },
+  {
+    label: "Orders",
+    icon: "pi pi-book",
+    items: [
+      {
+        label: "Product",
+        navigateTo: "/orders/products",
+      },
+      {
+        label: "Services",
+        navigateTo: "/orders/services",
       },
     ],
   },

@@ -5,7 +5,11 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   srcDir: "src/",
   serverDir: "server/",
-  css: ["primeicons/primeicons.css", "~/assets/styles/css/main.css"],
+  css: [
+    "primeicons/primeicons.css",
+    "~/assets/styles/css/main.css",
+    "~/assets/styles/css/common.css",
+  ],
   modules: [
     "nuxt-primevue",
     "@nuxtjs/tailwindcss",
@@ -39,6 +43,8 @@ export default defineNuxtConfig({
         "Dropdown",
         "Toast",
         "Editor",
+        "Tag",
+        "InputNumber",
       ],
     },
   },
