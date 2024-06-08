@@ -28,7 +28,7 @@ export interface IPaginatedResponse<T> {
   meta?: Meta;
 }
 
-export interface ICategoryResponse<T> {
+export interface IAllCategoryResponse<T> {
   data: T;
 }
 

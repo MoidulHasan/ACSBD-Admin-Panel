@@ -2,8 +2,12 @@
 import { useToast } from "primevue/usetoast";
 import DataTableHeader from "~/components/Common/DataTableHeader.vue";
 
-import type { ICategoryData, IMinifiedCategory } from "~/app/interfaces/products";
-import type { ICategoryResponse } from "~/app/interfaces/common";
+import type {
+  ICategoryData,
+  IMinifiedCategory,
+  ICategoryResponse,
+} from "~/app/interfaces/products";
+import type {IAllCategoryResponse, ICreateResponse} from "~/app/interfaces/common";
 
 useHead({
   title: "Categories | Product",
@@ -20,7 +24,7 @@ const currentPage = ref(1);
 const store = useStore();
 
 const transformNode = (
-  node: ICategoryData[],
+  node: ICategoryResponse,
   currentIndex: number = 1,
 ): ICategoryData[] => {
   if (Array.isArray(node)) {
@@ -45,7 +49,7 @@ const transformNode = (
       data,
       children:
         childrens && childrens.length > 0
-          ? childrens?.map((child: ICategoryData[], index: number) =>
+          ? childrens?.map((child: ICategoryResponse, index: number) =>
               transformNode(child, index + 1),
             )
           : [],
@@ -59,7 +63,7 @@ const {
   refresh: refreshCategories,
   pending,
   error,
-} = await useAsyncData<ICategoryResponse<ICategoryData[]>>(
+} = await useAsyncData<IAllCategoryResponse<ICategoryData[]>>(
   () => $apiClient(`/admin/categories`),
   {
     transform: (data) => transformNode(data.data),
@@ -68,12 +72,6 @@ const {
 if (error.value) {
   throw createError(error.value);
 }
-
-// const { data: allCategoriesWithNode, refresh: refreshNodeCat } =
-//   await useAsyncData(() => $apiClient(`/admin/categories`), {
-//     transform: (data) => transformNode(data.data),
-//   });
-// console.log("Transformed Data", allCategoriesWithNode.value);
 
 const refreshCategoryDataInEverywhere = () => {
   store.setAllCategoryData(allCategories.value);
@@ -124,7 +122,7 @@ const getParentName = (id: string | number | null) => {
 };
 
 const showCategoryFormModal = ref(false);
-const editableCategoryData = ref(null);
+const editableCategoryData = ref<ICategoryResponse | null>(null);
 
 const refreshCategoryInfo = async () => {
   await refreshCategories();
@@ -139,7 +137,7 @@ const handleFormSubmit = async () => {
 
 // edit
 
-const handleEditButtonClick = (categoryData: ICategoryData) => {
+const handleEditButtonClick = (categoryData: ICategoryResponse) => {
   editableCategoryData.value = categoryData;
   showCategoryFormModal.value = true;
 };
@@ -158,7 +156,7 @@ const hideDeleteConfirmationModal = () => {
 const handleDeleteConfirmation = async () => {
   try {
     store.loading = true;
-    const response = await $apiClient(
+    const response = await $apiClient<ICreateResponse>(
       `/admin/categories/${categorySlugToDelete.value}`,
       {
         method: "DELETE",

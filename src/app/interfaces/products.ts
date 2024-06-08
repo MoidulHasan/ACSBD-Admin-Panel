@@ -15,6 +15,19 @@ export interface IProductAttribute {
   values: IProductAttributeValue[];
 }
 
+export interface ICategoryResponse {
+  id: number;
+  image_url: string;
+  meta_description: string;
+  meta_title: string;
+  name: string;
+  parent_id: number;
+  slug: string;
+  visibility_status: string;
+  childrens?: ICategoryResponse[] | [];
+  index?: number;
+}
+
 export interface ICategoryData {
   key: string;
   data: {

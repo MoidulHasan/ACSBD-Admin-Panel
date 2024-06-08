@@ -34,7 +34,7 @@ export default defineNuxtConfig({
         "InputIcon",
         "Dialog",
         "InputGroup",
-          "SelectButton",
+        "SelectButton",
         "FileUpload",
         "Textarea",
         "Dropdown",

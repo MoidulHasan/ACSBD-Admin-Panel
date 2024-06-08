@@ -1,10 +1,13 @@
-import type { CategoryData, MinifiedCategory } from "~/app/interfaces/products";
+import type {
+  ICategoryData,
+  IMinifiedCategory,
+} from "~/app/interfaces/products";
 
 export const useStore = defineStore("mainStore", () => {
   const loading = ref(false);
 
-  const productCategories = ref<MinifiedCategory[] | [] | undefined>([]);
-  const allProductCategories = ref<CategoryData[]>([]);
+  const productCategories = ref<IMinifiedCategory[] | [] | undefined>([]);
+  const allProductCategories = ref<ICategoryData[]>([]);
   const currentPage = ref<number>(1);
 
   const flattenedCategories = computed(() => {
@@ -18,8 +21,8 @@ export const useStore = defineStore("mainStore", () => {
     );
   });
 
-  function flattenDataUsingReduce(categories: CategoryData[]) {
-    return categories.reduce((acc, item) => {
+  function flattenDataUsingReduce(categories: ICategoryData[]) {
+    return categories.reduce((acc: IMinifiedCategory[], item) => {
       const { children, data } = item;
       acc.push({ id: data.id, name: data.name, parent_id: data.parent_id });
       if (children && children.length > 0) {
@@ -32,7 +35,7 @@ export const useStore = defineStore("mainStore", () => {
   function setCurrentPage(page: number) {
     currentPage.value = page;
   }
-  function setAllCategoryData(categories: CategoryData[]) {
+  function setAllCategoryData(categories: ICategoryData[]) {
     allProductCategories.value = categories;
   }
 
