@@ -20,10 +20,10 @@ export const useStore = defineStore("mainStore", () => {
 
   function flattenDataUsingReduce(categories: CategoryData[]) {
     return categories.reduce((acc, item) => {
-      const { childrens, ...rest } = item;
-      acc.push({ id: rest.id, name: rest.name, parent_id: rest.parent_id });
-      if (childrens && childrens.length > 0) {
-        acc = acc.concat(flattenDataUsingReduce(childrens));
+      const { children, data } = item;
+      acc.push({ id: data.id, name: data.name, parent_id: data.parent_id });
+      if (children && children.length > 0) {
+        acc = acc.concat(flattenDataUsingReduce(children));
       }
       return acc;
     }, []);

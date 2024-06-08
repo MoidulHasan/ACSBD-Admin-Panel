@@ -16,14 +16,17 @@ export interface IProductAttribute {
 }
 
 export interface CategoryData {
-  id: number;
-  name: string;
-  slug: string;
-  image_url: string;
-  parent_id: number;
-  meta_title: string;
-  meta_description: string;
-  visibility_status: string;
+  key: string;
+  data: {
+    id: number;
+    image_url: string;
+    meta_description: string;
+    meta_title: string;
+    name: string;
+    parent_id: number;
+    slug: string;
+    visibility_status: string;
+  };
   children: CategoryData[] | [];
 }
 

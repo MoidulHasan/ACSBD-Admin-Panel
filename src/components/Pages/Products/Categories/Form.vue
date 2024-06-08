@@ -70,13 +70,22 @@ const validationSchema = yup.object({
   categoryParent: yup.mixed(),
 });
 
+const getVisibilityStatus = (status: string) => {
+  if (status === "active") {
+    return "public";
+  }
+  return "hidden";
+};
+
 const { handleSubmit, errors, resetForm, meta } = useForm({
   validationSchema,
   initialValues: {
     categoryName: props.categoryData?.name ?? "",
     categoryMetaTitle: props.categoryData?.meta_title ?? "",
     categoryMetaDescription: props.categoryData?.meta_description ?? "",
-    categoryVisibilityStatus: props.categoryData?.visibility_status ?? "",
+    categoryVisibilityStatus: props.categoryData
+      ? getVisibilityStatus(props.categoryData?.visibility_status)
+      : "",
     categoryImage: props.categoryData?.image_url ?? "",
     categoryParent: props.categoryData?.parent_id ?? "",
   },
@@ -301,28 +310,35 @@ const onSubmit = handleSubmit(async (values, actions) => {
       <span class="text-red-400 text-xs">{{ errors.categoryImage }}</span>
 
       <div class="grid grid-cols-2 gap-3">
-        <InputText
-          id="meta-title"
-          v-model="categoryMetaTitle"
-          aria-describedby="text-meta-title"
-          placeholder="Enter Meta-title of the category"
-          required
-          type="text"
-        />
-        <span class="text-red-400 text-xs">{{ errors.categoryMetaTitle }}</span>
-
-        <Dropdown
-          v-model="categoryVisibilityStatus"
-          :options="statuses"
-          option-label="name"
-          option-value="code"
-          placeholder="Select a Status"
-          checkmark
-          :highlight-on-select="false"
-        />
-        <span class="text-red-400 text-xs">{{
-          errors.categoryVisibilityStatus
-        }}</span>
+        <div>
+          <InputText
+            id="meta-title"
+            v-model="categoryMetaTitle"
+            aria-describedby="text-meta-title"
+            placeholder="Enter Meta-title of the category"
+            required
+            type="text"
+            class="w-full"
+          />
+          <span class="text-red-400 text-xs">{{
+            errors.categoryMetaTitle
+          }}</span>
+        </div>
+        <div>
+          <Dropdown
+            v-model="categoryVisibilityStatus"
+            :options="statuses"
+            option-label="name"
+            option-value="code"
+            placeholder="Select a Status"
+            checkmark
+            :highlight-on-select="false"
+            class="w-full"
+          />
+          <span class="text-red-400 text-xs">{{
+            errors.categoryVisibilityStatus
+          }}</span>
+        </div>
       </div>
 
       <Dropdown
@@ -330,7 +346,7 @@ const onSubmit = handleSubmit(async (values, actions) => {
         v-model="categoryParent"
         :options="[
           { id: '', name: 'None', parent_id: null },
-          ...store.productCategories,
+          ...store.flattenedCategories,
         ]"
         filter
         option-label="name"
