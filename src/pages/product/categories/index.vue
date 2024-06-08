@@ -18,7 +18,6 @@ const { $apiClient } = useNuxtApp();
 
 const currentPage = ref(1);
 const store = useStore();
-const expandedRows = ref({});
 
 const transformNode = (
   node: ICategoryData[],
@@ -111,16 +110,6 @@ const refreshAllCategoryData = () => {
 // });
 
 const filters = ref({});
-
-const expandAll = () => {
-  expandedRows.value = allCategories.value.reduce(
-    (acc, p) => (acc[p.id] = true) && acc,
-    {},
-  );
-};
-const collapseAll = () => {
-  expandedRows.value = null;
-};
 
 const getParentName = (id: string | number | null) => {
   if (!id) {
