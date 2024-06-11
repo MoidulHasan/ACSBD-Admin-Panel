@@ -78,7 +78,7 @@ const validationSchema = yup.object({
 });
 
 const getVisibilityStatus = (status: string) => {
-  if (status === "active") {
+  if (status === "Active") {
     return "public";
   }
   return "hidden";
