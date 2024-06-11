@@ -150,14 +150,14 @@ const handleDeleteConfirmation = async () => {
         <template #body="slotProps">
           <div class="flex items-center gap-2">
             <button
-              class="action-button"
+              class="option-action-button"
               @click="() => handleEditButtonClick(slotProps.data)"
             >
               <i class="pi pi-file-edit" />
             </button>
 
             <button
-              class="action-button"
+              class="option-action-button"
               @click="() => handleDeleteButtonClick(slotProps.data.slug)"
             >
               <i class="pi pi-trash" />
@@ -236,15 +236,6 @@ const handleDeleteConfirmation = async () => {
 
   :deep(.p-datatable-footer) {
     border: 0;
-  }
-
-  .action-button {
-    width: 24px;
-    height: 24px;
-
-    &:hover {
-      color: var(--primary-color-navy-blue);
-    }
   }
 }
 </style>
