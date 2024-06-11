@@ -245,14 +245,14 @@ watch(currentPage, () => {
       <Column header="Actions">
         <template #body="slotProps">
           <div class="flex items-center gap-2">
-            <button class="action-button">
+            <button class="option-action-button">
               <i
                 class="pi pi-file-edit block block-edit"
                 title="Edit Category Information"
                 @click="handleEditButtonClick(slotProps.node.data)"
               />
             </button>
-            <button class="action-button">
+            <button class="option-action-button">
               <i
                 class="pi pi-trash block block-delete"
                 title="Delete This Category"
@@ -333,14 +333,7 @@ watch(currentPage, () => {
     border: 0;
   }
 
-  .action-button {
-    width: 24px;
-    height: 24px;
 
-    &:hover {
-      color: var(--primary-color-navy-blue);
-    }
-  }
 }
 
 .block-edit,
