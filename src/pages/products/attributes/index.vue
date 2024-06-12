@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { FilterMatchMode } from "primevue/api";
-import { useToast } from "primevue/usetoast";
-import type { IPaginatedResponse } from "~/app/interfaces/common";
 import type { IProductAttribute } from "~/app/interfaces/products";
 
 useHead({
@@ -13,7 +11,7 @@ definePageMeta({
 });
 
 const store = useStore();
-const { $apiClient } = useNuxtApp();
+const attributeStore = useAttributeStore();
 const toast = useToast();
 
 const currentPage = ref(1);
@@ -22,19 +20,8 @@ const showDeleteConfirmationModal = ref(false);
 const deletableAttributeSlug = ref<null | string>(null);
 const editableAttributeData = ref<null | IProductAttribute>(null);
 
-const {
-  data: attributes,
-  pending,
-  refresh,
-  error,
-} = await useAsyncData(
-  () =>
-    $apiClient<IPaginatedResponse<IProductAttribute>>(
-      `/admin/attributes?page=${currentPage.value}&limit=10`,
-    ),
-  {
-    watch: [currentPage],
-  },
+const { pending, error, refresh } = await useAsyncData("attributes-data", () =>
+  attributeStore.fetchAttributes().then(() => true),
 );
 
 if (error.value) {
@@ -46,6 +33,31 @@ const filters = ref({
   name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
   "values.name": { value: null, matchMode: FilterMatchMode.STARTS_WITH },
 });
+
+const filteredAttributes = computed(() => {
+  const globalFilterValue = filters.value.global.value?.toLowerCase() || "";
+
+  if (globalFilterValue) {
+    return attributeStore.attributes.filter((attribute) => {
+      const attributeNameMatches = attribute.name
+        .toLowerCase()
+        .includes(globalFilterValue);
+      const attributeValuesMatch = attribute.values.some((value) =>
+        value.name.toLowerCase().includes(globalFilterValue),
+      );
+
+      return attributeNameMatches || attributeValuesMatch;
+    });
+  }
+
+  return attributeStore.getAttributesByPageAndLimit(currentPage.value, 10);
+});
+
+const totalPage = computed(() =>
+  filters.value.global.value
+    ? 1
+    : Math.ceil(attributeStore.attributes.length / 10),
+);
 
 const handleFormSubmit = async () => {
   showAttributeFormModal.value = false;
@@ -69,13 +81,12 @@ const hideDeleteConfirmationModal = () => {
 };
 
 const handleDeleteConfirmation = async () => {
+  if (!deletableAttributeSlug.value) return;
+
   try {
     store.loading = true;
-    const response = await $apiClient(
-      `/admin/attributes/${deletableAttributeSlug.value}`,
-      {
-        method: "DELETE",
-      },
+    const response = await attributeStore.deleteAttributeBySlug(
+      deletableAttributeSlug.value,
     );
     store.loading = false;
 
@@ -85,28 +96,26 @@ const handleDeleteConfirmation = async () => {
       detail: response.message,
       life: 3000,
     });
-
-    hideDeleteConfirmationModal();
-    await refresh();
   } catch (error) {
     store.loading = false;
 
     toast.add({
       severity: "error",
-      summary: "Request Failed",
-      detail: error.statusMessage,
+      summary: error?.statusMessage ?? "Request Failed",
+      detail: error?.data?.error ?? "Unknown Issue Occurred",
       life: 3000,
     });
   }
+
+  hideDeleteConfirmationModal();
 };
 </script>
 
 <template>
   <div class="table-container">
     <DataTable
-      v-if="attributes?.data"
       v-model:filters="filters"
-      :value="attributes.data"
+      :value="filteredAttributes"
       table-style="min-width: 50rem"
       data-key="id"
       :loading="pending"
@@ -150,14 +159,14 @@ const handleDeleteConfirmation = async () => {
         <template #body="slotProps">
           <div class="flex items-center gap-2">
             <button
-              class="action-button"
+              class="table-action-button"
               @click="() => handleEditButtonClick(slotProps.data)"
             >
               <i class="pi pi-file-edit" />
             </button>
 
             <button
-              class="action-button"
+              class="table-action-button"
               @click="() => handleDeleteButtonClick(slotProps.data.slug)"
             >
               <i class="pi pi-trash" />
@@ -169,12 +178,12 @@ const handleDeleteConfirmation = async () => {
       <template #footer>
         <CommonPagination
           v-model:current-page="currentPage"
-          :total-page="attributes?.meta?.last_page"
+          :total-page="totalPage"
         />
       </template>
     </DataTable>
 
-    <div v-else-if="error" class="h-full">
+    <div v-if="error" class="h-full">
       <CommonError :error="error" />
     </div>
 
