@@ -32,6 +32,23 @@ export interface IAllCategoryResponse<T> {
   data: T;
 }
 
+export interface IDataResponse<T> {
+  data: T;
+}
+
 export interface ICreateResponse {
   message: string;
+}
+
+export interface IDeleteResponse {
+  message: string;
+}
+
+export interface IUpdateResponse<T> {
+  message: string;
+  data: T;
+}
+
+export interface IErrorResponse {
+  errors: Record<string, string[]>;
 }
