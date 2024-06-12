@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import * as yup from "yup";
-import type { ICreateResponse } from "~/app/interfaces/common";
 import type { IProductAttribute } from "~/app/interfaces/products";
 
 interface IProps {
@@ -14,11 +13,30 @@ const emits = defineEmits<{
 }>();
 
 const store = useStore();
+const attributeStore = useAttributeStore();
+const { createAttribute, updateAttribute } = useAttributeStore();
 const toast = useToast();
-const { $apiClient } = useNuxtApp();
 
 const validationSchema = yup.object({
-  attributeName: yup.string().required("Attribute name is required"),
+  attributeName: yup
+    .string()
+    .required("Attribute name is required")
+    .test("isExist", "The name has already been taken.", (value) => {
+      return !attributeStore.attributes.some((attribute) => {
+        const lowerCaseValue = value.toLowerCase();
+        const attributeName = attribute.name.toLowerCase();
+
+        if (props?.attributeData) {
+          return (
+            lowerCaseValue !== props?.attributeData.name.toLowerCase() &&
+            lowerCaseValue === attributeName
+          );
+        }
+
+        return lowerCaseValue === attributeName;
+      });
+    }),
+
   attributeValues: yup
     .array()
     .of(yup.string().required("Value is required"))
@@ -50,69 +68,54 @@ const {
 const placeHolderValues = ref(["White", "Red", "Blue"]);
 
 const onSubmit = handleSubmit(async (values, actions) => {
-  const handleResponseErrors = (responseErrors) => {
-    Object.keys(responseErrors).forEach((fieldName) => {
-      if (fieldName === "name") {
-        actions.setFieldError("attributeName", responseErrors[fieldName]);
-      }
-
-      if (fieldName === "values") {
-        actions.setFieldError("attributeValues", responseErrors[fieldName]);
-      }
-
-      toast.add({
-        severity: "error",
-        summary: "Request failed",
-        detail: responseErrors[fieldName].join(" , "),
-        life: 3000,
-      });
-    });
-  };
-
-  const handleSuccess = (message: string) => {
-    toast.add({
-      severity: "success",
-      summary: "Request Success",
-      detail: message,
-      life: 3000,
-    });
-
-    emits("onFormSubmit");
-  };
-
-  const makeRequest = async (url, method, body) => {
-    store.loading = true;
-    const response = await $apiClient<ICreateResponse>(url, {
-      method,
-      body,
-    }).catch((error) => error.data);
-    store.loading = false;
-    return response;
-  };
-
   const requestBody = {
     name: values.attributeName,
     values: values.attributeValues,
   };
 
-  let response;
+  const response = props.attributeData
+    ? await updateAttribute(props.attributeData.slug, requestBody)
+    : await createAttribute(requestBody);
 
-  if (!props.attributeData) {
-    response = await makeRequest("/admin/attributes", "POST", requestBody);
-  } else {
-    response = await makeRequest(
-      `/admin/attributes/${props.attributeData.slug}`,
-      "PUT",
-      requestBody,
-    );
-  }
+  if (response.status === 200) {
+    toast.add({
+      severity: "success",
+      summary: "Request Success",
+      detail: response.message,
+      life: 3000,
+    });
 
-  if (response.errors) {
-    handleResponseErrors(response.errors);
+    emits("onFormSubmit");
     return;
   }
 
-  handleSuccess(response.message);
+  if (response.errors) {
+    Object.keys(response.errors).forEach((fieldName) => {
+      if (fieldName === "name") {
+        actions.setFieldError("attributeName", response.errors[fieldName]);
+      }
+
+      if (fieldName === "values") {
+        actions.setFieldError("attributeValues", response.errors[fieldName]);
+      }
+
+      toast.add({
+        severity: "error",
+        summary: "Request failed",
+        detail: response.errors[fieldName].join(" , "),
+        life: 3000,
+      });
+    });
+
+    return;
+  }
+
+  toast.add({
+    severity: "error",
+    summary: "Request failed",
+    detail: response.statusText,
+    life: 3000,
+  });
 });
 </script>
 
@@ -134,7 +137,7 @@ const onSubmit = handleSubmit(async (values, actions) => {
       <div class="mt-5">
         <p class="flex justify-between">
           <label for="attr-values">Attribute Values</label>
-          <span v-if="submitCount" class="text-red-400 text-xs">
+          <span v-if="meta.dirty" class="text-red-400 text-xs">
             {{ errors.attributeValues }}
           </span>
         </p>
@@ -175,7 +178,7 @@ const onSubmit = handleSubmit(async (values, actions) => {
       <div class="mt-5 flex justify-end gap-2">
         <Button
           :disabled="store.loading"
-          class="action-button"
+          :class="'form-action-button'"
           type="button"
           @click="handleReset"
         >
@@ -184,7 +187,7 @@ const onSubmit = handleSubmit(async (values, actions) => {
         <Button
           :disabled="store.loading || !meta.valid || !meta.dirty"
           :loading="store.loading"
-          class="action-button submit-button"
+          class="form-action-button form-submit-button"
           type="submit"
         >
           Submit
