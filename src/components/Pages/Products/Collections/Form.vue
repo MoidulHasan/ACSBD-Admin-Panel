@@ -21,10 +21,6 @@ const statuses = ref<IStatus[]>([
   { name: "Inactive", code: "private" },
 ]);
 
-const getVisibilityStatus = (status: string) => {
-  return status === "Active" ? "public" : "private";
-};
-
 const validationSchema = yup.object({
   collectionTitle: yup.string().required("Collection Name Is Required"),
   collectionStatus: yup.string().required("Collection Status Is Required"),
@@ -34,9 +30,7 @@ const { handleSubmit, errors, handleReset, meta } = useForm({
   validationSchema,
   initialValues: {
     collectionTitle: props.collectionData?.title ?? "",
-    collectionStatus: props.collectionData
-      ? getVisibilityStatus(props.collectionData?.status)
-      : "",
+    collectionStatus: props.collectionData?.status ?? "",
   },
 });
 const { value: collectionTitle } = useField("collectionTitle");

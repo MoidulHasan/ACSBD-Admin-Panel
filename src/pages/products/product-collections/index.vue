@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { FilterMatchMode } from "primevue/api";
-import type { ICollection } from "~/app/interfaces/products";
-import type { ICreateResponse } from "~/app/interfaces/common";
+import type { ICollection, IProductAttribute } from "~/app/interfaces/products";
+import type {
+  ICreateResponse,
+  IPaginatedResponse,
+} from "~/app/interfaces/common";
 
 definePageMeta({
   name: "product-collections",
@@ -10,37 +13,36 @@ useHead({
   title: "Collections | Products",
 });
 
-const productCollections = ref([
-  {
-    id: 1,
-    title: "Test Collection 01",
-    slug: "test-collection-01",
-    status: "Active",
-  },
-  {
-    id: 11,
-    title: "Ultra Collection 01",
-    slug: "ultra-collection-01",
-    status: "Inactive",
-  },
-  {
-    id: 12,
-    title: "Summer Offer",
-    slug: "summer-offer",
-    status: "Active",
-  },
-]);
-
-const filters = ref({
-  global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-});
 const store = useStore();
 const toast = useToast();
-
+const currentPage = ref(1);
 const showCollectionModal = ref<boolean>(false);
 const showDeleteConfirmModal = ref<boolean>(false);
 const editableCollection = ref<ICollection | null>(null);
 const collectionSlugToDelete = ref<string | null>(null);
+const { $apiClient } = useNuxtApp();
+const {
+  data: productCollections,
+  pending,
+  refresh: refreshCollections,
+  error,
+} = await useAsyncData(
+  () =>
+    $apiClient<IPaginatedResponse<IProductAttribute>>(
+      `/admin/collections?page=${currentPage.value}&limit=10`,
+    ),
+  {
+    watch: [currentPage],
+  },
+);
+
+if (error.value) {
+  throw createError(error.value);
+}
+
+const filters = ref({
+  global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+});
 const handleCreateNewCollection = () => {
   showCollectionModal.value = true;
 };
@@ -55,10 +57,10 @@ const getSeverity = (status) => {
   }
 };
 
-const handleFormSubmit = () => {
+const handleFormSubmit = async () => {
   showCollectionModal.value = false;
   editableCollection.value = null;
-  // await refreshCollections();
+  await refreshCollections();
 };
 
 const handleEditButtonClick = (collectionData: ICollection) => {
@@ -75,7 +77,6 @@ const hideDeleteConfirmModal = () => {
   showDeleteConfirmModal.value = false;
 };
 
-const { $apiClient } = useNuxtApp();
 const handleDeleteConfirmation = async () => {
   try {
     store.loading = true;
@@ -95,7 +96,7 @@ const handleDeleteConfirmation = async () => {
     });
 
     hideDeleteConfirmModal();
-    // await refreshCategoryInfo();
+    await refreshCollections();
   } catch (error) {
     store.loading = false;
 
@@ -112,13 +113,14 @@ const handleDeleteConfirmation = async () => {
 <template>
   <div class="table-container">
     <DataTable
-      v-if="productCollections"
+      v-if="productCollections.data.length"
       v-model:filters="filters"
-      :value="productCollections"
+      :value="productCollections.data"
       table-style="min-width: 50rem"
       data-key="id"
       :global-filter-fields="['name', 'status']"
       striped-rows
+      :loading="pending"
     >
       <template #header>
         <CommonDataTableHeader
@@ -134,7 +136,7 @@ const handleDeleteConfirmation = async () => {
 
       <Column header="SN">
         <template #body="slotProps">
-          {{ slotProps.index + 1 }}
+          {{ (currentPage - 1) * 10 + slotProps.index + 1 }}
         </template>
       </Column>
       <Column header="title">
@@ -144,13 +146,9 @@ const handleDeleteConfirmation = async () => {
       </Column>
       <Column header="Status">
         <template #body="{ data }">
-          <!--          <Tag-->
-          <!--            :value="data.status === 'public' ? 'Active' : 'Inactive'"-->
-          <!--            :severity="getSeverity(data.status)"-->
-          <!--          />-->
           <Tag
-            :value="data.status === 'private' ? 'Inactive' : 'Active'"
-            :severity="getSeverity('public')"
+            :value="data.status === 'public' ? 'Active' : 'Inactive'"
+            :severity="getSeverity(data.status)"
           />
         </template>
       </Column>
@@ -174,13 +172,16 @@ const handleDeleteConfirmation = async () => {
           </div>
         </template>
       </Column>
-      <!--      <template #footer>-->
-      <!--        <CommonPagination-->
-      <!--          v-model:current-page="currentPage"-->
-      <!--          :total-page="productCollections?.meta?.last_page"-->
-      <!--        />-->
-      <!--      </template>-->
+      <template #footer>
+        <CommonPagination
+          v-model:current-page="currentPage"
+          :total-page="productCollections?.meta?.last_page"
+        />
+      </template>
     </DataTable>
+    <div v-else-if="error" class="h-full">
+      <CommonError :error="error" />
+    </div>
     <ClientOnly>
       <Dialog
         v-model:visible="showCollectionModal"
