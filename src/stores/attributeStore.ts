@@ -19,6 +19,7 @@ export const useAttributeStore = defineStore("attributeStore", () => {
       await $apiClient<IDataResponse<IProductAttribute[]>>("/admin/attributes");
 
     attributes.value = data;
+    return attributes.value;
   };
 
   const getAttributesByPageAndLimit = (

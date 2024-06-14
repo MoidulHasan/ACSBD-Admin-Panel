@@ -20,8 +20,9 @@ const showDeleteConfirmationModal = ref(false);
 const deletableAttributeSlug = ref<null | string>(null);
 const editableAttributeData = ref<null | IProductAttribute>(null);
 
-const { pending, error, refresh } = await useAsyncData("attributes-data", () =>
-  attributeStore.fetchAttributes().then(() => true),
+const { pending, error, refresh } = await useAsyncData<IProductAttribute[]>(
+  "attributes-data",
+  () => attributeStore.fetchAttributes(),
 );
 
 if (error.value) {
