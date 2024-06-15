@@ -1,12 +1,8 @@
 <script setup lang="ts">
 import * as yup from "yup";
-import type { ICreateResponse } from "~/app/interfaces/common";
 import { formatSize } from "~/utils/formatSize";
+import { statusOptions } from "~/app/constants/common";
 
-export interface Status {
-  name: "Public" | "Hidden";
-  code: "public" | "hidden";
-}
 export interface PropCategory {
   id: number;
   image_url: string;
@@ -30,12 +26,6 @@ const store = useStore();
 const { flattenCategories, createCategory, updateCategory } =
   useCategoryStore();
 const toast = useToast();
-const { $apiClient } = useNuxtApp();
-
-const statuses = ref<Status[]>([
-  { name: "Public", code: "public" },
-  { name: "Hidden", code: "hidden" },
-]);
 
 const files = ref([]);
 const fileToUp = ref<File | null>(null);
@@ -331,9 +321,9 @@ const onSelectedFiles = (event: any) => {
         <div>
           <Dropdown
             v-model="categoryVisibilityStatus"
-            :options="statuses"
+            :options="statusOptions"
             option-label="name"
-            option-value="code"
+            option-value="value"
             placeholder="Select a Status"
             checkmark
             :highlight-on-select="false"
