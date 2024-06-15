@@ -1,3 +1,40 @@
+.pagination-item {
+    width: 32px;
+    height: 32px;
+
+    background: var(--dark-gray-10);
+    border-radius: 2px;
+
+
+    margin-left: 12px;
+
+    font-style: normal;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 20px;
+    text-align: center;
+
+    cursor: pointer;
+
+    &:hover {
+        background: var(--primary-color-navy-blue);
+        color: var(--primary-color-white);
+    }
+}
+
+.active-pagination-item {
+    background: var(--primary-color-navy-blue);
+    color: var(--primary-color-white);
+}
+
+.pagination-item-disabled {
+    background: var(--dark-gray-10);
+    color: var(--primary-color-dark-gray);
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+
 .form-action-button {
     width: 154px;
     height: 48px;
