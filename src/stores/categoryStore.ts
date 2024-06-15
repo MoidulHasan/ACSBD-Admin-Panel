@@ -1,8 +1,15 @@
 import type {
+  IAttributeFormData,
   ICategoryData,
   ICategoryResponse,
+  IProductAttribute,
 } from "~/app/interfaces/products";
-import type { IDataResponse, IDeleteResponse } from "~/app/interfaces/common";
+import type {
+  ICreateResponse,
+  IDataResponse,
+  IDeleteResponse,
+  IUpdateResponse,
+} from "~/app/interfaces/common";
 
 export const useCategoryStore = defineStore("categoryStore", () => {
   const { $apiClient } = useNuxtApp();
@@ -37,12 +44,6 @@ export const useCategoryStore = defineStore("categoryStore", () => {
     return categories.value;
   };
 
-  const getCategoryByPageAndLimit = (page: number = 1, limit: number = 10) => {
-    const start = (page - 1) * limit;
-    const end = start + limit;
-    return categories.value.slice(start, end);
-  };
-
   const getCategoryById = (id: number | null) => {
     if (!id) {
       return null;
@@ -69,6 +70,47 @@ export const useCategoryStore = defineStore("categoryStore", () => {
     }
 
     return findCategoryById(categories.value, id);
+  };
+
+  const createCategory = async (categoryData: any) => {
+    try {
+      const response = await $apiClient<ICreateResponse>("/admin/categories", {
+        method: "POST",
+        body: categoryData,
+      }).catch((error) => error.data);
+
+      if (!response?.errors) await fetchCategories();
+
+      return response;
+    } catch (err) {
+      return err;
+    }
+  };
+
+  const updateCategory = async (slug: string, updatedData: any) => {
+    try {
+      const response = await $apiClient<IUpdateResponse<ICategoryResponse>>(
+        `/admin/categories/${slug}`,
+        {
+          method: "PUT",
+          body: updatedData,
+        },
+      ).catch((error) => error.data);
+
+      if (response.data) {
+        const updatedCategoryIndex = categories.value.findIndex(
+          (category) => category.slug === slug,
+        );
+
+        if (updatedCategoryIndex !== -1) {
+          categories.value[updatedCategoryIndex] = response.data;
+        }
+      }
+
+      return response;
+    } catch (err) {
+      return err;
+    }
   };
 
   const deleteCategoryBySlug = async (slug: string) => {
@@ -102,7 +144,8 @@ export const useCategoryStore = defineStore("categoryStore", () => {
     flattenCategories,
     fetchCategories,
     getCategoryById,
-    getCategoryByPageAndLimit,
+    createCategory,
+    updateCategory,
     deleteCategoryBySlug,
   };
 });
