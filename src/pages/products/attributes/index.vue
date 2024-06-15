@@ -14,13 +14,12 @@ const store = useStore();
 const attributeStore = useAttributeStore();
 const toast = useToast();
 
-const currentPage = ref(1);
 const showAttributeFormModal = ref(false);
 const showDeleteConfirmationModal = ref(false);
 const deletableAttributeSlug = ref<null | string>(null);
 const editableAttributeData = ref<null | IProductAttribute>(null);
 
-const { pending, error, refresh } = await useAsyncData<IProductAttribute[]>(
+const { pending, error } = await useAsyncData<IProductAttribute[]>(
   "attributes-data",
   () => attributeStore.fetchAttributes(),
 );
@@ -35,35 +34,9 @@ const filters = ref({
   "values.name": { value: null, matchMode: FilterMatchMode.STARTS_WITH },
 });
 
-const filteredAttributes = computed(() => {
-  const globalFilterValue = filters.value.global.value?.toLowerCase() || "";
-
-  if (globalFilterValue) {
-    return attributeStore.attributes.filter((attribute) => {
-      const attributeNameMatches = attribute.name
-        .toLowerCase()
-        .includes(globalFilterValue);
-      const attributeValuesMatch = attribute.values.some((value) =>
-        value.name.toLowerCase().includes(globalFilterValue),
-      );
-
-      return attributeNameMatches || attributeValuesMatch;
-    });
-  }
-
-  return attributeStore.getAttributesByPageAndLimit(currentPage.value, 10);
-});
-
-const totalPage = computed(() =>
-  filters.value.global.value
-    ? 1
-    : Math.ceil(attributeStore.attributes.length / 10),
-);
-
 const handleFormSubmit = async () => {
   showAttributeFormModal.value = false;
   editableAttributeData.value = null;
-  await refresh();
 };
 
 const handleEditButtonClick = (attributeData: IProductAttribute) => {
@@ -113,79 +86,80 @@ const handleDeleteConfirmation = async () => {
 </script>
 
 <template>
-  <div class="table-container">
-    <DataTable
-      v-model:filters="filters"
-      :value="filteredAttributes"
-      table-style="min-width: 50rem"
-      data-key="id"
-      :loading="pending"
-      :global-filter-fields="['name', 'values.name']"
-      striped-rows
-    >
-      <template #header>
-        <CommonDataTableHeader
-          v-model:search-text="filters['global'].value"
-          :add-button-label="'Add Attributes'"
-          :table-header="'Product Attributes'"
-          @on-add-button-clicked="showAttributeFormModal = true"
-        />
-      </template>
-
-      <Column header="SL">
-        <template #body="slotProps">
-          <div>
-            {{ (currentPage - 1) * 10 + slotProps.index + 1 }}
-          </div>
+  <div>
+    <div class="table-container">
+      <DataTable
+        v-model:filters="filters"
+        :value="attributeStore.attributes"
+        table-style="min-width: 50rem"
+        data-key="id"
+        :loading="pending || store.loading"
+        :global-filter-fields="['name', 'values.name']"
+        striped-rows
+        :rows="10"
+        paginator
+      >
+        <template #header>
+          <CommonDataTableHeader
+            v-model:search-text="filters['global'].value"
+            :add-button-label="'Add Attributes'"
+            :table-header="'Product Attributes'"
+            @on-add-button-clicked="showAttributeFormModal = true"
+          />
         </template>
-      </Column>
 
-      <Column field="name" header="Name" />
-
-      <Column field="values" header="Values">
-        <template #body="slotProps">
-          <ul class="flex gap-2 flex-wrap">
-            <li
-              v-for="item in slotProps.data.values"
-              :key="item.name"
-              class="border-2 px-2 rounded"
-            >
-              {{ item.name }}
-            </li>
-          </ul>
+        <template #empty>
+          <CommonNoDataFound />
         </template>
-      </Column>
 
-      <Column header="Actions">
-        <template #body="slotProps">
-          <div class="flex items-center gap-2">
-            <button
-              class="table-action-button"
-              @click="() => handleEditButtonClick(slotProps.data)"
-            >
-              <i class="pi pi-file-edit" />
-            </button>
+        <Column header="SL">
+          <template #body="slotProps">
+            <div>
+              {{ slotProps.index + 1 }}
+            </div>
+          </template>
+        </Column>
 
-            <button
-              class="table-action-button"
-              @click="() => handleDeleteButtonClick(slotProps.data.slug)"
-            >
-              <i class="pi pi-trash" />
-            </button>
-          </div>
-        </template>
-      </Column>
+        <Column field="name" header="Name" />
 
-      <template #footer>
-        <CommonPagination
-          v-model:current-page="currentPage"
-          :total-page="totalPage"
-        />
-      </template>
-    </DataTable>
+        <Column field="values" header="Values">
+          <template #body="slotProps">
+            <ul class="flex gap-2 flex-wrap">
+              <li
+                v-for="item in slotProps.data.values"
+                :key="item.name"
+                class="border-2 px-2 rounded"
+              >
+                {{ item.name }}
+              </li>
+            </ul>
+          </template>
+        </Column>
 
-    <div v-if="error" class="h-full">
-      <CommonError :error="error" />
+        <Column header="Actions">
+          <template #body="slotProps">
+            <div class="flex items-center gap-2">
+              <button
+                class="table-action-button"
+                @click="() => handleEditButtonClick(slotProps.data)"
+              >
+                <i class="pi pi-file-edit" />
+              </button>
+
+              <button
+                class="table-action-button"
+                @click="() => handleDeleteButtonClick(slotProps.data.slug)"
+              >
+                <i class="pi pi-trash" />
+              </button>
+            </div>
+          </template>
+        </Column>
+      </DataTable>
+
+      <div v-if="error" class="h-full">
+        <CommonError :error="error" />
+      </div>
     </div>
 
     <client-only>
@@ -211,41 +185,3 @@ const handleDeleteConfirmation = async () => {
     </client-only>
   </div>
 </template>
-
-<style scoped lang="postcss">
-.table-container {
-  @apply bg-white rounded-xl  py-6;
-
-  font-style: normal;
-  font-weight: 400;
-  font-size: 14px;
-  line-height: 20px;
-
-  color: var(--dark-gray-80);
-
-  :deep(.p-datatable-header) {
-    @apply p-0;
-  }
-
-  :deep(tr) {
-    @apply px-5 even:bg-color-light-gray-secondary;
-  }
-
-  :deep(th) {
-    @apply bg-white;
-  }
-
-  :deep(td) {
-    font-style: normal;
-    font-weight: 400;
-    font-size: 14px;
-    line-height: 20px;
-
-    color: var(--primary-color-dark-gray);
-  }
-
-  :deep(.p-datatable-footer) {
-    border: 0;
-  }
-}
-</style>
