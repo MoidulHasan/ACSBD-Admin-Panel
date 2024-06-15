@@ -4,7 +4,7 @@ import type { ICreateResponse } from "~/app/interfaces/common";
 import { formatSize } from "~/utils/formatSize";
 
 export interface Status {
-  name: "Active" | "Inactive";
+  name: "Public" | "Hidden";
   code: "public" | "hidden";
 }
 export interface PropCategory {
@@ -27,16 +27,151 @@ const emits = defineEmits<{
 }>();
 
 const store = useStore();
+const { flattenCategories, createCategory, updateCategory } =
+  useCategoryStore();
 const toast = useToast();
 const { $apiClient } = useNuxtApp();
 
 const statuses = ref<Status[]>([
-  { name: "Active", code: "public" },
-  { name: "Inactive", code: "hidden" },
+  { name: "Public", code: "public" },
+  { name: "Hidden", code: "hidden" },
 ]);
 
 const files = ref([]);
 const fileToUp = ref<File | null>(null);
+
+const validationSchema = yup.object({
+  categoryName: yup
+    .string()
+    .required("Category name is required")
+    .test("isExist", "The name has already been taken.", (value) => {
+      return !flattenCategories.some((category) => {
+        const lowerCaseValue = value.toLowerCase();
+        const categoryName = category.name.toLowerCase();
+
+        if (props?.categoryData) {
+          return (
+            lowerCaseValue !== props?.categoryData.name.toLowerCase() &&
+            lowerCaseValue === categoryName
+          );
+        }
+
+        return lowerCaseValue === categoryName;
+      });
+    }),
+  categoryMetaTitle: yup.string().required("Meta Title is required"),
+  categoryMetaDescription: yup
+    .string()
+    .required("Meta Description is required"),
+  categoryVisibilityStatus: yup
+    .string()
+    .required("Visibility Status is required"),
+  categoryImage: yup
+    .mixed()
+    .test("required", "Image is required", function (value) {
+      return (
+        fileToUp.value !== null || (typeof value === "string" && value !== "")
+      );
+    }),
+  categoryParent: yup.mixed(),
+});
+
+const { handleSubmit, errors, resetForm, meta } = useForm({
+  validationSchema,
+  initialValues: {
+    categoryName: props.categoryData?.name ?? "",
+    categoryMetaTitle: props.categoryData?.meta_title ?? "",
+    categoryMetaDescription: props.categoryData?.meta_description ?? "",
+    categoryVisibilityStatus: props.categoryData?.visibility_status ?? "",
+    categoryImage: props.categoryData?.image_url ?? "",
+    categoryParent: props.categoryData?.parent_id ?? "",
+  },
+});
+
+const { value: categoryName } = useField("categoryName");
+const { value: categoryMetaTitle } = useField("categoryMetaTitle");
+const { value: categoryMetaDescription } = useField("categoryMetaDescription");
+const { value: categoryVisibilityStatus } = useField(
+  "categoryVisibilityStatus",
+);
+const { value: categoryImage } = useField("categoryImage");
+const { value: categoryParent } = useField("categoryParent");
+
+const onSubmit = handleSubmit(async (values, actions) => {
+  const requestBody = new FormData();
+  requestBody.append("name", values.categoryName);
+  requestBody.append("meta_title", values.categoryMetaTitle);
+  requestBody.append("meta_description", values.categoryMetaDescription);
+  requestBody.append("visibility_status", values.categoryVisibilityStatus);
+  requestBody.append("parent_id", values.categoryParent);
+  if (fileToUp.value) {
+    requestBody.append("image", fileToUp.value, fileToUp.value.name);
+  }
+
+  if (props.categoryData) {
+    requestBody.append("_method", "PUT");
+  }
+
+  const response = props.categoryData
+    ? await updateCategory(props.categoryData.slug, requestBody)
+    : await createCategory(requestBody);
+
+  if (!response.errors && response.message) {
+    toast.add({
+      severity: "success",
+      summary: "Request Success",
+      detail: response.message,
+      life: 3000,
+    });
+
+    emits("onFormSubmit");
+    return;
+  }
+
+  if (response.errors) {
+    Object.keys(response.errors).forEach((fieldName) => {
+      if (fieldName === "name") {
+        actions.setFieldError("categoryName", response.errors[fieldName]);
+      }
+      if (fieldName === "image") {
+        actions.setFieldError("categoryImage", response.errors[fieldName]);
+      }
+      if (fieldName === "visibility_status") {
+        actions.setFieldError(
+          "categoryVisibilityStatus",
+          response.errors[fieldName],
+        );
+      }
+      if (fieldName === "meta_title") {
+        actions.setFieldError("categoryMetaTitle", response.errors[fieldName]);
+      }
+      if (fieldName === "meta_description") {
+        actions.setFieldError(
+          "categoryMetaDescription",
+          response.errors[fieldName],
+        );
+      }
+      if (fieldName === "parent_id") {
+        actions.setFieldError("categoryParent", response.errors[fieldName]);
+      }
+      toast.add({
+        severity: "error",
+        summary: "Request failed",
+        detail: response.errors[fieldName].join(" , "),
+        life: 3000,
+      });
+    });
+
+    return;
+  }
+
+  toast.add({
+    severity: "error",
+    summary: "Request failed",
+    detail: response.statusText,
+    life: 3000,
+  });
+});
 
 const onRemoveTemplatingFile = (
   removeFileCallback: Function,
@@ -57,144 +192,6 @@ const onSelectedFiles = (event: any) => {
   files.value = event.files;
   categoryImage.value = _file.name;
 };
-
-const validationSchema = yup.object({
-  categoryName: yup.string().required("Category name is required"),
-  categoryMetaTitle: yup.string().required("Meta Title is required"),
-  categoryMetaDescription: yup
-    .string()
-    .required("Meta Description is required"),
-  categoryVisibilityStatus: yup
-    .string()
-    .required("Visibility Status is required"),
-  categoryImage: yup
-    .mixed()
-    .test("required", "Image is required", function (value) {
-      return (
-        fileToUp.value !== null || (typeof value === "string" && value !== "")
-      );
-    }),
-  categoryParent: yup.mixed(),
-});
-
-const getVisibilityStatus = (status: string) => {
-  if (status === "active") {
-    return "public";
-  }
-  return "hidden";
-};
-
-const { handleSubmit, errors, resetForm, meta } = useForm({
-  validationSchema,
-  initialValues: {
-    categoryName: props.categoryData?.name ?? "",
-    categoryMetaTitle: props.categoryData?.meta_title ?? "",
-    categoryMetaDescription: props.categoryData?.meta_description ?? "",
-    categoryVisibilityStatus: props.categoryData
-      ? getVisibilityStatus(props.categoryData?.visibility_status)
-      : "",
-    categoryImage: props.categoryData?.image_url ?? "",
-    categoryParent: props.categoryData?.parent_id ?? "",
-  },
-});
-
-const { value: categoryName } = useField("categoryName");
-const { value: categoryMetaTitle } = useField("categoryMetaTitle");
-const { value: categoryMetaDescription } = useField("categoryMetaDescription");
-const { value: categoryVisibilityStatus } = useField(
-  "categoryVisibilityStatus",
-);
-const { value: categoryImage } = useField("categoryImage");
-const { value: categoryParent } = useField("categoryParent");
-
-const onSubmit = handleSubmit(async (values, actions) => {
-  const handleResponseErrors = (responseErrors) => {
-    Object.keys(responseErrors).forEach((fieldName) => {
-      if (fieldName === "name") {
-        actions.setFieldError("categoryName", responseErrors[fieldName]);
-      }
-      if (fieldName === "image") {
-        actions.setFieldError("categoryImage", responseErrors[fieldName]);
-      }
-      if (fieldName === "visibility_status") {
-        actions.setFieldError(
-          "categoryVisibilityStatus",
-          responseErrors[fieldName],
-        );
-      }
-      if (fieldName === "meta_title") {
-        actions.setFieldError("categoryMetaTitle", responseErrors[fieldName]);
-      }
-      if (fieldName === "meta_description") {
-        actions.setFieldError(
-          "categoryMetaDescription",
-          responseErrors[fieldName],
-        );
-      }
-      if (fieldName === "parent_id") {
-        actions.setFieldError("categoryParent", responseErrors[fieldName]);
-      }
-      toast.add({
-        severity: "error",
-        summary: "Request failed",
-        detail: responseErrors[fieldName].join(" , "),
-        life: 3000,
-      });
-    });
-  };
-
-  const handleSuccess = (message: string) => {
-    toast.add({
-      severity: "success",
-      summary: "Request Success",
-      detail: message,
-      life: 3000,
-    });
-
-    emits("onFormSubmit");
-  };
-
-  const makeRequest = async (url, method, body) => {
-    store.loading = true;
-    const response = await $apiClient<ICreateResponse>(url, {
-      method,
-      body,
-    }).catch((error) => error.data);
-    store.loading = false;
-    return response;
-  };
-
-  const requestBody = new FormData();
-  requestBody.append("name", values.categoryName);
-  requestBody.append("meta_title", values.categoryMetaTitle);
-  requestBody.append("meta_description", values.categoryMetaDescription);
-  requestBody.append("visibility_status", values.categoryVisibilityStatus);
-  if (fileToUp.value) {
-    requestBody.append("image", fileToUp.value, fileToUp.value.name);
-  }
-  requestBody.append("parent_id", values.categoryParent);
-  if (props.categoryData) {
-    requestBody.append("_method", "PUT");
-  }
-
-  let response;
-  if (!props.categoryData) {
-    response = await makeRequest("/admin/categories", "POST", requestBody);
-  } else {
-    response = await makeRequest(
-      `/admin/categories/${props.categoryData.slug}`,
-      "POST",
-      requestBody,
-    );
-  }
-
-  if (response.errors) {
-    handleResponseErrors(response.errors);
-    return;
-  }
-
-  handleSuccess(response.message);
-});
 </script>
 
 <template>
@@ -271,7 +268,7 @@ const onSubmit = handleSubmit(async (values, actions) => {
                     rounded
                     severity="danger"
                     @click="onRemoveTemplatingFile(removeFileCallback, index)"
-                  />MinifiedCategory
+                  />
                 </div>
               </div>
             </div>
@@ -353,7 +350,7 @@ const onSubmit = handleSubmit(async (values, actions) => {
         v-model="categoryParent"
         :options="[
           { id: '', name: 'None', parent_id: null },
-          ...store.flattenedCategories,
+          ...flattenCategories,
         ]"
         filter
         option-label="name"
