@@ -77,7 +77,7 @@ const onSubmit = handleSubmit(async (values, actions) => {
     ? await updateAttribute(props.attributeData.slug, requestBody)
     : await createAttribute(requestBody);
 
-  if (response.status === 200) {
+  if (!response.errors && response.message) {
     toast.add({
       severity: "success",
       summary: "Request Success",
