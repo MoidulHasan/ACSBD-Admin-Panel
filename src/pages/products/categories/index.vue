@@ -17,9 +17,12 @@ const { $apiClient } = useNuxtApp();
 const store = useStore();
 const categoryStore = useCategoryStore();
 
-const { pending, error } = await useAsyncData<ICategoryResponse[]>(
-  "category-data",
-  () => categoryStore.fetchCategories(),
+const {
+  pending,
+  error,
+  refresh: refreshCategory,
+} = await useAsyncData<ICategoryResponse[]>("category-data", () =>
+  categoryStore.fetchCategories(),
 );
 
 if (error.value) {
@@ -34,6 +37,7 @@ const editableCategoryData = ref<ICategoryResponse | null>(null);
 const handleFormSubmit = () => {
   showCategoryFormModal.value = false;
   editableCategoryData.value = null;
+  refreshCategory();
 };
 
 // edit
@@ -53,6 +57,7 @@ const handleDeleteButtonClick = (slug: string) => {
 const hideDeleteConfirmationModal = () => {
   showDeleteConfirmationModal.value = false;
   categorySlugToDelete.value = null;
+  refreshCategory();
 };
 const handleDeleteConfirmation = async () => {
   try {
