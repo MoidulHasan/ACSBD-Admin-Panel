@@ -15,6 +15,11 @@ export interface IProductAttribute {
   values: IProductAttributeValue[];
 }
 
+export interface IAttributeFormData {
+  name: string;
+  values: string[];
+}
+
 export interface ICategoryResponse {
   id: number;
   image_url: string;
