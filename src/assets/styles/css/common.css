@@ -1,4 +1,41 @@
-.action-button {
+.pagination-item {
+    width: 32px;
+    height: 32px;
+
+    background: var(--dark-gray-10);
+    border-radius: 2px;
+
+
+    margin-left: 12px;
+
+    font-style: normal;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 20px;
+    text-align: center;
+
+    cursor: pointer;
+
+    &:hover {
+        background: var(--primary-color-navy-blue);
+        color: var(--primary-color-white);
+    }
+}
+
+.active-pagination-item {
+    background: var(--primary-color-navy-blue);
+    color: var(--primary-color-white);
+}
+
+.pagination-item-disabled {
+    background: var(--dark-gray-10);
+    color: var(--primary-color-dark-gray);
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+
+.form-action-button {
     width: 154px;
     height: 48px;
 
@@ -14,9 +51,13 @@
 
     background: #f8f8f8;
     color: #a5a5a5;
+
+    &:hover{
+        color: var(--primary-color-white);
+    }
 }
 
-.submit-button {
+.form-submit-button {
     background: var(--primary-color-envitect-sam-blue);
     color: var(--primary-color-white);
 }
@@ -32,6 +73,59 @@
     border-radius: 4px;
     background: #f8f8f8;
     padding: 1rem;
+
+    &:hover {
+        color: var(--primary-color-navy-blue);
+    }
+}
+
+.table-container {
+    background-color: var(--primary-color-white);
+    border-radius: 1rem;
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+
+    font-style: normal;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 20px;
+
+    color: var(--dark-gray-80);
+
+    .p-datatable-header {
+       padding: 0;
+    }
+
+    tr {
+        padding-left: 1.25rem;
+        padding-right: 1.25rem;
+    }
+
+    tr:nth-child(even) {
+        background-color: var(--color-light-gray-secondary);
+    }
+
+    th {
+        background-color: var(--primary-color-white);
+    }
+
+   td {
+        font-style: normal;
+        font-weight: 400;
+        font-size: 14px;
+        line-height: 20px;
+
+        color: var(--primary-color-dark-gray);
+    }
+
+    .p-datatable-footer {
+        border: 0;
+    }
+}
+
+.table-action-button {
+    width: 24px;
+    height: 24px;
 
     &:hover {
         color: var(--primary-color-navy-blue);

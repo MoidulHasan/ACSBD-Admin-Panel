@@ -66,4 +66,12 @@ export default defineNuxtConfig({
       appUrl: "",
     },
   },
+
+  imports: {
+    dirs: ["app/interfaces/**"],
+  },
+
+  pinia: {
+    storesDirs: ["src/stores"],
+  },
 });
