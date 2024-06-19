@@ -107,7 +107,7 @@ export interface IProduct {
 }
 
 export interface IStatus {
-  name: "Active" | "Inactive";
+  name: "Public" | "Hidden";
   code: "public" | "private" | "hidden";
 }
 

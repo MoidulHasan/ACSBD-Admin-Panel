@@ -1,10 +1,6 @@
 <script setup lang="ts">
 import { FilterMatchMode } from "primevue/api";
-import type { ICollection, IProductAttribute } from "~/app/interfaces/products";
-import type {
-  ICreateResponse,
-  IPaginatedResponse,
-} from "~/app/interfaces/common";
+import type { ICollection } from "~/app/interfaces/products";
 
 definePageMeta({
   name: "product-collections",
@@ -15,25 +11,19 @@ useHead({
 
 const store = useStore();
 const toast = useToast();
-const currentPage = ref(1);
+const collectionStore = useCollectionStore();
+
 const showCollectionModal = ref<boolean>(false);
 const showDeleteConfirmModal = ref<boolean>(false);
 const editableCollection = ref<ICollection | null>(null);
 const collectionSlugToDelete = ref<string | null>(null);
-const { $apiClient } = useNuxtApp();
+
 const {
-  data: productCollections,
   pending,
   refresh: refreshCollections,
   error,
-} = await useAsyncData(
-  () =>
-    $apiClient<IPaginatedResponse<IProductAttribute>>(
-      `/admin/collections?page=${currentPage.value}&limit=10`,
-    ),
-  {
-    watch: [currentPage],
-  },
+} = await useAsyncData<ICollection[]>("collection-data", () =>
+  collectionStore.fetchCollections(),
 );
 
 if (error.value) {
@@ -72,19 +62,19 @@ const handleDeleteButtonClick = (slug: string) => {
   collectionSlugToDelete.value = slug;
   showDeleteConfirmModal.value = true;
 };
-const hideDeleteConfirmModal = () => {
+const hideDeleteConfirmModal = async () => {
   collectionSlugToDelete.value = null;
   showDeleteConfirmModal.value = false;
+  await refreshCollections();
 };
 
 const handleDeleteConfirmation = async () => {
+  if (!collectionSlugToDelete.value) return;
+
   try {
     store.loading = true;
-    const response = await $apiClient<ICreateResponse>(
-      `/admin/collections/${collectionSlugToDelete.value}`,
-      {
-        method: "DELETE",
-      },
+    const response = await collectionStore.deleteCollectionBySlug(
+      collectionSlugToDelete.value,
     );
     store.loading = false;
 
@@ -94,33 +84,33 @@ const handleDeleteConfirmation = async () => {
       detail: response.message,
       life: 3000,
     });
-
-    hideDeleteConfirmModal();
-    await refreshCollections();
   } catch (error) {
     store.loading = false;
 
     toast.add({
       severity: "error",
-      summary: "Request Failed",
-      detail: error.statusMessage,
+      summary: error?.statusMessage ?? "Request Failed",
+      detail: error?.data?.error ?? "Unknown Issue Occurred",
       life: 3000,
     });
   }
+
+  await hideDeleteConfirmModal();
 };
 </script>
 
 <template>
   <div class="table-container">
     <DataTable
-      v-if="productCollections.data.length"
       v-model:filters="filters"
-      :value="productCollections.data"
+      :value="collectionStore.collections"
       table-style="min-width: 50rem"
       data-key="id"
       :global-filter-fields="['name', 'status']"
       striped-rows
-      :loading="pending"
+      :loading="pending || store.loading"
+      :rows="10"
+      paginator
     >
       <template #header>
         <CommonDataTableHeader
@@ -136,10 +126,10 @@ const handleDeleteConfirmation = async () => {
 
       <Column header="SN">
         <template #body="slotProps">
-          {{ (currentPage - 1) * 10 + slotProps.index + 1 }}
+          {{ slotProps.index + 1 }}
         </template>
       </Column>
-      <Column header="title">
+      <Column header="Title">
         <template #body="slotProps">
           {{ slotProps.data.title }}
         </template>
@@ -147,7 +137,7 @@ const handleDeleteConfirmation = async () => {
       <Column header="Status">
         <template #body="{ data }">
           <Tag
-            :value="data.status === 'public' ? 'Active' : 'Inactive'"
+            :value="data.status === 'public' ? 'Public' : 'Hidden'"
             :severity="getSeverity(data.status)"
           />
         </template>
@@ -172,14 +162,8 @@ const handleDeleteConfirmation = async () => {
           </div>
         </template>
       </Column>
-      <template #footer>
-        <CommonPagination
-          v-model:current-page="currentPage"
-          :total-page="productCollections?.meta?.last_page"
-        />
-      </template>
     </DataTable>
-    <div v-else-if="error" class="h-full">
+    <div v-if="error" class="h-full">
       <CommonError :error="error" />
     </div>
     <ClientOnly>

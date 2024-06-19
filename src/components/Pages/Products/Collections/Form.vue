@@ -2,7 +2,7 @@
 import * as yup from "yup";
 import type { ICollection, IStatus } from "~/app/interfaces/products";
 import { useToast } from "#imports";
-import type { ICreateResponse } from "~/app/interfaces/common";
+import { useCollectionStore } from "~/stores/collectionStore";
 
 interface IProps {
   collectionData?: ICollection;
@@ -13,16 +13,34 @@ const emits = defineEmits<{
 }>();
 
 const toast = useToast();
-const { $apiClient } = useNuxtApp();
 const store = useStore();
+const { collections, createCollection, updateCollection } =
+  useCollectionStore();
 
 const statuses = ref<IStatus[]>([
-  { name: "Active", code: "public" },
-  { name: "Inactive", code: "private" },
+  { name: "Public", code: "public" },
+  { name: "Hidden", code: "private" },
 ]);
 
 const validationSchema = yup.object({
-  collectionTitle: yup.string().required("Collection Name Is Required"),
+  collectionTitle: yup
+    .string()
+    .required("Collection Name Is Required")
+    .test("isExit", "The name has already been taken", (value) => {
+      return !collections.some((collection) => {
+        const lowerCaseValue = value.toLowerCase();
+        const collectionTitle = collection.title.toLowerCase();
+
+        if (props?.collectionData) {
+          return (
+            lowerCaseValue !== props?.collectionData.title.toLowerCase() &&
+            lowerCaseValue === collectionTitle
+          );
+        }
+
+        return lowerCaseValue === collectionTitle;
+      });
+    }),
   collectionStatus: yup.string().required("Collection Status Is Required"),
 });
 
@@ -37,66 +55,52 @@ const { value: collectionTitle } = useField("collectionTitle");
 const { value: collectionStatus } = useField("collectionStatus");
 
 const onSubmit = handleSubmit(async (values, actions) => {
-  const handleResponseErrors = (responseErrors) => {
-    Object.keys(responseErrors).forEach((fieldName) => {
-      if (fieldName === "title") {
-        actions.setFieldError("collectionTitle", responseErrors[fieldName]);
-      }
-      if (fieldName === "status") {
-        actions.setFieldError("collectionStatus", responseErrors[fieldName]);
-      }
-      toast.add({
-        severity: "error",
-        summary: "Request Failed",
-        detail: responseErrors[fieldName].join(" , "),
-        life: 3000,
-      });
-    });
-  };
-  const handleSuccess = (message: string) => {
-    toast.add({
-      severity: "success",
-      summary: "Request Success",
-      detail: message,
-      life: 3000,
-    });
-
-    emits("onFormSubmit");
-  };
-
-  const makeRequest = async (url, method, body) => {
-    store.loading = true;
-    const response = await $apiClient<ICreateResponse>(url, {
-      method,
-      body,
-    }).catch((error) => error.data);
-    store.loading = false;
-    return response;
-  };
-
   const requestBody = {
     title: values.collectionTitle,
     status: values.collectionStatus,
   };
 
-  let response;
+  const response = props.collectionData
+    ? await updateCollection(props.collectionData.slug, requestBody)
+    : await createCollection(requestBody);
 
-  if (!props.collectionData) {
-    response = await makeRequest("/admin/collections", "POST", requestBody);
-  } else {
-    response = await makeRequest(
-      `/admin/collections/${props.collectionData.slug}`,
-      "PUT",
-      requestBody,
-    );
-  }
+  if (!response.errors && response.message) {
+    toast.add({
+      severity: "success",
+      summary: "Request Success",
+      detail: response.message,
+      life: 3000,
+    });
 
-  if (response.errors) {
-    handleResponseErrors(response.errors);
+    emits("onFormSubmit");
     return;
   }
 
-  handleSuccess(response.message);
+  // let response;
+
+  if (response.errors) {
+    Object.keys(response.errors).forEach((fieldName) => {
+      if (fieldName === "title") {
+        actions.setFieldError("collectionTitle", response.errors[fieldName]);
+      }
+      if (fieldName === "status") {
+        actions.setFieldError("collectionStatus", response.errors[fieldName]);
+      }
+      toast.add({
+        severity: "error",
+        summary: "Request Failed",
+        detail: response.errors[fieldName].join(" , "),
+        life: 3000,
+      });
+    });
+  }
+
+  toast.add({
+    severity: "error",
+    summary: "Request failed",
+    detail: response.statusText,
+    life: 3000,
+  });
 });
 </script>
 
