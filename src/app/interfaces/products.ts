@@ -105,3 +105,15 @@ export interface IProduct {
   created_at: string;
   updated_at: string;
 }
+
+export interface IStatus {
+  name: "Public" | "Hidden";
+  code: "public" | "private" | "hidden";
+}
+
+export interface ICollection {
+  id?: number;
+  title: string;
+  status: string;
+  slug?: string;
+}

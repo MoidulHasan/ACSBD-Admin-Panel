@@ -92,7 +92,7 @@ export const useCategoryStore = defineStore("categoryStore", () => {
       const response = await $apiClient<IUpdateResponse<ICategoryResponse>>(
         `/admin/categories/${slug}`,
         {
-          method: "PUT",
+          method: "POST",
           body: updatedData,
         },
       ).catch((error) => error.data);
