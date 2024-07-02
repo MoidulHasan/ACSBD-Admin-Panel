@@ -69,6 +69,34 @@ const items = ref<IMenuItem[]>([
       },
     ],
   },
+  {
+    label: "Feedbacks",
+    icon: "pi pi-comments",
+    items: [
+      {
+        label: "Product Reviews",
+        navigateTo: "/product/reviews",
+      },
+      {
+        label: "Customer Testimonials",
+        navigateTo: "/feedbacks/testimonials",
+      },
+    ],
+  },
+  {
+    label: "Website Management",
+    icon: "pi pi-globe",
+    items: [
+      {
+        label: "Our Clients",
+        navigateTo: "/website-management/our-clients",
+      },
+      {
+        label: "Our Location",
+        navigateTo: "/website-management/our-locations",
+      },
+    ],
+  },
 ]);
 </script>
 
