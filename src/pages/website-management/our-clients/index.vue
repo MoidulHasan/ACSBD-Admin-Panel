@@ -179,10 +179,6 @@ const handleDeleteConfirmation = async () => {
           header="Add A Client"
           @hide="() => (editableClientData = null)"
         >
-          <!--          <PagesFeedbacksTestimonialsForm-->
-          <!--            :client-data="editableClientData"-->
-          <!--            @on-form-submit="handleFormSubmit"-->
-          <!--          />-->
           <PagesWebManagementClientsForm
             :client-data="editableClientData"
             @on-form-submit="handleFormSubmit"
