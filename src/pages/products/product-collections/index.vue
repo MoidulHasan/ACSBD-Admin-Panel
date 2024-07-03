@@ -106,7 +106,7 @@ const handleDeleteConfirmation = async () => {
       :value="collectionStore.collections"
       table-style="min-width: 50rem"
       data-key="id"
-      :global-filter-fields="['name', 'status']"
+      :global-filter-fields="['title', 'status']"
       striped-rows
       :loading="pending || store.loading"
       :rows="10"

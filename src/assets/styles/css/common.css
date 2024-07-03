@@ -77,6 +77,12 @@
     &:hover {
         color: var(--primary-color-navy-blue);
     }
+
+    &.delete-btn{
+        &:hover {
+            color: var(--color-danger)
+        }
+    }
 }
 
 .table-container {
