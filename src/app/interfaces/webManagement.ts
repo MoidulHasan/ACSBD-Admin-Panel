@@ -13,3 +13,13 @@ export interface ILocation {
   phone: string;
   map_url: string;
 }
+
+export interface IVisitorMessage {
+  id?: number;
+  name: string;
+  phone: string;
+  email: string;
+  message: string;
+  status: "Pending" | "Contacted";
+  contact_note: null | string;
+}
