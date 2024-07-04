@@ -213,6 +213,17 @@ const onSubmit = handleSubmit(async (values, actions) => {
         />
         <span class="text-red-400 text-xs pt-1">{{ errors.mapUrl }}</span>
       </div>
+      <div v-if="mapUrl">
+        <div class="rounded-lg w-full min-h-[40vh]">
+          <iframe
+            class="w-full map min-h-[40vh] rounded-lg"
+            :src="mapUrl"
+            style="border: 0"
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+          ></iframe>
+        </div>
+      </div>
 
       <div class="mt-5 flex justify-end gap-2">
         <Button
