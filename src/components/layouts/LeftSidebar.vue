@@ -92,7 +92,7 @@ const items = ref<IMenuItem[]>([
 
 <template>
   <aside
-    class="sidebar-container flex h-screen flex-col overflow-y-hidden bg-primary-color-navy-blue duration-300 ease-linear dark:bg-boxdark lg:static lg:translate-x-0 text-color-light-gray"
+    class="sidebar-container flex h-screen flex-col bg-primary-color-navy-blue duration-300 ease-linear dark:bg-boxdark lg:static lg:translate-x-0 text-color-light-gray"
   >
     <div
       class="sidebar-logo flex items-center justify-between gap-2 px-6 py-5.5 lg:py-6.5"
@@ -102,8 +102,8 @@ const items = ref<IMenuItem[]>([
       </NuxtLink>
     </div>
 
-    <ul class="layout-menu">
-      <template v-for="(item, index) in items" :key="item">
+    <ul class="layout-menu flex-grow overflow-y-auto">
+      <template v-for="(item, index) in items" :key="item.label">
         <LayoutsLeftSidebarMenuItem
           :item="item"
           :index="index"
@@ -121,5 +121,25 @@ const items = ref<IMenuItem[]>([
 
 .sidebar-logo {
   padding: 24px 17px;
+}
+
+.layout-menu::-webkit-scrollbar {
+  width: 8px;
+}
+
+.layout-menu::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.layout-menu::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.5);
+  border-radius: 12px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+.layout-menu {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.5) transparent;
 }
 </style>
