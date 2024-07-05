@@ -128,7 +128,7 @@ const handleDeleteConfirmation = async () => {
         <Column header="Client Image">
           <template #body="slotProps">
             <img
-              class="client-image"
+              class="client-image h-12 w-44"
               :src="slotProps.data.image"
               :alt="slotProps.data.title"
             />
