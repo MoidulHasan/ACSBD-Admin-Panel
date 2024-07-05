@@ -1,84 +1,287 @@
 <script setup lang="ts">
 import * as yup from "yup";
-import type { CategoryData, IBrand } from "~/app/interfaces/products";
+import { type IProduct, useCategoryStore, useCollectionStore } from "#imports";
+import {
+  requiredBoolean,
+  requiredNumber,
+  requiredString,
+} from "~/app/utils/form-helpers";
+import { statusOptions } from "~/app/constants/common";
+import { useProductStore } from "~/stores/productStore";
+
+interface IAttributeValue {
+  attribute_id: number;
+  value_ids: number[];
+}
 
 interface FormData {
   name: string;
   sku: string;
   category: number;
   brand: number;
+  visibilityStatus: string;
   regularPrice: number;
+  isPercent: boolean;
+  discountAmount: number;
+  finalPrice: number;
+  description: string;
+  shortDescription: string | null;
+  metaTitle: string | null;
+  metaTags: string[] | null;
+  warrantyAndServices: string;
+  collections: number[];
+  attributes: IAttributeValue[];
+  mainImage: File;
+  galleryImages: File[];
 }
 
-const { $apiClient } = useNuxtApp();
+interface IProps {
+  productData?: IProduct;
+}
+
+const props = defineProps<IProps>();
+
+console.log(props.productData);
+
+const emits = defineEmits<{
+  (e: "onFormSubmit"): void;
+}>();
+
 const store = useStore();
+const toast = useToast();
+const { createProduct, updateProduct } = useProductStore();
 
-const { data: categoryOptions } = useAsyncData<
-  { data: CategoryData[] },
-  { message: string },
-  CategoryData[]
->("product-categories", () => $apiClient("/admin/categories"), {
-  transform: (data) => {
-    const flatList: CategoryData[] = [];
+const discountTypeOptions = ref([
+  { label: "Fixed", value: false },
+  { label: "Percent", value: true },
+]);
 
-    function processItem(item: CategoryData) {
-      flatList.push({
-        id: item.id,
-        name: item.name,
-        slug: item.slug,
-        image_url: item.image_url,
-        parent_id: item.parent_id,
-        visibility_status: item.visibility_status,
-        meta_title: item.meta_title,
-        meta_description: item.meta_description,
-        created_at: item.created_at,
-        updated_at: item.updated_at,
-      });
+const { flattenCategories: categoryOptions, fetchCategories } =
+  useCategoryStore();
 
-      if (item.childrens && item.childrens.length > 0) {
-        item.childrens.forEach((child) => processItem(child));
-      }
-    }
+const { brands: brandOptions, fetchBrands } = useBrandStore();
+const { collections: collectionOptions, fetchCollections } =
+  useCollectionStore();
 
-    data.data.forEach((item) => processItem(item));
+const { attributes: attributeOptions, fetchAttributes } = useAttributeStore();
 
-    return flatList;
-  },
-});
-
-const { data: brandOptions } = await useAsyncData<
-  { data: IBrand[] },
-  { message: string },
-  IBrand[]
->("product-brands", () => $apiClient("/admin/brands"), {
-  transform: (data) => {
-    return data.data;
-  },
-});
+await Promise.all([
+  useAsyncData("category-data", fetchCategories),
+  useAsyncData("brand-data", fetchBrands),
+  useAsyncData("collection-data", fetchCollections),
+  useAsyncData("attributes-data", fetchAttributes),
+]);
 
 const validationSchema = yup.object({
-  name: yup.string().required("Product name is required"),
-  sku: yup.string().required("Product SKU is required"),
-  category: yup.number().required("Product category is required"),
-  brand: yup.number().required("Product brand is required"),
-  regularPrice: yup.number().required("Regular price is required"),
+  name: requiredString("Product name"),
+  sku: requiredString("Product SKU"),
+  category: requiredNumber("Product category"),
+  brand: requiredNumber("Product brand"),
+  visibilityStatus: requiredString("Product visibility status"),
+  regularPrice: requiredNumber("Regular price"),
+  isPercent: requiredBoolean("Discount type"),
+  discountAmount: requiredNumber("Discount amount")
+    .test(
+      "isPercentGreaterThan100",
+      "Discount percent cannot be more than 100",
+      function (value) {
+        return this.parent.isPercent ? value <= 100 : true;
+      },
+    )
+    .test(
+      "isDiscountGreaterThanBasePrice",
+      "Discount amount cannot be more than base price",
+      function (value) {
+        return this.parent.isPercent || !this.parent.regularPrice
+          ? true
+          : value <= this.parent.regularPrice;
+      },
+    ),
+  finalPrice: requiredNumber("Final price"),
+  description: requiredString("Description"),
+  shortDescription: requiredString("Short Description"),
+  warrantyAndServices: requiredString("Warranty And Services"),
+  collections: yup.array().of(yup.number()),
+  metaTitle: yup.string().nullable(),
+  metaTags: yup.array().of(yup.string()).nullable(),
+  attributes: yup.array().of(
+    yup.object().shape({
+      attribute_id: yup.number(),
+      value_ids: yup.array().of(yup.number()),
+    }),
+  ),
+  mainImage: yup.mixed(),
+  galleryImages: yup.array().of(yup.mixed()),
 });
 
-const { handleSubmit, errors, handleReset, meta } = useForm<FormData>({
+const { handleSubmit, errors, handleReset, meta, values } = useForm<FormData>({
   validationSchema,
-  initialValues: {},
+  initialValues: {
+    name: props.productData?.name ?? "",
+    sku: props.productData?.sku ?? "",
+    category: props.productData?.category.id ?? undefined,
+    brand: props.productData?.brand.id ?? undefined,
+    visibilityStatus: props.productData?.visibility_status ?? undefined,
+    regularPrice: Number(props.productData?.price.base_price) ?? undefined,
+    isPercent: !!props.productData?.price.is_percent,
+    discountAmount: Number(props.productData?.price.discount_amount) ?? 0,
+    finalPrice: Number(props.productData?.price.finalPrice) ?? undefined,
+    description: props.productData?.description ?? "",
+    shortDescription: props.productData?.short_description ?? "",
+    warrantyAndServices: props.productData?.warranty_and_services ?? "",
+    attributes: attributeOptions.map((option) => ({
+      attribute_id: option.id,
+      value_ids: [],
+    })),
+  },
 });
 
 const { value: name } = useField("name");
 const { value: sku } = useField("sku");
 const { value: category } = useField("category");
 const { value: brand } = useField("brand");
-const { value: regularPrice } = useField("regularPrice");
+const { value: visibilityStatus } = useField("visibilityStatus");
+const { value: regularPrice } = useField<number>("regularPrice");
+const { value: isPercent } = useField<boolean>("isPercent");
+const { value: discountAmount } = useField<number>("discountAmount");
+const { value: finalPrice, setValue: setFinalPrice } = useField("finalPrice");
+const { value: description } = useField("description");
+const { value: shortDescription } = useField("shortDescription");
+const { value: warrantyAndServices } = useField("warrantyAndServices");
+const { value: collections } = useField("collections");
+const { value: metaTitle } = useField("metaTitle");
+const { value: metaTags } = useField("metaTags");
+const { fields: attributes } = useFieldArray<IAttributeValue[]>("attributes");
+const { value: mainImage } = useField("mainImage");
+const { value: galleryImages } = useField("galleryImages");
+
+const computedFinalPrice = computed(() => {
+  return isPercent.value
+    ? regularPrice.value - (regularPrice.value * discountAmount.value) / 100
+    : regularPrice.value - discountAmount.value;
+});
 
 const onSubmit = handleSubmit(async (values, actions) => {
-  console.log(values);
-  console.log(actions);
+  console.log(typeof values.isPercent);
+  try {
+    const formData = new FormData();
+
+    formData.append("name", values.name);
+    formData.append("sku", values.sku);
+    formData.append("category_id", values.category.toString());
+    formData.append("brand_id", values.brand.toString());
+    formData.append("description", values.description);
+    formData.append("warranty_and_services", values.warrantyAndServices);
+    formData.append("visibility_status", values.visibilityStatus);
+    formData.append("price[base_price]", values.regularPrice.toString());
+    formData.append("price[is_percent]", JSON.stringify(values.isPercent));
+    formData.append("price[discount_amount]", values.discountAmount.toString());
+    formData.append("price[final_price]", values.finalPrice.toString());
+
+    values.attributes.forEach((attribute: IAttributeValue, index) => {
+      formData.append(
+        `attributes[${index}][attribute_id]`,
+        attribute.attribute_id.toString(),
+      );
+      attribute.value_ids.forEach((valueId, valueIndex) => {
+        formData.append(
+          `attributes[${index}][value_ids][${valueIndex}]`,
+          valueId.toString(),
+        );
+      });
+    });
+
+    values.collections?.forEach((collectionId: number, index: number) => {
+      formData.append(`collections[${index}]`, collectionId.toString());
+    });
+
+    formData.append("short_description", values.shortDescription || "");
+    formData.append("meta_title", values.metaTitle || "");
+
+    values.metaTags?.forEach((metaTag, index) => {
+      formData.append(`meta_tags[${index}]`, metaTag);
+    });
+
+    if (values.mainImage && values.mainImage.length > 0) {
+      formData.append("images", values.mainImage[0]);
+    }
+
+    values.galleryImages.forEach((file, index) => {
+      formData.append(`images[${index + 1}]`, file);
+    });
+
+    console.log("Formatted form data:", Object.fromEntries(formData.entries()));
+
+    const response = props.productData
+      ? await updateProduct(props.productData.slug, formData)
+      : await createProduct(formData);
+
+    if (!response.errors && response.message) {
+      toast.add({
+        severity: "success",
+        summary: "Request Success",
+        detail: response.message,
+        life: 3000,
+      });
+
+      emits("onFormSubmit");
+      return;
+    }
+
+    if (response.errors) {
+      const fieldErrorMapping: Record<string, string> = {
+        name: "name",
+        sku: "sku",
+        category_id: "category",
+        brand_id: "brand",
+        visibility_status: "visibilityStatus",
+        "price[base_price]": "regularPrice",
+        "price[is_percent]": "isPercent",
+        "price[discount_amount]": "discountAmount",
+        "price[final_price]": "finalPrice",
+        description: "description",
+        short_description: "shortDescription",
+        warranty_and_services: "warrantyAndServices",
+        meta_title: "metaTitle",
+        meta_tags: "metaTags",
+      };
+
+      Object.keys(response.errors).forEach((fieldName) => {
+        const mappedFieldName = fieldErrorMapping[fieldName] || fieldName;
+
+        actions.setFieldError(
+          mappedFieldName,
+          response.errors[fieldName].join(", "),
+        );
+      });
+
+      toast.add({
+        severity: "error",
+        summary: "Request failed",
+        detail: Object.values(response.errors).flat().join(", "),
+        life: 3000,
+      });
+
+      return;
+    }
+
+    toast.add({
+      severity: "error",
+      summary: "Request failed",
+      detail: response.statusText,
+      life: 3000,
+    });
+  } catch (error) {
+    toast.add({
+      severity: "error",
+      summary: "Request failed",
+      detail: error.message || "An unknown error occurred",
+      life: 3000,
+    });
+  }
 });
+
+watch(computedFinalPrice, (newVal) => setFinalPrice(newVal));
 </script>
 
 <template>
@@ -87,37 +290,48 @@ const onSubmit = handleSubmit(async (values, actions) => {
 
     <form @submit.prevent="onSubmit">
       <div class="grid grid-cols-2 gap-5">
-        <div class="flex flex-col gap-2">
-          <label class="field-label" for="name">*Product Name</label>
-
+        <CommonFormInput
+          id="name"
+          label="Product Name"
+          required
+          :error="errors.name"
+        >
           <InputText
             id="name"
             v-model="name"
             placeholder="Product Name"
             :invalid="!!errors.name"
           />
-          <span class="text-red-400 text-xs">{{ errors.name }}</span>
-        </div>
+        </CommonFormInput>
 
-        <div class="flex flex-col gap-2">
-          <label class="field-label" for="sku">*Product SKU</label>
-
+        <CommonFormInput
+          id="sku"
+          label="Product SKU"
+          required
+          :error="errors.sku"
+        >
           <InputText
             id="sku"
             v-model="sku"
             placeholder="Product SKU"
             :invalid="!!errors.sku"
           />
-          <span class="text-red-400 text-xs">{{ errors.sku }}</span>
-        </div>
+        </CommonFormInput>
+      </div>
 
-        <div class="flex flex-col gap-2">
-          <label class="field-label" for="category">*Product Category</label>
+      <div class="grid grid-cols-2 gap-5 mt-4">
+        <CommonFormInput
+          id="category"
+          label="Product Category"
+          required
+          :error="errors.category"
+        >
           <Dropdown
             id="category"
             v-model="category"
             :options="categoryOptions"
             :invalid="!!errors.category"
+            :loading="store.loading"
             option-label="name"
             option-value="id"
             placeholder="Select Category"
@@ -134,16 +348,19 @@ const onSubmit = handleSubmit(async (values, actions) => {
               </div>
             </template>
           </Dropdown>
+        </CommonFormInput>
 
-          <span class="text-red-400 text-xs">{{ errors.category }}</span>
-        </div>
-
-        <div class="flex flex-col gap-2">
-          <label class="field-label" for="brand">*Brand</label>
+        <CommonFormInput
+          id="brand"
+          label="Brand"
+          required
+          :error="errors.category"
+        >
           <Dropdown
             id="brand"
             v-model="brand"
             :options="brandOptions"
+            :loading="store.loading"
             option-label="name"
             option-value="id"
             placeholder="Select Brand"
@@ -161,21 +378,235 @@ const onSubmit = handleSubmit(async (values, actions) => {
               </div>
             </template>
           </Dropdown>
+        </CommonFormInput>
+      </div>
 
-          <span class="text-red-400 text-xs">{{ errors.brand }}</span>
-        </div>
+      <div class="grid grid-cols-2 gap-5 mt-4">
+        <CommonFormInput
+          id="visibilityStatus"
+          label="Visibility Status"
+          required
+          :error="errors.visibilityStatus"
+        >
+          <Dropdown
+            id="visibilityStatus"
+            v-model="visibilityStatus"
+            :options="statusOptions"
+            :loading="store.loading"
+            option-label="name"
+            option-value="value"
+            placeholder="Select Status"
+            :invalid="!!errors.visibilityStatus"
+          />
+        </CommonFormInput>
 
-        <div class="flex flex-col gap-2">
-          <label class="field-label" for="brand">*Regular Price</label>
+        <CommonFormInput
+          id="regular-price"
+          label="Regular Price"
+          required
+          :error="errors.regularPrice"
+        >
           <InputNumber
             id="regular-price"
             v-model="regularPrice"
             placeholder="Regular Price"
             :invalid="!!errors.regularPrice"
           />
+        </CommonFormInput>
+      </div>
 
-          <span class="text-red-400 text-xs">{{ errors.regularPrice }}</span>
+      <div class="grid grid-cols-3 gap-5 mt-4">
+        <CommonFormInput
+          id="isPercent"
+          label="Discount Type"
+          required
+          :error="errors.isPercent"
+        >
+          <SelectButton
+            v-model="isPercent"
+            input-id="isPercent"
+            :options="discountTypeOptions"
+            option-label="label"
+            option-value="value"
+          />
+        </CommonFormInput>
+
+        <CommonFormInput
+          id="discountAmount"
+          :label="`Discount ${isPercent ? 'Percent' : 'Amount'}`"
+          required
+          :error="errors.discountAmount"
+        >
+          <InputNumber
+            id="discountAmount"
+            v-model="discountAmount"
+            :placeholder="`Discount ${isPercent ? 'Percent' : 'Amount'}`"
+            :invalid="!!errors.discountAmount"
+          />
+        </CommonFormInput>
+
+        <CommonFormInput id="final-price" label="Final Price">
+          <InputNumber
+            id="final-price"
+            v-model="finalPrice"
+            placeholder="Final Price"
+            readonly
+            disabled
+          />
+        </CommonFormInput>
+      </div>
+
+      <div class="grid grid-cols-2 gap-5 mt-4">
+        <CommonFormInput
+          id="shortDescription"
+          label="Short Description"
+          required
+          :error="errors.shortDescription"
+        >
+          <CommonEditor
+            id="shortDescription"
+            v-model="shortDescription"
+            minimal-toolbar
+            :readonly="store.loading"
+            :height="200"
+          />
+        </CommonFormInput>
+
+        <CommonFormInput
+          id="warrantyAndServices"
+          label="Warranty And Services"
+          required
+          :error="errors.warrantyAndServices"
+        >
+          <CommonEditor
+            id="warrantyAndServices"
+            v-model="warrantyAndServices"
+            minimal-toolbar
+            :readonly="store.loading"
+            :height="200"
+          />
+        </CommonFormInput>
+      </div>
+
+      <div class="grid grid-cols mt-4">
+        <CommonFormInput
+          id="description"
+          label="Description"
+          required
+          :error="errors.description"
+        >
+          <CommonEditor
+            id="description"
+            v-model="description"
+            :readonly="store.loading"
+            :height="200"
+          />
+        </CommonFormInput>
+      </div>
+
+      <div class="grid grid-cols gap-5 mt-4">
+        <CommonFormInput label="Add To Collection" :error="errors.collections">
+          <div class="flex flex-wrap justify-content-center gap-3">
+            <div
+              v-for="collectionOption in collectionOptions"
+              :key="collectionOption.title"
+              class="flex align-items-center"
+            >
+              <Checkbox
+                v-model="collections"
+                name="collections"
+                :input-id="collectionOption.title"
+                :value="collectionOption.id"
+              />
+
+              <label :for="collectionOption.title" class="ml-2">
+                {{ collectionOption.title }}
+              </label>
+            </div>
+          </div>
+        </CommonFormInput>
+      </div>
+
+      <div
+        v-if="attributeOptions.length"
+        class="flex flex-col mt-4 bg-color-light-gray-secondary p-3 rounded"
+      >
+        <label class="input-field-label mb-2">Add Additional Information</label>
+
+        <div class="grid grid-cols-5 gap-2 bg-color-light-gray-secondary">
+          <CommonFormInput
+            v-for="(attributeOption, index) in attributeOptions"
+            :id="attributeOption.slug"
+            :key="attributeOption.slug"
+            :label="attributeOption.name"
+            :error="errors[`attributes[${index}]`]"
+          >
+            <MultiSelect
+              :id="attributeOption.slug"
+              v-model="attributes[index].value.value_ids"
+              :options="attributeOption.values"
+              :invalid="!!errors[`attributes[${index}]`]"
+              :loading="store.loading"
+              option-label="name"
+              option-value="id"
+              placeholder="Select"
+            />
+          </CommonFormInput>
         </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-5 mt-5">
+        <CommonFormInput
+          id="main-image"
+          label="Main Product Images"
+          required
+          :error="errors.mainImage"
+        >
+          <CommonCustomFileUpload
+            v-model="mainImage"
+            accept="image/*"
+            name="mainImage"
+          />
+        </CommonFormInput>
+
+        <CommonFormInput
+          id="gallery-image"
+          label="Gallery Images"
+          required
+          :error="errors.galleryImages"
+        >
+          <CommonCustomFileUpload
+            v-model="galleryImages"
+            accept="image/*"
+            multiple
+            name="galleryImages"
+          />
+        </CommonFormInput>
+      </div>
+
+      <div class="grid grid-cols-2 gap-5 mt-5">
+        <CommonFormInput
+          id="metaTitle"
+          label="Meta Title"
+          required
+          :error="errors.metaTitle"
+        >
+          <InputText
+            id="metaTitle"
+            v-model="metaTitle"
+            placeholder="Meta Title"
+            :invalid="!!errors.metaTitle"
+          />
+        </CommonFormInput>
+
+        <CommonFormInput id="metaTags" label="Tags" :error="errors.metaTags">
+          <Chips
+            id="metaTitle"
+            v-model="metaTags"
+            placeholder="Meta Title"
+            :invalid="!!errors.metaTags"
+          />
+        </CommonFormInput>
       </div>
 
       <div class="mt-16 flex justify-end gap-2">
@@ -187,10 +618,11 @@ const onSubmit = handleSubmit(async (values, actions) => {
         >
           Reset
         </Button>
+
         <Button
+          class="action-button submit-button"
           :disabled="store.loading || !meta.valid || !meta.dirty"
           :loading="store.loading"
-          class="action-button submit-button"
           type="submit"
         >
           Submit
@@ -223,20 +655,6 @@ const onSubmit = handleSubmit(async (values, actions) => {
     align-items: center;
 
     color: #3e3e3e;
-  }
-
-  .field-label {
-    height: 24px;
-
-    font-style: normal;
-    font-weight: 500;
-    font-size: 16px;
-    line-height: 24px;
-
-    display: flex;
-    align-items: center;
-
-    color: #787878;
   }
 }
 </style>
