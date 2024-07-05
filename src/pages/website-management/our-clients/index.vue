@@ -2,19 +2,24 @@
 import { FilterMatchMode } from "primevue/api";
 import { useToast } from "primevue/usetoast";
 import type { IDataResponse, IDeleteResponse } from "~/app/interfaces/common";
-import { getSeverity } from "~/utils/getVisibilitySeverity";
 import type { IClient } from "~/app/interfaces/webManagement";
-const { $apiClient } = useNuxtApp();
+
 useHead({
   title: "Our Clients | Website Management",
 });
-
-const currentPage = ref(1);
-
 definePageMeta({
   name: "our-clients",
 });
 
+const { $apiClient } = useNuxtApp();
+const store = useStore();
+const toast = useToast();
+
+const currentPage = ref(1);
+const showClientFormModal = ref<boolean>(false);
+const showDeleteConfirmModal = ref<boolean>(false);
+const editableClientData = ref<IClient | null>(null);
+const clientIdToDelete = ref<number | null>(null);
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
 });
@@ -31,14 +36,6 @@ const {
     watch: [currentPage],
   },
 );
-
-const store = useStore();
-const toast = useToast();
-
-const showClientFormModal = ref<boolean>(false);
-const showDeleteConfirmModal = ref<boolean>(false);
-const editableClientData = ref<IClient | null>(null);
-const clientIdToDelete = ref<number | null>(null);
 
 const handleEditButtonClick = (client: IClient) => {
   editableClientData.value = client;

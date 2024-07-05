@@ -81,6 +81,10 @@ const items = ref<IMenuItem[]>([
         label: "Our Location",
         navigateTo: "/website-management/our-locations",
       },
+      {
+        label: "Visitors Message",
+        navigateTo: "/website-management/visitors-message",
+      },
     ],
   },
 ]);
