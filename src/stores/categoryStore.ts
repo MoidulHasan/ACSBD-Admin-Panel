@@ -1,8 +1,6 @@
 import type {
-  IAttributeFormData,
   ICategoryData,
   ICategoryResponse,
-  IProductAttribute,
 } from "~/app/interfaces/products";
 import type {
   ICreateResponse,

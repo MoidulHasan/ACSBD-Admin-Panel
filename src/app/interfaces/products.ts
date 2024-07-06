@@ -97,7 +97,8 @@ export interface IProduct {
   slug: string;
   visibility_status: string;
   description: string;
-  warranty_and_services: IWarrantyAndServices;
+  short_description: string;
+  warranty_and_services: string;
   price: IPrice;
   brand: IBrand;
   category: ICategoryResponse;
