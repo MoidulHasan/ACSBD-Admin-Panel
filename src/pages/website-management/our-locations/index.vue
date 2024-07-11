@@ -16,7 +16,7 @@ const { $apiClient } = useNuxtApp();
 const store = useStore();
 const toast = useToast();
 
-const currentPage = ref(1);
+const currentPage = ref(0);
 const showLocationFormModal = ref<boolean>(false);
 const showDeleteConfirmModal = ref<boolean>(false);
 const editableLocationData = ref<ILocation | null>(null);
@@ -30,12 +30,8 @@ const {
   error,
   pending,
   refresh,
-} = await useAsyncData<IDataResponse<ILocation[]>>(
-  "locations",
-  () => $apiClient(`/our-locations?page=${currentPage.value}&limit=10`),
-  {
-    watch: [currentPage],
-  },
+} = await useAsyncData<IDataResponse<ILocation[]>>("locations", () =>
+  $apiClient(`/our-locations`),
 );
 
 const handleEditButtonClick = (location: ILocation) => {
@@ -91,6 +87,10 @@ const handleDeleteConfirmation = async () => {
 
   hideDeleteConfirmModal();
 };
+
+const changePage = (e: { page: number }) => {
+  currentPage.value = e.page;
+};
 </script>
 
 <template>
@@ -111,6 +111,8 @@ const handleDeleteConfirmation = async () => {
         ]"
         striped-rows
         :rows="10"
+        paginator
+        @page="changePage"
       >
         <template #header>
           <CommonDataTableHeader
@@ -128,7 +130,7 @@ const handleDeleteConfirmation = async () => {
         <Column header="SL">
           <template #body="slotProps">
             <div>
-              {{ (currentPage - 1) * 10 + slotProps.index + 1 }}
+              {{ currentPage * 10 + slotProps.index + 1 }}
             </div>
           </template>
         </Column>
@@ -164,12 +166,6 @@ const handleDeleteConfirmation = async () => {
             </div>
           </template>
         </Column>
-        <template #footer>
-          <CommonPagination
-            v-model:current-page="currentPage"
-            :total-page="locations?.meta.last_page"
-          />
-        </template>
       </DataTable>
 
       <div v-if="error" class="h-full">

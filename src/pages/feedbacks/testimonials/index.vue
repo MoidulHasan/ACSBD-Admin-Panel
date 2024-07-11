@@ -9,8 +9,6 @@ useHead({
   title: "Testimonials | Feedbacks",
 });
 
-const currentPage = ref(1);
-
 definePageMeta({
   name: "feedbacks-testimonials",
 });
@@ -24,17 +22,13 @@ const {
   error,
   pending,
   refresh,
-} = await useAsyncData<IDataResponse<ITestimonial[]>>(
-  "testimonials",
-  () => $apiClient(`/admin/testimonials?page=${currentPage.value}&limit=10`),
-  {
-    watch: [currentPage],
-  },
+} = await useAsyncData<IDataResponse<ITestimonial[]>>("testimonials", () =>
+  $apiClient(`/admin/testimonials`),
 );
 
 const store = useStore();
 const toast = useToast();
-
+const currentPage = ref(0);
 const showTestimonialFormModal = ref<boolean>(false);
 const showDeleteConfirmModal = ref<boolean>(false);
 const editableTestimonial = ref<ITestimonial | null>(null);
@@ -93,6 +87,10 @@ const handleDeleteConfirmation = async () => {
 
   hideDeleteConfirmModal();
 };
+
+const changePage = (e: { page: number }) => {
+  currentPage.value = e.page;
+};
 </script>
 
 <template>
@@ -112,6 +110,8 @@ const handleDeleteConfirmation = async () => {
         ]"
         striped-rows
         :rows="10"
+        paginator
+        @page="changePage"
       >
         <template #header>
           <CommonDataTableHeader
@@ -129,7 +129,7 @@ const handleDeleteConfirmation = async () => {
         <Column header="SL">
           <template #body="slotProps">
             <div>
-              {{ (currentPage - 1) * 10 + slotProps.index + 1 }}
+              {{ currentPage * 10 + slotProps.index + 1 }}
             </div>
           </template>
         </Column>
@@ -179,12 +179,6 @@ const handleDeleteConfirmation = async () => {
             </div>
           </template>
         </Column>
-        <template #footer>
-          <CommonPagination
-            v-model:current-page="currentPage"
-            :total-page="testimonials?.meta.last_page"
-          />
-        </template>
       </DataTable>
 
       <div v-if="error" class="h-full">
