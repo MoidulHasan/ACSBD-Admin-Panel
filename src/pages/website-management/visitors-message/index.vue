@@ -13,7 +13,7 @@ definePageMeta({
 const { $apiClient } = useNuxtApp();
 const store = useStore();
 
-const currentPage = ref(1);
+const currentPage = ref(0);
 const showMessageFormModal = ref<boolean>(false);
 const editableMessageData = ref<IVisitorMessage | null>(null);
 
@@ -26,13 +26,8 @@ const {
   error,
   pending,
   refresh,
-} = await useAsyncData<IDataResponse<IVisitorMessage[]>>(
-  "messages",
-  () =>
-    $apiClient(`/admin/visitors-message?page=${currentPage.value}&limit=10`),
-  {
-    watch: [currentPage],
-  },
+} = await useAsyncData<IDataResponse<IVisitorMessage[]>>("messages", () =>
+  $apiClient(`/admin/visitors-message`),
 );
 
 const handleEditButtonClick = (message: IVisitorMessage) => {
@@ -54,6 +49,10 @@ const getSeverity = (status: string) => {
     case "Pending":
       return "warning";
   }
+};
+
+const changePage = (e: { page: number }) => {
+  currentPage.value = e.page;
 };
 </script>
 
@@ -77,6 +76,8 @@ const getSeverity = (status: string) => {
         ]"
         striped-rows
         :rows="10"
+        paginator
+        @page="changePage"
       >
         <template #header>
           <CommonDataTableHeader
@@ -92,7 +93,7 @@ const getSeverity = (status: string) => {
         <Column header="SL">
           <template #body="slotProps">
             <div>
-              {{ (currentPage - 1) * 10 + slotProps.index + 1 }}
+              {{ currentPage * 10 + slotProps.index + 1 }}
             </div>
           </template>
         </Column>
@@ -123,12 +124,6 @@ const getSeverity = (status: string) => {
             </div>
           </template>
         </Column>
-        <template #footer>
-          <CommonPagination
-            v-model:current-page="currentPage"
-            :total-page="messages?.meta.last_page"
-          />
-        </template>
       </DataTable>
 
       <div v-if="error" class="h-full">

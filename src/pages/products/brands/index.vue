@@ -12,7 +12,7 @@ useHead({
   title: "Brands | Product",
 });
 
-const currentPage = ref(1);
+const currentPage = ref(0);
 
 const $primevue = usePrimeVue();
 const toast = useToast();
@@ -23,12 +23,7 @@ const {
   data: brands,
   pending,
   refresh: refreshAllData,
-} = await useFetch(
-  () => `/api/proxy/admin/brands?page=${currentPage.value}&limit=10`,
-  {
-    watch: [currentPage],
-  },
-);
+} = await useFetch(() => `/api/proxy/admin/brands`);
 
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -215,6 +210,10 @@ const deleteTheBrand = async () => {
 const hideDeleteModal = () => {
   visibleDeleteModal.value = false;
 };
+
+const changePage = (e: { page: number }) => {
+  currentPage.value = e.page;
+};
 </script>
 
 <template>
@@ -231,6 +230,8 @@ const hideDeleteModal = () => {
       data-key="id"
       :loading="pending"
       striped-rows
+      paginator
+      @page="changePage"
     >
       <template #header>
         <DataTableHeader
@@ -244,7 +245,7 @@ const hideDeleteModal = () => {
       <Column header="SL">
         <template #body="slotProps">
           <div>
-            {{ (currentPage - 1) * 10 + slotProps.index + 1 }}
+            {{ currentPage * 10 + slotProps.index + 1 }}
           </div>
         </template>
       </Column>
@@ -294,13 +295,6 @@ const hideDeleteModal = () => {
           </div>
         </template>
       </Column>
-
-      <template #footer>
-        <CommonPagination
-          v-model:current-page="currentPage"
-          :total-page="brands?.meta.last_page"
-        />
-      </template>
     </DataTable>
     <ClientOnly>
       <!--      Add Brand Modal -->
