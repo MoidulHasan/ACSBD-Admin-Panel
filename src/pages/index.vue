@@ -1,6 +1,6 @@
 <script setup lang="ts">
 definePageMeta({
-  name: "home-page",
+  name: "dashboard",
 });
 
 useHead({

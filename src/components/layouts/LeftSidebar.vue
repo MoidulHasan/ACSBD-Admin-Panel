@@ -97,7 +97,7 @@ const items = ref<IMenuItem[]>([
     <div
       class="sidebar-logo flex items-center justify-between gap-2 px-6 py-5.5 lg:py-6.5"
     >
-      <NuxtLink :to="{ name: 'home-page' }">
+      <NuxtLink :to="{ name: 'dashboard' }">
         <img src="~/assets/images/logo/acsbd-logo-white.svg" alt="Logo" />
       </NuxtLink>
     </div>
