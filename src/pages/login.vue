@@ -1,5 +1,6 @@
 <script setup>
 import * as yup from "yup";
+import { useToast } from "primevue/usetoast";
 
 useHead({
   title: "Login",
@@ -7,9 +8,10 @@ useHead({
 
 definePageMeta({
   name: "login",
-  layout: false,
+  layout: "empty",
 });
 
+const toast = useToast();
 const store = useStore();
 const { authenticateUser, isAuthenticated } = useAuthStore();
 
@@ -28,12 +30,23 @@ const { value: password } = useField("password");
 
 const onSubmit = handleSubmit(async (values) => {
   store.loading = true;
-  await authenticateUser({ email: values.email, password: values.password });
+  const response = await authenticateUser({
+    email: values.email,
+    password: values.password,
+  });
   store.loading = false;
 
   if (isAuthenticated()) {
-    navigateTo({ name: "dashboard" });
+    await navigateTo({ name: "dashboard" });
+    return;
   }
+
+  toast.add({
+    severity: "error",
+    summary: "Login Failed",
+    detail: response.statusMessage,
+    life: 3000,
+  });
 });
 </script>
 
@@ -75,7 +88,7 @@ const onSubmit = handleSubmit(async (values) => {
           />
         </CommonFormInput>
 
-        <div class="flex justify-between align-items-center">
+        <div class="flex justify-between align-items-center mt-3">
           <div class="checkbox-container flex align-items-center">
             <Checkbox disabled input-id="rememberme" binary />
             <label for="rememberme" class="ml-2 subtitle">

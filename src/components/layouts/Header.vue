@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import { useToast } from "primevue/usetoast";
+
 const { user, logoutUser, isAuthenticated } = useAuthStore();
 const store = useStore();
+const toast = useToast();
 
 const menu = ref();
 const items = ref([
@@ -28,12 +31,20 @@ const toggle = (event) => {
 async function handleMenuSelect(event) {
   if (event.item.label === "Logout") {
     store.loading = true;
-    await logoutUser();
+    const response = await logoutUser();
     store.loading = false;
 
     if (!isAuthenticated()) {
       await navigateTo("/login");
+      return;
     }
+
+    toast.add({
+      severity: "error",
+      summary: "Logout Failed",
+      detail: response.statusMessage,
+      life: 3000,
+    });
   }
 }
 </script>
@@ -50,7 +61,7 @@ async function handleMenuSelect(event) {
       <div>
         <Avatar
           :image="user?.image ?? 'https://i.ibb.co/ZSLq2C6/admin.png'"
-          class="profile-avatar"
+          class="profile-avatar cursor-pointer"
           size="large"
           shape="circle"
           type="button"

@@ -34,14 +34,14 @@ export const useAuthStore = defineStore("authStore", () => {
       authorized.value = true;
       user.value = response.user;
     }
+
+    return response;
   };
 
   const logoutUser = async () => {
     const response = await $apiClient<ICreateResponse>("/logout", {
       method: "POST",
-    });
-
-    console.log(response);
+    }).catch((error) => error.data);
 
     if (response.message === "success") {
       const token = useCookie("token");
@@ -53,6 +53,8 @@ export const useAuthStore = defineStore("authStore", () => {
       authorized.value = false;
       user.value = null;
     }
+
+    return response;
   };
 
   const isAuthenticated = () => authorized.value;
