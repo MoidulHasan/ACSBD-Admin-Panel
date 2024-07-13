@@ -1,3 +1,5 @@
+import type { IUser } from "~/app/interfaces/user";
+
 export interface Link {
   url: string | null;
   label: string;
@@ -51,4 +53,10 @@ export interface IUpdateResponse<T> {
 
 export interface IErrorResponse {
   errors: Record<string, string[]>;
+}
+
+export interface IAuthSuccessResponse {
+  token: string;
+  user: IUser;
+  message: string;
 }

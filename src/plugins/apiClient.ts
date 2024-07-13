@@ -1,10 +1,12 @@
-export default defineNuxtPlugin(() => {
+export default defineNuxtPlugin((nuxtApp) => {
   const { appUrl } = useRuntimeConfig().public;
 
   const apiClient = $fetch.create({
     baseURL: appUrl + "/api/proxy",
 
     onRequest({ request, options, error }) {
+      const token = useCookie("token");
+
       // eslint-disable-next-line
       console.log("API call happened, here is all data - ", {
         request,
@@ -12,15 +14,26 @@ export default defineNuxtPlugin(() => {
         error,
       });
 
-      // Todo: preprocess request
+      if (token.value) {
+        const headers = (options.headers ||= {});
+
+        if (Array.isArray(headers)) {
+          headers.push(["Authorization", `Bearer ${token.value}`]);
+        } else if (headers instanceof Headers) {
+          headers.set("Authorization", `Bearer ${token.value}`);
+        } else {
+          headers.Authorization = `Bearer ${token.value}`;
+        }
+      }
     },
 
-    // eslint-disable-next-line require-await
     async onResponseError({ response }) {
       // eslint-disable-next-line
       console.log("Error Response - ", response);
 
-      // Todo: handle error response
+      if (response.status === 401) {
+        await nuxtApp.runWithContext(() => navigateTo({ name: "login" }));
+      }
     },
   });
 

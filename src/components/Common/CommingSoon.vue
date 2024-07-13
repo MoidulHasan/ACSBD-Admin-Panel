@@ -6,7 +6,7 @@
         This page is under construction, it will be live soon...
       </p>
 
-      <NuxtLink class="back-button" :to="{ name: 'home-page' }">
+      <NuxtLink class="back-button" :to="{ name: 'dashboard' }">
         Back To Home
       </NuxtLink>
     </div>
