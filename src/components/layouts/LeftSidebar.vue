@@ -99,14 +99,15 @@ const items = ref<IMenuItem[]>([
         navigateTo: "/website-management/our-clients",
       },
       {
-        label: "Our Location",
-        navigateTo: "/website-management/our-locations",
-      },
-      {
         label: "Visitors Message",
         navigateTo: "/website-management/visitors-message",
       },
     ],
+  },
+  {
+    label: "Showroom Management",
+    icon: "li:showroom",
+    navigateTo: "/showroom-management",
   },
 ]);
 </script>
