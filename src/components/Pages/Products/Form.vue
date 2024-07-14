@@ -137,13 +137,29 @@ const { handleSubmit, errors, handleReset, meta } = useForm<FormData>({
     installment: props.productData?.installment ?? "",
     visibilityStatus: props.productData?.visibility_status ?? undefined,
 
-    description: props.productData?.description ?? "",
     shortDescription: props.productData?.short_description ?? "",
     warrantyAndServices: props.productData?.warranty_and_services ?? "",
+    description: props.productData?.description ?? "",
+
+    collections:
+      props.productData?.collections?.map((collection) =>
+        Number(collection.id),
+      ) ?? undefined,
+
     attributes: attributeOptions.map((option) => ({
       attribute_id: option.id,
-      value_ids: [],
+      value_ids:
+        props.productData?.attributes
+          .find((attribute) => attribute.id === option.id)
+          ?.values?.map((value) => value.id) || [],
     })),
+
+    mainImage: props.productData?.images[0].image_url
+      ? [props.productData?.images[0].image_url]
+      : undefined,
+
+    metaTitle: props?.productData?.meta_title ?? undefined,
+    metaTags: props?.productData?.meta_tags ?? undefined,
   },
 });
 
