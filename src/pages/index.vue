@@ -9,7 +9,9 @@ useHead({
 </script>
 
 <template>
-  <div>home page</div>
+  <div>
+    <CommonCommingSoon hide-back-to-home-button />
+  </div>
 </template>
 
 <style scoped></style>
