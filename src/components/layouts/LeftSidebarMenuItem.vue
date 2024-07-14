@@ -46,7 +46,11 @@ function hasActiveChild(menuItem: IMenuItem) {
       @click="handleNavItemClick"
     >
       <div class="flex items-center">
-        <i v-if="item.icon" :class="item.icon" />
+        <Icon
+          v-if="item.icon && item.icon?.startsWith('li:')"
+          :name="item.icon"
+        />
+        <i v-else-if="item.icon" :class="item.icon" />
         <img
           v-else-if="item.iconImageUrl"
           :src="item.iconImageUrl"

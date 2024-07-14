@@ -18,6 +18,7 @@ export default defineNuxtConfig({
     "@vee-validate/nuxt",
     "@pinia/nuxt",
     "@nuxt/image",
+    "@nuxt/icon",
   ],
   primevue: {
     unstyled: true,
@@ -42,19 +43,28 @@ export default defineNuxtConfig({
     autoImports: true,
   },
 
-  runtimeConfig: {
-    apiBase: "",
-
-    public: {
-      appUrl: "",
-    },
-  },
-
   imports: {
     dirs: ["app/interfaces/**"],
   },
 
   pinia: {
     storesDirs: ["src/stores"],
+  },
+
+  icon: {
+    customCollections: [
+      {
+        prefix: "li",
+        dir: "./src/assets/icons",
+      },
+    ],
+  },
+
+  runtimeConfig: {
+    apiBase: "",
+
+    public: {
+      appUrl: "",
+    },
   },
 });
