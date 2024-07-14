@@ -10,6 +10,7 @@ const items = ref<IMenuItem[]>([
   {
     label: "Analysis Board",
     icon: "pi pi-chart-pie",
+    navigateTo: "/analysis-board",
   },
   {
     label: "Manage Customers",
