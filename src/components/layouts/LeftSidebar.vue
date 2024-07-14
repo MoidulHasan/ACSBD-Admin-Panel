@@ -42,6 +42,20 @@ const items = ref<IMenuItem[]>([
     ],
   },
   {
+    label: "Promotion",
+    icon: "li:promotion",
+    items: [
+      {
+        label: "Discounts",
+        navigateTo: "/promotions/discounts",
+      },
+      {
+        label: "Campaigns",
+        navigateTo: "/promotions/campaigns",
+      },
+    ],
+  },
+  {
     label: "Promo Code",
     icon: "li:promo-code",
     navigateTo: "/promo-code",
