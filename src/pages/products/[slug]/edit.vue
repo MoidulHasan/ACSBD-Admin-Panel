@@ -22,7 +22,7 @@ const { data: productData, refresh } = await useAsyncData<
 
 <template>
   <div>
-    <PagesProductForm
+    <PagesProductsForm
       :product-data="productData.data"
       @on-form-submit="refresh"
     />

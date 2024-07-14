@@ -91,18 +91,31 @@ export interface IImage {
   updated_at: string;
 }
 
+export interface ICollection {
+  id?: number;
+  title: string;
+  status: string;
+  slug?: string;
+}
+
 export interface IProduct {
   id: number;
   name: string;
   slug: string;
+  sku: string;
+  category: ICategoryResponse;
+  brand: IBrand;
+  price: IPrice;
+  installment?: string;
   visibility_status: string;
-  description: string;
   short_description: string;
   warranty_and_services: string;
-  price: IPrice;
-  brand: IBrand;
-  category: ICategoryResponse;
+  description: string;
+  collections: ICollection[];
+  attributes: IProductAttribute[];
   images: IImage[];
+  meta_title: string;
+  meta_tags: string[];
   created_at: string;
   updated_at: string;
 }
@@ -110,11 +123,4 @@ export interface IProduct {
 export interface IStatus {
   name: "Public" | "Hidden";
   code: "public" | "private" | "hidden";
-}
-
-export interface ICollection {
-  id?: number;
-  title: string;
-  status: string;
-  slug?: string;
 }

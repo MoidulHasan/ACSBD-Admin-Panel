@@ -19,11 +19,12 @@ interface FormData {
   sku: string;
   category: number;
   brand: number;
-  visibilityStatus: string;
   regularPrice: number;
   isPercent: boolean;
   discountAmount: number;
   finalPrice: number;
+  visibilityStatus: string;
+  installment?: string;
   description: string;
   shortDescription: string | null;
   metaTitle: string | null;
@@ -40,8 +41,6 @@ interface IProps {
 }
 
 const props = defineProps<IProps>();
-
-console.log(props.productData);
 
 const emits = defineEmits<{
   (e: "onFormSubmit"): void;
@@ -77,7 +76,6 @@ const validationSchema = yup.object({
   sku: requiredString("Product SKU"),
   category: requiredNumber("Product category"),
   brand: requiredNumber("Product brand"),
-  visibilityStatus: requiredString("Product visibility status"),
   regularPrice: requiredNumber("Regular price"),
   isPercent: requiredBoolean("Discount type"),
   discountAmount: requiredNumber("Discount amount")
@@ -98,6 +96,8 @@ const validationSchema = yup.object({
       },
     ),
   finalPrice: requiredNumber("Final price"),
+  visibilityStatus: requiredString("Product visibility status"),
+  installment: yup.string().nullable(),
   description: requiredString("Description"),
   shortDescription: requiredString("Short Description"),
   warrantyAndServices: requiredString("Warranty And Services"),
@@ -114,18 +114,29 @@ const validationSchema = yup.object({
   galleryImages: yup.array().of(yup.mixed()),
 });
 
-const { handleSubmit, errors, handleReset, meta, values } = useForm<FormData>({
+const { handleSubmit, errors, handleReset, meta } = useForm<FormData>({
   validationSchema,
   initialValues: {
     name: props.productData?.name ?? "",
     sku: props.productData?.sku ?? "",
+
     category: props.productData?.category.id ?? undefined,
     brand: props.productData?.brand.id ?? undefined,
-    visibilityStatus: props.productData?.visibility_status ?? undefined,
-    regularPrice: Number(props.productData?.price.base_price) ?? undefined,
+
+    regularPrice: props.productData?.price.base_price
+      ? Number(props.productData?.price.base_price)
+      : undefined,
     isPercent: !!props.productData?.price.is_percent,
-    discountAmount: Number(props.productData?.price.discount_amount) ?? 0,
-    finalPrice: Number(props.productData?.price.finalPrice) ?? undefined,
+    discountAmount: props.productData?.price.discount_amount
+      ? Number(props.productData?.price.discount_amount)
+      : 0,
+    finalPrice: props.productData?.price.final_price
+      ? Number(props.productData?.price.final_price)
+      : undefined,
+
+    installment: props.productData?.installment ?? "",
+    visibilityStatus: props.productData?.visibility_status ?? undefined,
+
     description: props.productData?.description ?? "",
     shortDescription: props.productData?.short_description ?? "",
     warrantyAndServices: props.productData?.warranty_and_services ?? "",
@@ -136,24 +147,26 @@ const { handleSubmit, errors, handleReset, meta, values } = useForm<FormData>({
   },
 });
 
-const { value: name } = useField("name");
-const { value: sku } = useField("sku");
+const { value: name } = useField<string>("name");
+const { value: sku } = useField<string>("sku");
 const { value: category } = useField("category");
 const { value: brand } = useField("brand");
 const { value: visibilityStatus } = useField("visibilityStatus");
 const { value: regularPrice } = useField<number>("regularPrice");
 const { value: isPercent } = useField<boolean>("isPercent");
 const { value: discountAmount } = useField<number>("discountAmount");
-const { value: finalPrice, setValue: setFinalPrice } = useField("finalPrice");
-const { value: description } = useField("description");
-const { value: shortDescription } = useField("shortDescription");
-const { value: warrantyAndServices } = useField("warrantyAndServices");
+const { value: finalPrice, setValue: setFinalPrice } =
+  useField<number>("finalPrice");
+const { value: installment } = useField<string>("installment");
+const { value: description } = useField<string>("description");
+const { value: shortDescription } = useField<string>("shortDescription");
+const { value: warrantyAndServices } = useField<string>("warrantyAndServices");
 const { value: collections } = useField("collections");
 const { value: metaTitle } = useField("metaTitle");
 const { value: metaTags } = useField("metaTags");
 const { fields: attributes } = useFieldArray<IAttributeValue[]>("attributes");
-const { value: mainImage } = useField("mainImage");
-const { value: galleryImages } = useField("galleryImages");
+const { value: mainImage } = useField<File[]>("mainImage");
+const { value: galleryImages } = useField<File[]>("galleryImages");
 
 const computedFinalPrice = computed(() => {
   return isPercent.value
@@ -162,7 +175,6 @@ const computedFinalPrice = computed(() => {
 });
 
 const onSubmit = handleSubmit(async (values, actions) => {
-  console.log(typeof values.isPercent);
   try {
     const formData = new FormData();
 
@@ -177,6 +189,8 @@ const onSubmit = handleSubmit(async (values, actions) => {
     formData.append("price[is_percent]", JSON.stringify(values.isPercent));
     formData.append("price[discount_amount]", values.discountAmount.toString());
     formData.append("price[final_price]", values.finalPrice.toString());
+
+    if (values.installment) formData.append("installment", values.installment);
 
     values.attributes.forEach((attribute: IAttributeValue, index) => {
       formData.append(
@@ -203,7 +217,7 @@ const onSubmit = handleSubmit(async (values, actions) => {
     });
 
     if (values.mainImage && values.mainImage.length > 0) {
-      formData.append("images", values.mainImage[0]);
+      formData.append("images[0]", values.mainImage[0]);
     }
 
     values.galleryImages.forEach((file, index) => {
@@ -225,6 +239,7 @@ const onSubmit = handleSubmit(async (values, actions) => {
       });
 
       emits("onFormSubmit");
+      actions.resetForm();
       return;
     }
 
@@ -299,7 +314,7 @@ watch(computedFinalPrice, (newVal) => setFinalPrice(newVal));
           <InputText
             id="name"
             v-model="name"
-            placeholder="Product Name"
+            placeholder="Enter Product Name"
             :invalid="!!errors.name"
           />
         </CommonFormInput>
@@ -313,7 +328,7 @@ watch(computedFinalPrice, (newVal) => setFinalPrice(newVal));
           <InputText
             id="sku"
             v-model="sku"
-            placeholder="Product SKU"
+            placeholder="Enter Product SKU"
             :invalid="!!errors.sku"
           />
         </CommonFormInput>
@@ -381,25 +396,7 @@ watch(computedFinalPrice, (newVal) => setFinalPrice(newVal));
         </CommonFormInput>
       </div>
 
-      <div class="grid grid-cols-2 gap-5 mt-4">
-        <CommonFormInput
-          id="visibilityStatus"
-          label="Visibility Status"
-          required
-          :error="errors.visibilityStatus"
-        >
-          <Dropdown
-            id="visibilityStatus"
-            v-model="visibilityStatus"
-            :options="statusOptions"
-            :loading="store.loading"
-            option-label="name"
-            option-value="value"
-            placeholder="Select Status"
-            :invalid="!!errors.visibilityStatus"
-          />
-        </CommonFormInput>
-
+      <div class="grid grid-cols-4 gap-5 mt-4">
         <CommonFormInput
           id="regular-price"
           label="Regular Price"
@@ -409,13 +406,11 @@ watch(computedFinalPrice, (newVal) => setFinalPrice(newVal));
           <InputNumber
             id="regular-price"
             v-model="regularPrice"
-            placeholder="Regular Price"
+            placeholder="Enter Regular Price"
             :invalid="!!errors.regularPrice"
           />
         </CommonFormInput>
-      </div>
 
-      <div class="grid grid-cols-3 gap-5 mt-4">
         <CommonFormInput
           id="isPercent"
           label="Discount Type"
@@ -426,6 +421,7 @@ watch(computedFinalPrice, (newVal) => setFinalPrice(newVal));
             v-model="isPercent"
             input-id="isPercent"
             :options="discountTypeOptions"
+            class="select-button"
             option-label="label"
             option-value="value"
           />
@@ -458,6 +454,39 @@ watch(computedFinalPrice, (newVal) => setFinalPrice(newVal));
 
       <div class="grid grid-cols-2 gap-5 mt-4">
         <CommonFormInput
+          id="installment"
+          label="Installment Policy(If Any)"
+          :error="errors.installment"
+        >
+          <InputText
+            id="installment"
+            v-model="installment"
+            placeholder="Enter Installment Policy"
+            :invalid="!!errors.sku"
+          />
+        </CommonFormInput>
+
+        <CommonFormInput
+          id="visibilityStatus"
+          label="Visibility Status"
+          required
+          :error="errors.visibilityStatus"
+        >
+          <Dropdown
+            id="visibilityStatus"
+            v-model="visibilityStatus"
+            :options="statusOptions"
+            :loading="store.loading"
+            option-label="name"
+            option-value="value"
+            placeholder="Select Visibility Status"
+            :invalid="!!errors.visibilityStatus"
+          />
+        </CommonFormInput>
+      </div>
+
+      <div class="grid grid-cols-2 gap-5 mt-4">
+        <CommonFormInput
           id="shortDescription"
           label="Short Description"
           required
@@ -469,6 +498,7 @@ watch(computedFinalPrice, (newVal) => setFinalPrice(newVal));
             minimal-toolbar
             :readonly="store.loading"
             :height="200"
+            placeholder="Write short sescription"
           />
         </CommonFormInput>
 
@@ -484,6 +514,7 @@ watch(computedFinalPrice, (newVal) => setFinalPrice(newVal));
             minimal-toolbar
             :readonly="store.loading"
             :height="200"
+            placeholder="Write about warranty and services"
           />
         </CommonFormInput>
       </div>
@@ -500,6 +531,7 @@ watch(computedFinalPrice, (newVal) => setFinalPrice(newVal));
             v-model="description"
             :readonly="store.loading"
             :height="200"
+            placeholder="Write product description"
           />
         </CommonFormInput>
       </div>
@@ -612,7 +644,7 @@ watch(computedFinalPrice, (newVal) => setFinalPrice(newVal));
       <div class="mt-16 flex justify-end gap-2">
         <Button
           :disabled="store.loading"
-          class="action-button"
+          class="form-action-button"
           type="button"
           @click="handleReset"
         >
@@ -620,7 +652,7 @@ watch(computedFinalPrice, (newVal) => setFinalPrice(newVal));
         </Button>
 
         <Button
-          class="action-button submit-button"
+          class="form-action-button form-submit-button"
           :disabled="store.loading || !meta.valid || !meta.dirty"
           :loading="store.loading"
           type="submit"
@@ -655,6 +687,19 @@ watch(computedFinalPrice, (newVal) => setFinalPrice(newVal));
     align-items: center;
 
     color: #3e3e3e;
+  }
+}
+</style>
+
+<style>
+.select-button {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+
+  .p-button {
+    width: 100%;
   }
 }
 </style>

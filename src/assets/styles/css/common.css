@@ -58,7 +58,7 @@
 }
 
 .form-submit-button {
-    background: var(--primary-color-envitect-sam-blue);
+    background: var(--primary-color-envitect-sam-blue)!important;
     color: var(--primary-color-white);
 }
 

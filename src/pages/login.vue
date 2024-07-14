@@ -54,7 +54,7 @@ const onSubmit = handleSubmit(async (values) => {
   <div class="page-content">
     <div class="form-container">
       <h2 class="title">Sign In</h2>
-      <p class="subtitle mb-8">Login to your an account</p>
+      <p class="subtitle mb-8">Login to your account</p>
 
       <form @submit.prevent="onSubmit">
         <CommonFormInput
