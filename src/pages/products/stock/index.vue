@@ -15,6 +15,7 @@ const store = useStore();
 
 const currentPage = ref(0);
 const showStockFormModal = ref<boolean>(false);
+const stockModificationFormTitle = ref<string>("Add Product Stocks");
 const editableStockData = ref<IStock | null>(null);
 
 const filters = ref({
@@ -32,12 +33,14 @@ const {
 
 const handleEditButtonClick = (stock: IStock) => {
   editableStockData.value = stock;
+  stockModificationFormTitle.value = "Update Product Stock";
   showStockFormModal.value = true;
 };
 
 const handleFormSubmit = () => {
   showStockFormModal.value = false;
   editableStockData.value = null;
+  stockModificationFormTitle.value = "Add Product Stock";
   refresh();
 };
 
@@ -65,6 +68,8 @@ const changePage = (e: { page: number }) => {
           <CommonDataTableHeader
             v-model:search-text="filters['global'].value"
             :table-header="'Stock Management'"
+            :add-button-label="'Add Product Stocks'"
+            @on-add-button-clicked="showStockFormModal = true"
           />
         </template>
 
@@ -104,7 +109,7 @@ const changePage = (e: { page: number }) => {
           v-model:visible="showStockFormModal"
           modal
           :draggable="false"
-          header="Update Product Stock"
+          :header="stockModificationFormTitle"
           @hide="() => (editableStockData = null)"
         >
           <PagesProductsStocksForm

@@ -16,8 +16,15 @@ const toast = useToast();
 const store = useStore();
 
 const validationSchema = yup.object({
-  productId: yup.number().required("Product ID Is Required"),
-  quantity: yup.number().required("Stock Quantity Is Required"),
+  productId: yup
+    .number()
+    .required("Product ID is required")
+    .min(1, "Product ID cannot be negative or zero"),
+  quantity: yup
+    .number()
+    .required("Stock Quantity is required")
+    .min(1, "Quantity cannot be negative or zero")
+    .max(10000, "Quantity cannot exceed 10000"),
 });
 
 const { handleSubmit, errors, handleReset, meta } = useForm({
@@ -46,13 +53,7 @@ const onSubmit = handleSubmit(async (values, actions) => {
     return response;
   };
 
-  const response = props.stockData
-    ? await makeRequest(
-        `/admin/stocks/${props.stockData.product_id}`,
-        "PUT",
-        requestBody,
-      )
-    : await makeRequest("/admin/stocks", "POST", requestBody);
+  const response = await makeRequest(`/admin/stocks`, "POST", requestBody);
 
   if (!response.errors && response.message) {
     toast.add({
@@ -97,27 +98,29 @@ const onSubmit = handleSubmit(async (values, actions) => {
 <template>
   <div class="bg-white">
     <form @submit.prevent="onSubmit">
-      <div class="flex flex-col gap-2">
-        <label for="productId">Product Id</label>
-        <InputNumber
-          id="productId"
-          v-model="productId"
-          :class="{ 'cursor-not-allowed': stockData?.product_id }"
-          :disabled="stockData?.product_id"
-          :invalid="!!errors[`productId`]"
-          placeholder="Enter Product Id"
-        />
-        <span class="text-red-400 text-xs">{{ errors.productId }}</span>
-      </div>
-      <div class="flex flex-col gap-2">
-        <label for="quantity">Product Stock Quantity</label>
-        <InputNumber
-          id="quantity"
-          v-model="quantity"
-          :invalid="!!errors[`quantity`]"
-          placeholder="Enter Product Quantity"
-        />
-        <span class="text-red-400 text-xs">{{ errors.quantity }}</span>
+      <div class="grid grid-cols-2 gap-2">
+        <div class="flex flex-col gap-2">
+          <label for="productId">Product Id</label>
+          <InputNumber
+            id="productId"
+            v-model="productId"
+            :class="{ 'cursor-not-allowed': stockData?.product_id }"
+            :disabled="stockData?.product_id"
+            :invalid="!!errors[`productId`]"
+            placeholder="Enter Product Id"
+          />
+          <span class="text-red-400 text-xs">{{ errors.productId }}</span>
+        </div>
+        <div class="flex flex-col gap-2">
+          <label for="quantity">Product Stock Quantity</label>
+          <InputNumber
+            id="quantity"
+            v-model="quantity"
+            :invalid="!!errors[`quantity`]"
+            placeholder="Enter Product Quantity"
+          />
+          <span class="text-red-400 text-xs">{{ errors.quantity }}</span>
+        </div>
       </div>
 
       <div class="mt-5 flex justify-end gap-2">
