@@ -5,11 +5,13 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   srcDir: "src/",
   serverDir: "server/",
+
   css: [
     "primeicons/primeicons.css",
     "~/assets/styles/css/main.css",
     "~/assets/styles/css/common.css",
   ],
+
   modules: [
     "nuxt-primevue",
     "@nuxtjs/tailwindcss",
@@ -20,6 +22,7 @@ export default defineNuxtConfig({
     "@nuxt/image",
     "@nuxt/icon",
   ],
+
   primevue: {
     unstyled: true,
     ripple: true,
@@ -67,4 +70,6 @@ export default defineNuxtConfig({
       appUrl: "",
     },
   },
+
+  compatibilityDate: "2024-07-15",
 });
