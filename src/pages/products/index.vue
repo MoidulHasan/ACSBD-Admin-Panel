@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { FilterMatchMode } from "primevue/api";
 import { useToast } from "primevue/usetoast";
-import type { IPaginatedResponse } from "~/app/interfaces/common";
+import type { IDataResponse, IDeleteResponse } from "~/app/interfaces/common";
 import type { IProduct } from "~/app/interfaces/products";
 
 useHead({
@@ -16,21 +16,16 @@ const store = useStore();
 const { $apiClient } = useNuxtApp();
 const toast = useToast();
 
-const currentPage = ref(1);
 const showDeleteConfirmationModal = ref(false);
 const deletableProductSlug = ref<null | string>(null);
 
 const {
   data: products,
-  pending,
   refresh,
   error,
-} = await useAsyncData<IPaginatedResponse<IProduct>>(
-  `/admin/products?page=${currentPage.value}&limit=10`,
-  () => $apiClient(`/admin/products?page=${currentPage.value}&limit=10`),
-  {
-    watch: [currentPage],
-  },
+  status: productsDataFetchingStatus,
+} = await useAsyncData<IDataResponse<IProduct[]>>(`product-data`, () =>
+  $apiClient(`/admin/products`),
 );
 
 const filters = ref({
@@ -73,7 +68,7 @@ const hideDeleteConfirmationModal = () => {
 const handleDeleteConfirmation = async () => {
   try {
     store.loading = true;
-    const response = await $apiClient(
+    const response = await $apiClient<IDeleteResponse>(
       `/admin/products/${deletableProductSlug.value}`,
       {
         method: "DELETE",
@@ -96,7 +91,7 @@ const handleDeleteConfirmation = async () => {
     toast.add({
       severity: "error",
       summary: "Request Failed",
-      detail: error.statusMessage,
+      detail: error?.statusMessage,
       life: 3000,
     });
   }
@@ -109,11 +104,12 @@ const handleDeleteConfirmation = async () => {
       v-if="products?.data"
       v-model:filters="filters"
       :value="products.data"
-      table-style="min-width: 50rem"
       data-key="id"
-      :loading="pending"
+      :loading="productsDataFetchingStatus === 'pending'"
       :global-filter-fields="['name', 'category.name']"
       striped-rows
+      :rows="10"
+      paginator
     >
       <template #header>
         <CommonDataTableHeader
@@ -131,7 +127,7 @@ const handleDeleteConfirmation = async () => {
       <Column header="SL">
         <template #body="slotProps">
           <div>
-            {{ (currentPage - 1) * 10 + slotProps.index + 1 }}
+            {{ slotProps.index + 1 }}
           </div>
         </template>
       </Column>
@@ -168,8 +164,8 @@ const handleDeleteConfirmation = async () => {
       </Column>
 
       <Column header="SKU">
-        <template #body>
-          <span>GS-18CZ410</span>
+        <template #body="{ data }">
+          <span>{{ data.sku }}</span>
         </template>
       </Column>
 
@@ -201,13 +197,6 @@ const handleDeleteConfirmation = async () => {
           </div>
         </template>
       </Column>
-
-      <template #footer>
-        <CommonPagination
-          v-model:current-page="currentPage"
-          :total-page="products?.meta?.last_page"
-        />
-      </template>
     </DataTable>
 
     <div v-else-if="error" class="h-full">
