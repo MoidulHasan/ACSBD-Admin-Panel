@@ -82,7 +82,7 @@ const items = ref<IMenuItem[]>([
     items: [
       {
         label: "Product Reviews",
-        navigateTo: "/product/reviews",
+        navigateTo: "/feedbacks/product-reviews",
       },
       {
         label: "Customer Testimonials",
