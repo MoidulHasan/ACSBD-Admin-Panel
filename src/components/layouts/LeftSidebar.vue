@@ -14,6 +14,7 @@ const items = ref<IMenuItem[]>([
   {
     label: "Manage Customers",
     icon: "pi pi-user",
+    navigateTo: "/customers",
   },
   {
     label: "Product",
