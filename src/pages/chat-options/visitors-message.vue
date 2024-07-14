@@ -4,8 +4,9 @@ import type { IDataResponse } from "~/app/interfaces/common";
 import type { IVisitorMessage } from "~/app/interfaces/webManagement";
 
 useHead({
-  title: "Visitor's Message | Website Management",
+  title: "Visitor's Message | Chat Options",
 });
+
 definePageMeta({
   name: "visitors-message",
 });
@@ -24,7 +25,7 @@ const filters = ref({
 const {
   data: messages,
   error,
-  pending,
+  status,
   refresh,
 } = await useAsyncData<IDataResponse<IVisitorMessage[]>>("messages", () =>
   $apiClient(`/admin/visitors-message`),
@@ -62,9 +63,8 @@ const changePage = (e: { page: number }) => {
       <DataTable
         v-model:filters="filters"
         :value="messages?.data"
-        table-style="min-width: 50rem"
         data-key="id"
-        :loading="pending || store.loading"
+        :loading="status === 'pending' || store.loading"
         :global-filter-fields="[
           'name',
           'phone',

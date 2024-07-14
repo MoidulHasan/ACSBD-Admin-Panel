@@ -98,9 +98,30 @@ const items = ref<IMenuItem[]>([
         label: "Our Clients",
         navigateTo: "/website-management/our-clients",
       },
+    ],
+  },
+  {
+    label: "Work Pricing",
+    icon: "li:work-pricing",
+    navigateTo: "/work-pricing",
+  },
+  {
+    label: "Contact Us",
+    icon: "li:contact-us",
+    navigateTo: "/contact-us",
+  },
+  {
+    label: "FAQs",
+    icon: "li:faq",
+    navigateTo: "/faqs",
+  },
+  {
+    label: "Chat Options",
+    icon: "li:chat-options",
+    items: [
       {
         label: "Visitors Message",
-        navigateTo: "/website-management/visitors-message",
+        navigateTo: "/chat-options/visitors-message",
       },
     ],
   },
