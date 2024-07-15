@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { formatSize } from "~/utils/formatSize";
+import { urlToFile } from "~/utils/common";
 
 interface IProps {
   name: string;
@@ -17,7 +18,7 @@ withDefaults(defineProps<IProps>(), {
   required: false,
 });
 
-const model = defineModel<File[]>([]);
+const model = defineModel<File[] | string[]>([]);
 // const totalSize = ref(0);
 // const totalSizePercent = ref(0);
 
@@ -30,13 +31,24 @@ const onRemoveFile = (file, removeFileCallback: Function, index: number) => {
 };
 
 const onFileSelect = (event: any) => {
-  console.log(event);
-
   model.value = event.files;
   // model.value?.forEach((file) => {
   //   totalSize.value += parseInt(formatSize(file.size));
   // });
 };
+
+onMounted(async () => {
+  if (model.value.length) {
+    const filePromises = model.value.map(async (file: File | string) => {
+      if (typeof file === "string") {
+        return await urlToFile(file);
+      }
+      return file;
+    });
+
+    model.value = await Promise.all(filePromises);
+  }
+});
 </script>
 
 <template>

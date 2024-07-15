@@ -1,16 +1,16 @@
 <script setup lang="ts">
 definePageMeta({
-  name: "dashboard",
+  name: "product-reviews",
 });
 
 useHead({
-  title: "Dashboard",
+  title: "Products Reviews | Feedbacks",
 });
 </script>
 
 <template>
   <div>
-    <CommonCommingSoon hide-back-to-home-button />
+    <CommonCommingSoon />
   </div>
 </template>
 

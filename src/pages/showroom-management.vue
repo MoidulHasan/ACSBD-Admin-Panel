@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { FilterMatchMode } from "primevue/api";
 import { useToast } from "primevue/usetoast";
-import { shortenString } from "../../../utils/lengthShorter";
 import type { IDataResponse, IDeleteResponse } from "~/app/interfaces/common";
 import type { ILocation } from "~/app/interfaces/webManagement";
 
 useHead({
-  title: "Our Locations | Website Management",
+  title: "Showroom Manage",
 });
+
 definePageMeta({
-  name: "our-locations",
+  name: "showroom-management",
 });
 
 const { $apiClient } = useNuxtApp();
@@ -28,7 +28,7 @@ const filters = ref({
 const {
   data: locations,
   error,
-  pending,
+  status,
   refresh,
 } = await useAsyncData<IDataResponse<ILocation[]>>("locations", () =>
   $apiClient(`/our-locations`),
@@ -99,9 +99,8 @@ const changePage = (e: { page: number }) => {
       <DataTable
         v-model:filters="filters"
         :value="locations?.data"
-        table-style="min-width: 50rem"
         data-key="id"
-        :loading="pending || store.loading"
+        :loading="status === 'pending' || store.loading"
         :global-filter-fields="[
           'location_type',
           'title',

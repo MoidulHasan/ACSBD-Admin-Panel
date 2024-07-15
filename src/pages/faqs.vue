@@ -1,16 +1,16 @@
 <script setup lang="ts">
 definePageMeta({
-  name: "dashboard",
+  name: "faqs",
 });
 
 useHead({
-  title: "Dashboard",
+  title: "FAQs",
 });
 </script>
 
 <template>
   <div>
-    <CommonCommingSoon hide-back-to-home-button />
+    <CommonCommingSoon />
   </div>
 </template>
 

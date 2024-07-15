@@ -19,7 +19,7 @@ const showDeleteConfirmationModal = ref(false);
 const deletableAttributeSlug = ref<null | string>(null);
 const editableAttributeData = ref<null | IProductAttribute>(null);
 
-const { pending, error } = await useAsyncData<IProductAttribute[]>(
+const { status, error } = await useAsyncData<IProductAttribute[]>(
   "attributes-data",
   () => attributeStore.fetchAttributes(),
 );
@@ -34,7 +34,7 @@ const filters = ref({
   "values.name": { value: null, matchMode: FilterMatchMode.STARTS_WITH },
 });
 
-const handleFormSubmit = async () => {
+const handleFormSubmit = () => {
   showAttributeFormModal.value = false;
   editableAttributeData.value = null;
 };
@@ -93,7 +93,7 @@ const handleDeleteConfirmation = async () => {
         :value="attributeStore.attributes"
         table-style="min-width: 50rem"
         data-key="id"
-        :loading="pending || store.loading"
+        :loading="status === 'pending' || store.loading"
         :global-filter-fields="['name', 'values.name']"
         striped-rows
         :rows="10"
