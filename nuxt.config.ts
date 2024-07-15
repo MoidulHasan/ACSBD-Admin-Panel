@@ -5,11 +5,13 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   srcDir: "src/",
   serverDir: "server/",
+
   css: [
     "primeicons/primeicons.css",
     "~/assets/styles/css/main.css",
     "~/assets/styles/css/common.css",
   ],
+
   modules: [
     "nuxt-primevue",
     "@nuxtjs/tailwindcss",
@@ -18,7 +20,9 @@ export default defineNuxtConfig({
     "@vee-validate/nuxt",
     "@pinia/nuxt",
     "@nuxt/image",
+    "@nuxt/icon",
   ],
+
   primevue: {
     unstyled: true,
     ripple: true,
@@ -42,6 +46,23 @@ export default defineNuxtConfig({
     autoImports: true,
   },
 
+  imports: {
+    dirs: ["app/interfaces/**"],
+  },
+
+  pinia: {
+    storesDirs: ["src/stores"],
+  },
+
+  icon: {
+    customCollections: [
+      {
+        prefix: "li",
+        dir: "./src/assets/icons",
+      },
+    ],
+  },
+
   runtimeConfig: {
     apiBase: "",
 
@@ -50,11 +71,5 @@ export default defineNuxtConfig({
     },
   },
 
-  imports: {
-    dirs: ["app/interfaces/**"],
-  },
-
-  pinia: {
-    storesDirs: ["src/stores"],
-  },
+  compatibilityDate: "2024-07-15",
 });

@@ -1,3 +1,14 @@
+<script setup lang="ts">
+withDefaults(
+  defineProps<{
+    hideBackToHomeButton?: boolean;
+  }>(),
+  {
+    hideBackToHomeButton: false,
+  },
+);
+</script>
+
 <template>
   <div class="bg-white rounded-xl py-6 h-96">
     <div class="flex flex-col items-center justify-center h-full">
@@ -6,7 +17,11 @@
         This page is under construction, it will be live soon...
       </p>
 
-      <NuxtLink class="back-button" :to="{ name: 'dashboard' }">
+      <NuxtLink
+        v-if="!hideBackToHomeButton"
+        class="back-button"
+        :to="{ name: 'dashboard' }"
+      >
         Back To Home
       </NuxtLink>
     </div>

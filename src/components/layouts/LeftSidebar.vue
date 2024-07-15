@@ -10,10 +10,12 @@ const items = ref<IMenuItem[]>([
   {
     label: "Analysis Board",
     icon: "pi pi-chart-pie",
+    navigateTo: "/analysis-board",
   },
   {
     label: "Manage Customers",
     icon: "pi pi-user",
+    navigateTo: "/customers",
   },
   {
     label: "Product",
@@ -42,6 +44,25 @@ const items = ref<IMenuItem[]>([
     ],
   },
   {
+    label: "Promotion",
+    icon: "li:promotion",
+    items: [
+      {
+        label: "Discounts",
+        navigateTo: "/promotions/discounts",
+      },
+      {
+        label: "Campaigns",
+        navigateTo: "/promotions/campaigns",
+      },
+    ],
+  },
+  {
+    label: "Promo Code",
+    icon: "li:promo-code",
+    navigateTo: "/promo-code",
+  },
+  {
     label: "Orders",
     icon: "pi pi-book",
     items: [
@@ -61,7 +82,7 @@ const items = ref<IMenuItem[]>([
     items: [
       {
         label: "Product Reviews",
-        navigateTo: "/product/reviews",
+        navigateTo: "/feedbacks/product-reviews",
       },
       {
         label: "Customer Testimonials",
@@ -77,15 +98,37 @@ const items = ref<IMenuItem[]>([
         label: "Our Clients",
         navigateTo: "/website-management/our-clients",
       },
-      {
-        label: "Our Location",
-        navigateTo: "/website-management/our-locations",
-      },
+    ],
+  },
+  {
+    label: "Work Pricing",
+    icon: "li:work-pricing",
+    navigateTo: "/work-pricing",
+  },
+  {
+    label: "Contact Us",
+    icon: "li:contact-us",
+    navigateTo: "/contact-us",
+  },
+  {
+    label: "FAQs",
+    icon: "li:faq",
+    navigateTo: "/faqs",
+  },
+  {
+    label: "Chat Options",
+    icon: "li:chat-options",
+    items: [
       {
         label: "Visitors Message",
-        navigateTo: "/website-management/visitors-message",
+        navigateTo: "/chat-options/visitors-message",
       },
     ],
+  },
+  {
+    label: "Showroom Management",
+    icon: "li:showroom",
+    navigateTo: "/showroom-management",
   },
 ]);
 </script>
