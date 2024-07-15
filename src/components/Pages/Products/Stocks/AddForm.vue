@@ -1,7 +1,8 @@
 <script setup lang="ts">
-// import type { IStock } from "~/app/interfaces/products";
+import { computed, ref } from "vue";
 import { type ICreateResponse, type IProduct, useToast } from "#imports";
 const { $apiClient } = useNuxtApp();
+
 interface Stock {
   product_id: number;
   quantity: number;
@@ -18,10 +19,11 @@ const emits = defineEmits<{
 const toast = useToast();
 const stockData = ref<Stock[]>([]);
 const store = useStore();
+
 const addStockField = () => {
   stockData.value.push({
     product_id: 0,
-    quantity: 0,
+    quantity: 1,
   });
 };
 
@@ -77,11 +79,14 @@ onMounted(() => {
   addStockField();
 });
 
-const templateId = ref(1);
-const options = [
-  { id: 1, name: "Kuddus" },
-  { id: 2, name: "Jabbar" },
-];
+const filteredProductData = (index: number) => {
+  const selectedIds = stockData.value.map((stock) => stock.product_id);
+  return props.productData.filter(
+    (product) =>
+      !selectedIds.includes(product.id) ||
+      stockData.value[index].product_id === product.id,
+  );
+};
 </script>
 
 <template>
@@ -98,7 +103,8 @@ const options = [
             :id="`productId-${index}`"
             v-model="stock.product_id"
             filter
-            :options="productData"
+            placeholder="Select A Product"
+            :options="filteredProductData(index)"
             option-label="name"
             option-value="id"
             :virtual-scroller-options="{ itemSize: 40 }"
@@ -134,7 +140,11 @@ const options = [
             icon="pi pi-plus-circle"
             aria-label="Add"
             severity="info"
-            :disabled="stock.product_id < 1 || stock.quantity < 1"
+            :disabled="
+              stock.product_id < 1 ||
+              stock.quantity < 1 ||
+              stockData.length === productData.length
+            "
             @click="addStockField"
           />
           <Button
@@ -165,5 +175,3 @@ const options = [
     </form>
   </div>
 </template>
-
-<style scoped></style>
