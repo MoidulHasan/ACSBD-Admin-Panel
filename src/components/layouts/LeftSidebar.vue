@@ -41,6 +41,10 @@ const items = ref<IMenuItem[]>([
         label: "Products",
         navigateTo: "/products",
       },
+      {
+        label: "Stock Management",
+        navigateTo: "/products/stock",
+      },
     ],
   },
   {
