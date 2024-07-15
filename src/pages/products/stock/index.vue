@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import { FilterMatchMode } from "primevue/api";
 import type { IDataResponse } from "~/app/interfaces/common";
-import type { IStock } from "~/app/interfaces/products";
+import type {
+  IProduct,
+  IProductAttribute,
+  IStock,
+} from "~/app/interfaces/products";
 
 useHead({
   title: "Stock Management | Product",
@@ -12,9 +16,11 @@ definePageMeta({
 
 const { $apiClient } = useNuxtApp();
 const store = useStore();
+const productStore = useProductStore();
 
 const currentPage = ref(0);
 const showStockFormModal = ref<boolean>(false);
+const showStockAddForm = ref<boolean>(false);
 const stockModificationFormTitle = ref<string>("Add Product Stocks");
 const editableStockData = ref<IStock | null>(null);
 
@@ -31,6 +37,24 @@ const {
   $apiClient(`/admin/stocks`),
 );
 
+if (!productStore.products.length) {
+  const { error: productError } = await useAsyncData<IProduct[]>(
+    "products-data",
+    () => productStore.fetchProducts(),
+  );
+
+  if (productError.value) {
+    throw createError(productError.value);
+  }
+}
+
+const minifiedProductData = computed(() => {
+  return productStore.products.map((product: IProduct) => ({
+    id: product.id,
+    name: product.name,
+  }));
+});
+
 const handleEditButtonClick = (stock: IStock) => {
   editableStockData.value = stock;
   stockModificationFormTitle.value = "Update Product Stock";
@@ -41,6 +65,11 @@ const handleFormSubmit = () => {
   showStockFormModal.value = false;
   editableStockData.value = null;
   stockModificationFormTitle.value = "Add Product Stock";
+  refresh();
+};
+
+const handleAddStockFormSubmit = () => {
+  showStockAddForm.value = false;
   refresh();
 };
 
@@ -69,7 +98,7 @@ const changePage = (e: { page: number }) => {
             v-model:search-text="filters['global'].value"
             :table-header="'Stock Management'"
             :add-button-label="'Add Product Stocks'"
-            @on-add-button-clicked="showStockFormModal = true"
+            @on-add-button-clicked="showStockAddForm = true"
           />
         </template>
 
@@ -85,6 +114,15 @@ const changePage = (e: { page: number }) => {
           </template>
         </Column>
         <Column field="product_id" header="Product ID" />
+        <Column header="Product Name">
+          <template #body="slotProps">
+            {{
+              productStore.products.find(
+                (product) => product.id === slotProps.data.product_id,
+              )?.name
+            }}
+          </template>
+        </Column>
         <Column field="quantity" header="Stock Quantity" />
         <Column header="Actions">
           <template #body="slotProps">
@@ -115,6 +153,18 @@ const changePage = (e: { page: number }) => {
           <PagesProductsStocksForm
             :stock-data="editableStockData"
             @on-form-submit="handleFormSubmit"
+          />
+        </Dialog>
+        <Dialog
+          v-model:visible="showStockAddForm"
+          modal
+          :draggable="false"
+          :header="stockModificationFormTitle"
+          @hide="showStockAddForm = false"
+        >
+          <PagesProductsStocksAddForm
+            :product-data="minifiedProductData"
+            @on-stock-add="handleAddStockFormSubmit"
           />
         </Dialog>
       </ClientOnly>

@@ -50,6 +50,7 @@ export const useProductStore = defineStore("productStore", () => {
           method: "POST",
           body: updatedData,
         },
+        fetchProducts,
       ).catch((error) => error.data);
 
       if (response.data) {
