@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import * as yup from "yup";
-import type { IStock } from "~/app/interfaces/products";
+import type { IStockWithName } from "~/app/interfaces/products";
 import { type ICreateResponse, useToast } from "#imports";
 const { $apiClient } = useNuxtApp();
 
 interface IProps {
-  stockData?: IStock;
+  stockData?: IStockWithName;
 }
 const props = defineProps<IProps>();
 const emits = defineEmits<{
@@ -110,6 +110,19 @@ const onSubmit = handleSubmit(async (values, actions) => {
             placeholder="Enter Product Id"
           />
           <span class="text-red-400 text-xs">{{ errors.productId }}</span>
+        </div>
+        <div
+          class="flex flex-col gap-2"
+          :title="stockData?.name"
+          :class="{ 'cursor-not-allowed': stockData?.product_id }"
+        >
+          <label for="productName">Product Name</label>
+          <InputText
+            id="productName"
+            :title="stockData?.name"
+            :value="stockData?.name"
+            :disabled="stockData?.product_id"
+          />
         </div>
         <div class="flex flex-col gap-2">
           <label for="quantity">Product Stock Quantity</label>

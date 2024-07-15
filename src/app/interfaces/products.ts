@@ -129,3 +129,7 @@ export interface IStock {
   product_id: number;
   quantity: number;
 }
+
+export interface IStockWithName extends IStock {
+  name: string;
+}

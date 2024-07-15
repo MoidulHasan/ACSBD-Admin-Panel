@@ -3,10 +3,9 @@ import { FilterMatchMode } from "primevue/api";
 import type { IDataResponse } from "~/app/interfaces/common";
 import type {
   IProduct,
-  IProductAttribute,
   IStock,
+  IStockWithName,
 } from "~/app/interfaces/products";
-
 useHead({
   title: "Stock Management | Product",
 });
@@ -22,7 +21,7 @@ const currentPage = ref(0);
 const showStockFormModal = ref<boolean>(false);
 const showStockAddForm = ref<boolean>(false);
 const stockModificationFormTitle = ref<string>("Add Product Stocks");
-const editableStockData = ref<IStock | null>(null);
+const editableStockData = ref<IStockWithName | null>(null);
 
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -56,7 +55,11 @@ const minifiedProductData = computed(() => {
 });
 
 const handleEditButtonClick = (stock: IStock) => {
-  editableStockData.value = stock;
+  const stockProductName =
+    productStore.products.find(
+      (product: IProduct) => product.id === stock.product_id,
+    )?.name ?? " ";
+  editableStockData.value = { ...stock, name: stockProductName };
   stockModificationFormTitle.value = "Update Product Stock";
   showStockFormModal.value = true;
 };
