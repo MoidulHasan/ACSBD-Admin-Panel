@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
 import { type ICreateResponse, type IProduct, useToast } from "#imports";
 const { $apiClient } = useNuxtApp();
 
