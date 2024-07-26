@@ -6,6 +6,7 @@ const { $apiClient } = useNuxtApp();
 
 interface IProps {
   stockData?: IStockWithName;
+  operationType?: "Increase" | "Decrease";
 }
 const props = defineProps<IProps>();
 const emits = defineEmits<{
@@ -31,29 +32,33 @@ const { handleSubmit, errors, handleReset, meta } = useForm({
   validationSchema,
   initialValues: {
     productId: props.stockData?.product_id ?? "",
-    quantity: props.stockData?.quantity ?? "",
+    quantity: "",
   },
 });
 const { value: productId } = useField("productId");
 const { value: quantity } = useField("quantity");
 
 const onSubmit = handleSubmit(async (values, actions) => {
-  const requestBody = {
-    product_id: values.productId,
-    quantity: values.quantity,
-  };
+  const formData = new FormData();
+  formData.append("product_id", values.productId);
+  formData.append("quantity", values.quantity);
 
-  const makeRequest = async (url, method, body) => {
+  // console.log(requestBody);
+
+  const makeRequest = async (url, method, formData) => {
     store.loading = true;
     const response = await $apiClient<ICreateResponse>(url, {
       method,
-      body,
+      body: formData,
     }).catch((error) => error.data);
     store.loading = false;
     return response;
   };
 
-  const response = await makeRequest(`/admin/stocks`, "POST", requestBody);
+  const response =
+    props.operationType === "Increase"
+      ? await makeRequest(`/admin/stocks`, "POST", formData)
+      : await makeRequest(`/admin/stocks/delete`, "POST", formData);
 
   if (!response.errors && response.message) {
     toast.add({
@@ -125,13 +130,31 @@ const onSubmit = handleSubmit(async (values, actions) => {
           />
         </div>
         <div class="flex flex-col gap-2">
-          <label for="quantity">Product Stock Quantity</label>
-          <InputNumber
-            id="quantity"
-            v-model="quantity"
-            :invalid="!!errors[`quantity`]"
-            placeholder="Enter Product Quantity"
-          />
+          <label for="quantity">
+            {{ operationType }} Product Stock Quantity
+          </label>
+          <InputGroup id="quantity" class="w-full md:w-30rem">
+            <InputGroupAddon>
+              Existing Stock: {{ stockData?.quantity }}
+            </InputGroupAddon>
+            <InputGroupAddon>
+              <i
+                :class="
+                  operationType === 'Increase' ? 'pi pi-plus' : 'pi pi-minus'
+                "
+              ></i>
+            </InputGroupAddon>
+            <InputNumber
+              v-model="quantity"
+              :invalid="!!errors[`quantity`]"
+              :placeholder="
+                operationType === 'Increase'
+                  ? 'Additional Stock'
+                  : 'Stock to Delete'
+              "
+              :max="operationType === 'Decrease' ? stockData?.quantity : 10000"
+            />
+          </InputGroup>
           <span class="text-red-400 text-xs">{{ errors.quantity }}</span>
         </div>
       </div>
