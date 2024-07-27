@@ -21,6 +21,7 @@ const currentPage = ref(0);
 const showStockFormModal = ref<boolean>(false);
 const showStockAddForm = ref<boolean>(false);
 const stockModificationFormTitle = ref<string>("Add Product Stocks");
+const stockModificationType = ref<string>("Increment");
 const editableStockData = ref<IStockWithName | null>(null);
 
 const filters = ref({
@@ -54,13 +55,17 @@ const minifiedProductData = computed(() => {
   }));
 });
 
-const handleEditButtonClick = (stock: IStock) => {
+const handleEditButtonClick = (
+  stock: IStock,
+  type: "Increase" | "Decrease",
+) => {
   const stockProductName =
     productStore.products.find(
       (product: IProduct) => product.id === stock.product_id,
     )?.name ?? " ";
   editableStockData.value = { ...stock, name: stockProductName };
   stockModificationFormTitle.value = "Update Product Stock";
+  stockModificationType.value = type;
   showStockFormModal.value = true;
 };
 
@@ -132,9 +137,15 @@ const changePage = (e: { page: number }) => {
             <div class="flex items-center gap-2">
               <button
                 class="table-action-button option-action-button"
-                @click="handleEditButtonClick(slotProps.data)"
+                @click="handleEditButtonClick(slotProps.data, 'Increase')"
               >
-                <i class="pi pi-file-edit" />
+                <i class="pi pi-plus" />
+              </button>
+              <button
+                class="table-action-button option-action-button"
+                @click="handleEditButtonClick(slotProps.data, 'Decrease')"
+              >
+                <i class="pi pi-minus" />
               </button>
             </div>
           </template>
@@ -155,6 +166,7 @@ const changePage = (e: { page: number }) => {
         >
           <PagesProductsStocksForm
             :stock-data="editableStockData"
+            :operation-type="stockModificationType"
             @on-form-submit="handleFormSubmit"
           />
         </Dialog>
