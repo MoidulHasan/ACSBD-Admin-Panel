@@ -46,9 +46,9 @@ function hasActiveChild(menuItem: IMenuItem) {
       @click="handleNavItemClick"
     >
       <div class="flex items-center">
-        <Icon
+        <nuxt-icon
           v-if="item.icon && item.icon?.startsWith('li:')"
-          :name="item.icon"
+          :name="item.icon?.split(':')[1]"
         />
         <i v-else-if="item.icon" :class="item.icon" />
         <img

@@ -20,7 +20,7 @@ export default defineNuxtConfig({
     "@vee-validate/nuxt",
     "@pinia/nuxt",
     "@nuxt/image",
-    "@nuxt/icon",
+    "nuxt-icons",
   ],
 
   primevue: {
@@ -52,15 +52,6 @@ export default defineNuxtConfig({
 
   pinia: {
     storesDirs: ["src/stores"],
-  },
-
-  icon: {
-    customCollections: [
-      {
-        prefix: "li",
-        dir: "./src/assets/icons",
-      },
-    ],
   },
 
   runtimeConfig: {
