@@ -44,6 +44,8 @@ export const useProductStore = defineStore("productStore", () => {
 
   const updateProduct = async (slug: string, updatedData: FormData) => {
     try {
+      updatedData.append("_method", "PUT");
+
       const response = await $apiClient<IUpdateResponse<IProduct>>(
         `/admin/products/${slug}`,
         {
@@ -81,6 +83,17 @@ export const useProductStore = defineStore("productStore", () => {
     return response;
   };
 
+  const deleteProductImage = async (id: number) => {
+    const response = await $apiClient<IDeleteResponse>(
+      "/admin/products/" + id + "/image",
+      {
+        method: "DELETE",
+      },
+    ).catch((error) => error.data);
+
+    return response;
+  };
+
   return {
     products,
     fetchProducts,
@@ -88,5 +101,6 @@ export const useProductStore = defineStore("productStore", () => {
     createProduct,
     updateProduct,
     deleteProductBySlug,
+    deleteProductImage,
   };
 });
