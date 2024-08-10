@@ -43,8 +43,6 @@ const onSubmit = handleSubmit(async (values, actions) => {
   formData.append("product_id", values.productId);
   formData.append("quantity", values.quantity);
 
-  // console.log(requestBody);
-
   const makeRequest = async (url, method, formData) => {
     store.loading = true;
     const response = await $apiClient<ICreateResponse>(url, {

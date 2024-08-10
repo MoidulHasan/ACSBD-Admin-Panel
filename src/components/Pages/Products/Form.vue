@@ -195,7 +195,6 @@ const computedFinalPrice = computed(() => {
 const onSubmit = handleSubmit(async (values, actions) => {
   try {
     const formatedHtml = await processHtmlContent(values.description);
-    console.log("formatedHtml - ", formatedHtml);
 
     const formData = new FormData();
 
@@ -252,8 +251,6 @@ const onSubmit = handleSubmit(async (values, actions) => {
         if (typeof file !== "string") formData.append("images[]", file);
       });
     }
-
-    console.log("Formatted form data:", Object.fromEntries(formData.entries()));
 
     const response = props.productData
       ? await updateProduct(props.productData.slug, formData)

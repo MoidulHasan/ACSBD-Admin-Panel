@@ -70,8 +70,6 @@ export function base64ToBlob(base64: string): Blob {
 export async function uploadImage(file: Blob): Promise<string | null> {
   const { $apiClient } = useNuxtApp();
 
-  console.log("useRuntimeConfig().apiBase - ", useRuntimeConfig().apiBase);
-
   const formData = new FormData();
   formData.append("image", file);
 
@@ -87,7 +85,6 @@ export async function uploadImage(file: Blob): Promise<string | null> {
       return null;
     }
   } catch (error) {
-    console.error(error);
     return null;
   }
 }
