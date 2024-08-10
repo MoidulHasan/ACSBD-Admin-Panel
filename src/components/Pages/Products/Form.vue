@@ -8,6 +8,7 @@ import {
 } from "~/app/utils/form-helpers";
 import { statusOptions } from "~/app/constants/common";
 import { useProductStore } from "~/stores/productStore";
+import { processHtmlContent } from "~/utils/common";
 
 interface IAttributeValue {
   attribute_id: number;
@@ -32,8 +33,8 @@ interface FormData {
   warrantyAndServices: string;
   collections: number[];
   attributes: IAttributeValue[];
-  mainImage: File;
-  galleryImages: File[];
+  image: File[] | string[];
+  images: File[] | string[];
 }
 
 interface IProps {
@@ -48,7 +49,7 @@ const emits = defineEmits<{
 
 const store = useStore();
 const toast = useToast();
-const { createProduct, updateProduct } = useProductStore();
+const { createProduct, updateProduct, deleteProductImage } = useProductStore();
 
 const discountTypeOptions = ref([
   { label: "Fixed", value: false },
@@ -110,8 +111,8 @@ const validationSchema = yup.object({
       value_ids: yup.array().of(yup.number()),
     }),
   ),
-  mainImage: yup.mixed(),
-  galleryImages: yup.array().of(yup.mixed()),
+  image: yup.array().of(yup.mixed()).min(1).max(1),
+  images: yup.array().of(yup.mixed()),
 });
 
 const { handleSubmit, errors, handleReset, meta } = useForm<FormData>({
@@ -150,12 +151,13 @@ const { handleSubmit, errors, handleReset, meta } = useForm<FormData>({
       attribute_id: option.id,
       value_ids:
         props.productData?.attributes
-          .find((attribute) => attribute.id === option.id)
+          ?.find((attribute) => attribute.id === option.id)
           ?.values?.map((value) => value.id) || [],
     })),
 
-    mainImage: props.productData?.images[0].image_url
-      ? [props.productData?.images[0].image_url]
+    image: props.productData?.image ? [props.productData?.image] : undefined,
+    images: props?.productData?.images
+      ? props.productData?.images.map((image) => image.image_url)
       : undefined,
 
     metaTitle: props?.productData?.meta_title ?? undefined,
@@ -181,8 +183,8 @@ const { value: collections } = useField("collections");
 const { value: metaTitle } = useField("metaTitle");
 const { value: metaTags } = useField("metaTags");
 const { fields: attributes } = useFieldArray<IAttributeValue[]>("attributes");
-const { value: mainImage } = useField<File[]>("mainImage");
-const { value: galleryImages } = useField<File[]>("galleryImages");
+const { value: image } = useField<File[] | string[]>("image");
+const { value: images } = useField<File[] | string[]>("images");
 
 const computedFinalPrice = computed(() => {
   return isPercent.value
@@ -192,14 +194,17 @@ const computedFinalPrice = computed(() => {
 
 const onSubmit = handleSubmit(async (values, actions) => {
   try {
+    const formatedHtml = await processHtmlContent(values.description);
+    console.log("formatedHtml - ", formatedHtml);
+
     const formData = new FormData();
 
     formData.append("name", values.name);
     formData.append("sku", values.sku);
     formData.append("category_id", values.category.toString());
     formData.append("brand_id", values.brand.toString());
-    formData.append("description", values.description);
     formData.append("warranty_and_services", values.warrantyAndServices);
+    formData.append("description", formatedHtml);
     formData.append("visibility_status", values.visibilityStatus);
     formData.append("price[base_price]", values.regularPrice.toString());
     formData.append("price[is_percent]", JSON.stringify(values.isPercent));
@@ -208,37 +213,45 @@ const onSubmit = handleSubmit(async (values, actions) => {
 
     if (values.installment) formData.append("installment", values.installment);
 
-    values.attributes.forEach((attribute: IAttributeValue, index) => {
-      formData.append(
-        `attributes[${index}][attribute_id]`,
-        attribute.attribute_id.toString(),
-      );
-      attribute.value_ids.forEach((valueId, valueIndex) => {
+    if (values.attributes?.length) {
+      values.attributes.forEach((attribute: IAttributeValue, index) => {
         formData.append(
-          `attributes[${index}][value_ids][${valueIndex}]`,
-          valueId.toString(),
+          `attributes[${index}][attribute_id]`,
+          attribute.attribute_id.toString(),
         );
+        attribute.value_ids.forEach((valueId, valueIndex) => {
+          formData.append(
+            `attributes[${index}][value_ids][${valueIndex}]`,
+            valueId.toString(),
+          );
+        });
       });
-    });
+    }
 
-    values.collections?.forEach((collectionId: number, index: number) => {
-      formData.append(`collections[${index}]`, collectionId.toString());
-    });
+    if (values.collections?.length) {
+      values.collections?.forEach((collectionId: number, index: number) => {
+        formData.append(`collections[${index}]`, collectionId.toString());
+      });
+    }
 
     formData.append("short_description", values.shortDescription || "");
     formData.append("meta_title", values.metaTitle || "");
 
-    values.metaTags?.forEach((metaTag, index) => {
-      formData.append(`meta_tags[${index}]`, metaTag);
-    });
-
-    if (values.mainImage && values.mainImage.length > 0) {
-      formData.append("images[0]", values.mainImage[0]);
+    if (values.metaTags?.length) {
+      values.metaTags?.forEach((metaTag, index) => {
+        formData.append(`meta_tags[${index}]`, metaTag);
+      });
     }
 
-    values.galleryImages.forEach((file, index) => {
-      formData.append(`images[${index + 1}]`, file);
-    });
+    if (values.image.length && typeof values.image[0] !== "string") {
+      formData.append("image", values.image[0]);
+    }
+
+    if (values.images?.length) {
+      values.images.forEach((file) => {
+        if (typeof file !== "string") formData.append("images[]", file);
+      });
+    }
 
     console.log("Formatted form data:", Object.fromEntries(formData.entries()));
 
@@ -255,6 +268,11 @@ const onSubmit = handleSubmit(async (values, actions) => {
       });
 
       emits("onFormSubmit");
+      if (props?.productData) {
+        await navigateTo({ name: "product-list" });
+        return;
+      }
+
       actions.resetForm();
       return;
     }
@@ -311,6 +329,43 @@ const onSubmit = handleSubmit(async (values, actions) => {
     });
   }
 });
+
+const deleteImage = async (fileUrl: string) => {
+  if (typeof image.value[0] === "string" && fileUrl === image.value[0]) {
+    image.value = [];
+    return;
+  }
+
+  if (!props?.productData?.images.length) return;
+
+  const imageIdx = props.productData.images.findIndex(
+    (img) => img.image_url === fileUrl,
+  );
+
+  if (imageIdx === -1) return;
+
+  const response = await deleteProductImage(
+    props?.productData?.images[imageIdx].id,
+  );
+
+  if (response?.status) {
+    props?.productData?.images.slice(imageIdx, 1);
+
+    toast.add({
+      severity: "success",
+      summary: "Request Success",
+      detail: response.message,
+      life: 3000,
+    });
+  } else {
+    toast.add({
+      severity: "error",
+      summary: "Request failed",
+      detail: response?.error || "An unknown error occurred",
+      life: 3000,
+    });
+  }
+};
 
 watch(computedFinalPrice, (newVal) => setFinalPrice(newVal));
 </script>
@@ -608,12 +663,13 @@ watch(computedFinalPrice, (newVal) => setFinalPrice(newVal));
           id="main-image"
           label="Main Product Images"
           required
-          :error="errors.mainImage"
+          :error="errors.image"
         >
           <CommonCustomFileUpload
-            v-model="mainImage"
+            v-model="image"
             accept="image/*"
-            name="mainImage"
+            name="image"
+            @delete-existing-file="deleteImage"
           />
         </CommonFormInput>
 
@@ -621,13 +677,14 @@ watch(computedFinalPrice, (newVal) => setFinalPrice(newVal));
           id="gallery-image"
           label="Gallery Images"
           required
-          :error="errors.galleryImages"
+          :error="errors.images"
         >
           <CommonCustomFileUpload
-            v-model="galleryImages"
+            v-model="images"
             accept="image/*"
             multiple
-            name="galleryImages"
+            name="images"
+            @delete-existing-file="deleteImage"
           />
         </CommonFormInput>
       </div>
