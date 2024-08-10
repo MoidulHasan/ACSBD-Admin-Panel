@@ -21,7 +21,9 @@ const emits = defineEmits<{
   (e: "deleteExistingFile", fileUrl: string): void;
 }>();
 
-const model = defineModel<Array<string | File>>([]);
+const model = defineModel<Array<string | File>>({
+  default: [],
+});
 
 const onRemoveFile = (
   file: File,
@@ -70,7 +72,7 @@ const onFileSelect = (event: any) => {
               icon="pi pi-images"
               rounded
               outlined
-              :disabled="model.length === fileLimit"
+              :disabled="model?.length === fileLimit"
               @click="chooseCallback"
             />
           </div>
@@ -78,7 +80,7 @@ const onFileSelect = (event: any) => {
       </template>
 
       <template #content="{ files, removeFileCallback }">
-        <div v-if="model.length">
+        <div v-if="model?.length">
           <div class="flex flex-wrap p-0 sm:p-5 gap-5">
             <div
               v-for="(file, index) of model"
@@ -139,7 +141,7 @@ const onFileSelect = (event: any) => {
         </div>
       </template>
 
-      <template v-if="!model.length" #empty>
+      <template v-if="!model?.length" #empty>
         <div class="flex items-center justify-center flex-col">
           <i
             class="pi pi-cloud-upload border-2 rounded-full p-5 text-3xl text-400 border-400"

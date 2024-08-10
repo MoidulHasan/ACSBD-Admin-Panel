@@ -155,10 +155,10 @@ const { handleSubmit, errors, handleReset, meta } = useForm<FormData>({
           ?.values?.map((value) => value.id) || [],
     })),
 
-    image: props.productData?.image ? [props.productData?.image] : undefined,
+    image: props.productData?.image ? [props.productData?.image] : [],
     images: props?.productData?.images
       ? props.productData?.images.map((image) => image.image_url)
-      : undefined,
+      : [],
 
     metaTitle: props?.productData?.meta_title ?? undefined,
     metaTags: props?.productData?.meta_tags ?? undefined,
@@ -328,7 +328,11 @@ const onSubmit = handleSubmit(async (values, actions) => {
 });
 
 const deleteImage = async (fileUrl: string) => {
-  if (typeof image.value[0] === "string" && fileUrl === image.value[0]) {
+  if (
+    image.value &&
+    typeof image.value[0] === "string" &&
+    fileUrl === image.value[0]
+  ) {
     image.value = [];
     return;
   }
