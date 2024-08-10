@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { formatSize } from "~/utils/formatSize";
-import { urlToFile } from "~/utils/common";
 
 interface IProps {
   name: string;
@@ -18,37 +17,39 @@ withDefaults(defineProps<IProps>(), {
   required: false,
 });
 
-const model = defineModel<File[] | string[]>([]);
-// const totalSize = ref(0);
-// const totalSizePercent = ref(0);
+const emits = defineEmits<{
+  (e: "deleteExistingFile", fileUrl: string): void;
+}>();
 
-const onRemoveFile = (file, removeFileCallback: Function, index: number) => {
+const model = defineModel<Array<string | File>>([]);
+
+const onRemoveFile = (
+  file: File,
+  removeFileCallback: Function,
+  index: number,
+) => {
   model.value = model.value
-    .map((file, idx) => (idx !== index ? file : null))
+    .map((currfile: string | File) => {
+      if (typeof currfile === "string") return currfile;
+
+      if (currfile === file) {
+        return null;
+      }
+
+      return currfile;
+    })
     .filter((file) => file !== null);
 
   removeFileCallback(index);
 };
 
-const onFileSelect = (event: any) => {
-  model.value = event.files;
-  // model.value?.forEach((file) => {
-  //   totalSize.value += parseInt(formatSize(file.size));
-  // });
+const removeExistingFile = (fileUrl: string) => {
+  emits("deleteExistingFile", fileUrl);
 };
 
-onMounted(async () => {
-  if (model.value.length) {
-    const filePromises = model.value.map(async (file: File | string) => {
-      if (typeof file === "string") {
-        return await urlToFile(file);
-      }
-      return file;
-    });
-
-    model.value = await Promise.all(filePromises);
-  }
-});
+const onFileSelect = (event: any) => {
+  model.value = [...model.value, ...event.files];
+};
 </script>
 
 <template>
@@ -69,53 +70,76 @@ onMounted(async () => {
               icon="pi pi-images"
               rounded
               outlined
+              :disabled="model.length === fileLimit"
               @click="chooseCallback"
-            />
-
-            <Button
-              icon="pi pi-times"
-              rounded
-              outlined
-              severity="danger"
-              :disabled="!files || files.length === 0"
-              @click="clearCallback"
             />
           </div>
         </div>
       </template>
 
       <template #content="{ files, removeFileCallback }">
-        <div v-if="files.length > 0">
+        <div v-if="model.length">
           <div class="flex flex-wrap p-0 sm:p-5 gap-5">
             <div
-              v-for="(file, index) of files"
-              :key="file.name + file.type + file.size"
+              v-for="(file, index) of model"
+              :key="
+                typeof file === 'string'
+                  ? file
+                  : file.name + file.type + file.size
+              "
               class="card w-full m-0 px-6 flex justify-between border-1 surface-border items-center gap-3"
             >
-              <div>
-                <img
-                  role="presentation"
-                  :alt="file.name"
-                  :src="file.objectURL"
-                  width="100"
-                  height="50"
+              <div
+                v-if="typeof file === 'string'"
+                class="w-full flex justify-between items-center gap-3"
+              >
+                <div>
+                  <img
+                    role="presentation"
+                    :src="file"
+                    width="100"
+                    height="50"
+                  />
+                </div>
+
+                <Button
+                  icon="pi pi-times"
+                  outlined
+                  rounded
+                  severity="danger"
+                  @click="removeExistingFile(file)"
                 />
               </div>
-              <span class="font-semibold">{{ file.name }}</span>
-              <div>{{ formatSize(file.size) }}</div>
-              <Button
-                icon="pi pi-times"
-                outlined
-                rounded
-                severity="danger"
-                @click="onRemoveFile(file, removeFileCallback, index)"
-              />
+
+              <div
+                v-else
+                class="w-full flex justify-between items-center gap-3"
+              >
+                <div>
+                  <img
+                    role="presentation"
+                    :alt="file.name"
+                    :src="file.objectURL"
+                    width="100"
+                    height="50"
+                  />
+                </div>
+                <span class="font-semibold">{{ file.name }}</span>
+                <div>{{ formatSize(file.size) }}</div>
+                <Button
+                  icon="pi pi-times"
+                  outlined
+                  rounded
+                  severity="danger"
+                  @click="onRemoveFile(file, removeFileCallback, index)"
+                />
+              </div>
             </div>
           </div>
         </div>
       </template>
 
-      <template #empty>
+      <template v-if="!model.length" #empty>
         <div class="flex items-center justify-center flex-col">
           <i
             class="pi pi-cloud-upload border-2 rounded-full p-5 text-3xl text-400 border-400"
@@ -126,5 +150,3 @@ onMounted(async () => {
     </FileUpload>
   </div>
 </template>
-
-<style scoped></style>

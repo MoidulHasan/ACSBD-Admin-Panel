@@ -136,7 +136,7 @@ const handleDeleteConfirmation = async () => {
         <template #body="slotProps">
           <img
             class="h-20 w-24"
-            :src="slotProps.data.images[0].image_url"
+            :src="slotProps.data.image"
             :alt="slotProps.data.name"
           />
         </template>
