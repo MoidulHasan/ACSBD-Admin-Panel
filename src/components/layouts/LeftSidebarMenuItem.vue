@@ -11,13 +11,13 @@ const isActiveRoute = computed(() => route.path === props.item.navigateTo);
 
 const isExpanded = ref(hasActiveChild(props.item));
 
-const handleNavItemClick = () => {
+const handleNavItemClick = async () => {
   if (props.item.items?.length) {
     isExpanded.value = !isExpanded.value;
   }
 
   if (props.item.navigateTo) {
-    navigateTo(props.item.navigateTo);
+    await navigateTo(props.item.navigateTo);
   }
 };
 
