@@ -103,19 +103,22 @@ export interface IProduct {
   name: string;
   slug: string;
   sku: string;
-  category: ICategoryResponse;
-  brand: IBrand;
-  price: IPrice;
-  installment?: string;
   visibility_status: string;
-  short_description: string;
-  warranty_and_services: string;
+  installment?: string | null;
   description: string;
-  collections: ICollection[];
-  attributes: IProductAttribute[];
-  images: IImage[];
+  short_description: string;
   meta_title: string;
   meta_tags: string[];
+  warranty_and_services: string;
+  image: string;
+  price: IPrice;
+  brand: IBrand;
+  category: ICategoryResponse;
+  images: IImage[];
+
+  collections?: ICollection[];
+  attributes?: IProductAttribute[];
+
   created_at: string;
   updated_at: string;
 }
