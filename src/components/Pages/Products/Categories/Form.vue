@@ -49,10 +49,8 @@ const validationSchema = yup.object({
         return lowerCaseValue === categoryName;
       });
     }),
-  categoryMetaTitle: yup.string().required("Meta Title is required"),
-  categoryMetaDescription: yup
-    .string()
-    .required("Meta Description is required"),
+  categoryMetaTitle: yup.string().nullable(),
+  categoryMetaDescription: yup.string().nullable(),
   categoryVisibilityStatus: yup
     .string()
     .required("Visibility Status is required"),
@@ -79,8 +77,12 @@ const { handleSubmit, errors, resetForm, meta } = useForm({
 });
 
 const { value: categoryName } = useField("categoryName");
-const { value: categoryMetaTitle } = useField("categoryMetaTitle");
-const { value: categoryMetaDescription } = useField("categoryMetaDescription");
+const { value: categoryMetaTitle } = useField<string | null>(
+  "categoryMetaTitle",
+);
+const { value: categoryMetaDescription } = useField<string | null>(
+  "categoryMetaDescription",
+);
 const { value: categoryVisibilityStatus } = useField(
   "categoryVisibilityStatus",
 );
@@ -208,7 +210,6 @@ const onSelectedFiles = (event: any) => {
           url="/api/upload"
           accept="image/*"
           :max-file-size="1000000"
-          required
           @select="onSelectedFiles"
         >
           <template #header="{ chooseCallback, clearCallback, files }">
@@ -310,13 +311,12 @@ const onSelectedFiles = (event: any) => {
             v-model="categoryMetaTitle"
             aria-describedby="text-meta-title"
             placeholder="Enter Meta-title of the category"
-            required
             type="text"
             class="w-full"
           />
-          <span class="text-red-400 text-xs">{{
-            errors.categoryMetaTitle
-          }}</span>
+          <span class="text-red-400 text-xs">
+            {{ errors.categoryMetaTitle }}
+          </span>
         </div>
         <div>
           <Dropdown
@@ -329,9 +329,9 @@ const onSelectedFiles = (event: any) => {
             :highlight-on-select="false"
             class="w-full"
           />
-          <span class="text-red-400 text-xs">{{
-            errors.categoryVisibilityStatus
-          }}</span>
+          <span class="text-red-400 text-xs">
+            {{ errors.categoryVisibilityStatus }}
+          </span>
         </div>
       </div>
 
@@ -355,12 +355,11 @@ const onSelectedFiles = (event: any) => {
         aria-describedby="text-meta-description"
         auto-resize
         placeholder="Enter Meta Description"
-        required
         rows="3"
       />
-      <span class="text-red-400 text-xs">{{
-        errors.categoryMetaDescription
-      }}</span>
+      <span class="text-red-400 text-xs">
+        {{ errors.categoryMetaDescription }}
+      </span>
 
       <div class="mt-5 flex justify-end gap-2">
         <Button

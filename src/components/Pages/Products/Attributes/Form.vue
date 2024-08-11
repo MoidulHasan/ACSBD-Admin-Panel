@@ -65,8 +65,6 @@ const {
   fields: attributeValues,
 } = useFieldArray("attributeValues");
 
-const placeHolderValues = ref(["White", "Red", "Blue"]);
-
 const onSubmit = handleSubmit(async (values, actions) => {
   const requestBody = {
     name: values.attributeName,
@@ -129,7 +127,6 @@ const onSubmit = handleSubmit(async (values, actions) => {
           id="attr-name"
           v-model="attributeName"
           :invalid="!!errors.attributeName"
-          placeholder="Color"
         />
         <span class="text-red-400 text-xs">{{ errors.attributeName }}</span>
       </div>
@@ -151,7 +148,6 @@ const onSubmit = handleSubmit(async (values, actions) => {
             <InputGroup>
               <InputText
                 v-model="attrValue.value"
-                :placeholder="placeHolderValues[index]"
                 :invalid="
                   !!(errors[`attributeValues[${index}]`] && submitCount)
                 "

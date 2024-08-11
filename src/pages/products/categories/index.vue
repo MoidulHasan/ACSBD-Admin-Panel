@@ -18,7 +18,7 @@ const store = useStore();
 const categoryStore = useCategoryStore();
 
 const {
-  pending,
+  status,
   error,
   refresh: refreshCategory,
 } = await useAsyncData<ICategoryResponse[]>("category-data", () =>
@@ -97,7 +97,7 @@ const handleDeleteConfirmation = async () => {
       <TreeTable
         :filters="filters"
         :value="categoryStore.categoryNodes"
-        :loading="pending"
+        :loading="status === 'pending'"
         filter-mode="lenient"
         :rows="10"
         :row-hover="true"
