@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import * as yup from "yup";
 import { formatSize, useToast, type IBrand } from "#imports";
+import { statusOptions } from "~/app/constants/common";
 
 const { $apiClient } = useNuxtApp();
 
@@ -17,7 +18,6 @@ const store = useStore();
 
 const files = ref([]);
 const fileToUp = ref<File | null>(null);
-const statuses = ["public", "hidden"];
 
 const validationSchema = yup.object({
   name: yup.string().required("Name is Required"),
@@ -27,8 +27,8 @@ const validationSchema = yup.object({
     );
   }),
   visibilityStatus: yup.string().required("Status is Required"),
-  metaTitle: yup.string().required("Meta Title is Required"),
-  metaDescription: yup.string().required("Meta Description is Required"),
+  metaTitle: yup.string().nullable(),
+  metaDescription: yup.string().nullable(),
 });
 
 const { handleSubmit, errors, resetForm, meta } = useForm({
@@ -41,11 +41,11 @@ const { handleSubmit, errors, resetForm, meta } = useForm({
     metaDescription: props.brandData?.meta_description ?? "",
   },
 });
-const { value: name } = useField("name");
+const { value: name } = useField<string>("name");
 const { value: image } = useField("image");
 const { value: visibilityStatus } = useField("visibilityStatus");
-const { value: metaTitle } = useField("metaTitle");
-const { value: metaDescription } = useField("metaDescription");
+const { value: metaTitle } = useField<string | null>("metaTitle");
+const { value: metaDescription } = useField<string | null>("metaDescription");
 
 const onSubmit = handleSubmit(async (values, actions) => {
   const requestBody = new FormData();
@@ -278,7 +278,6 @@ const onSelectedFiles = (event: any) => {
             v-model="metaTitle"
             aria-describedby="text-meta-title"
             placeholder="Enter Meta-title of the brand"
-            required
             type="text"
           />
           <span class="text-red-400 text-xs pt-1 w-full">{{
@@ -290,7 +289,9 @@ const onSelectedFiles = (event: any) => {
           <Dropdown
             id="status-dropdown"
             v-model="visibilityStatus"
-            :options="statuses"
+            :options="statusOptions"
+            option-label="name"
+            option-value="value"
             placeholder="Select a Status"
             checkmark
             :highlight-on-select="false"
@@ -305,7 +306,6 @@ const onSelectedFiles = (event: any) => {
           aria-describedby="text-meta-description"
           auto-resize
           placeholder="Enter Meta Description"
-          required
           rows="3"
         />
       </div>
