@@ -214,16 +214,19 @@ const onSubmit = handleSubmit(async (values, actions) => {
 
     if (values.attributes?.length) {
       values.attributes.forEach((attribute: IAttributeValue, index) => {
-        formData.append(
-          `attributes[${index}][attribute_id]`,
-          attribute.attribute_id.toString(),
-        );
-        attribute.value_ids.forEach((valueId, valueIndex) => {
+        if (attribute.value_ids.length) {
           formData.append(
-            `attributes[${index}][value_ids][${valueIndex}]`,
-            valueId.toString(),
+            `attributes[${index}][attribute_id]`,
+            attribute.attribute_id.toString(),
           );
-        });
+
+          attribute.value_ids.forEach((valueId, valueIndex) => {
+            formData.append(
+              `attributes[${index}][value_ids][${valueIndex}]`,
+              valueId.toString(),
+            );
+          });
+        }
       });
     }
 
