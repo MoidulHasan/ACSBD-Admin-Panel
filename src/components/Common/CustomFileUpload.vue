@@ -25,6 +25,8 @@ const model = defineModel<Array<string | File>>({
   default: [],
 });
 
+const inputItem = ref<HTMLInputElement | null>(null);
+
 const onRemoveFile = (
   file: File,
   removeFileCallback: Function,
@@ -52,11 +54,22 @@ const removeExistingFile = (fileUrl: string) => {
 const onFileSelect = (event: any) => {
   model.value = [...model.value, ...event.files];
 };
+
+watch(
+  () => model.value,
+  () => {
+    if (!model.value.length) {
+      inputItem.value.clear();
+      inputItem.value.uploadedFileCount = 0;
+    }
+  },
+);
 </script>
 
 <template>
   <div>
     <FileUpload
+      ref="inputItem"
       :name="name"
       :multiple="multiple"
       :accept="accept"
