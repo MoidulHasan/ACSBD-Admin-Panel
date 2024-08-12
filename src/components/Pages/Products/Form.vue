@@ -697,7 +697,6 @@ watch(computedFinalPrice, (newVal) => setFinalPrice(newVal));
         <CommonFormInput
           id="metaTitle"
           label="Meta Title"
-          required
           :error="errors.metaTitle"
         >
           <InputText
