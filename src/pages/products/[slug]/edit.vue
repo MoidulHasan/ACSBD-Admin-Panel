@@ -23,9 +23,14 @@ const { data: productData, refresh } = await useAsyncData<
 <template>
   <div>
     <PagesProductsForm
+      v-if="productData?.data"
       :product-data="productData.data"
       @on-form-submit="refresh"
     />
+
+    <div v-else>
+      <CommonNoDataFound />
+    </div>
   </div>
 </template>
 
