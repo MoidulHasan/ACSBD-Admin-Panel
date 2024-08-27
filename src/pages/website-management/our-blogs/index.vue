@@ -35,8 +35,6 @@ const {
   }),
 );
 
-console.log(blogs, "BLOGS");
-
 const handleEditButtonClick = async (slug: string) => {
   await navigateTo({
     name: "blog-edit",

@@ -60,3 +60,9 @@ export interface IAuthSuccessResponse {
   user: IUser;
   message: string;
 }
+
+export interface IBannerSliderImage {
+  id: number;
+  type: "slider" | "banner";
+  path: string;
+}
