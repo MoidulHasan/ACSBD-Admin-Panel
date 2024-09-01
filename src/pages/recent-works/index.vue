@@ -2,8 +2,8 @@
 import { FilterMatchMode } from "primevue/api";
 import { useToast } from "primevue/usetoast";
 import type { IDataResponse, IDeleteResponse } from "~/app/interfaces/common";
-import type { IBrand } from "~/app/interfaces/products";
 import { getSeverity } from "~/utils/getVisibilitySeverity";
+import type { IWorkData } from "~/app/interfaces/recentWorks";
 
 useHead({
   title: "Recent Works by ACSBD",
@@ -28,8 +28,12 @@ const {
   error,
   pending,
   refresh,
-} = await useAsyncData<IDataResponse<IBrand[]>>("recent-works", () =>
-  $apiClient(`/admin/works`),
+} = await useAsyncData<IDataResponse<IWorkData[]>>("recent-works", () =>
+  $apiClient(`/admin/works`, {
+    params: {
+      is_latest: true,
+    },
+  }),
 );
 
 const redirectToCreateWorkPage = async () => {
@@ -38,7 +42,7 @@ const redirectToCreateWorkPage = async () => {
 
 const handleEditButtonClick = async (id: number) => {
   await navigateTo({
-    name: "create-new-work",
+    name: "update-work",
     params: {
       id,
     },

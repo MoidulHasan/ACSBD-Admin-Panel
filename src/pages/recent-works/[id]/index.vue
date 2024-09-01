@@ -1,16 +1,16 @@
 <script setup lang="ts">
 definePageMeta({
-  name: "create-new-work",
+  name: "work-details",
 });
 
 useHead({
-  title: "Create New Work History",
+  title: "Recent Work Detail",
 });
 </script>
 
 <template>
   <div>
-    <PagesRecentWorksForm />
+    <CommonCommingSoon />
   </div>
 </template>
 
