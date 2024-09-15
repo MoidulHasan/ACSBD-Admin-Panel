@@ -4,6 +4,17 @@ export interface IClient {
   image: string;
 }
 
+export interface IBlog {
+  id: number | string;
+  title: string;
+  sub_title: string;
+  category: string;
+  tags: string[];
+  slug: string;
+  image: string;
+  description: string;
+}
+
 export interface ILocation {
   id?: number;
   location_type: string;
