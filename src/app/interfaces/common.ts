@@ -61,6 +61,14 @@ export interface IAuthSuccessResponse {
   message: string;
 }
 
+export interface IFAQ {
+  id?: number;
+  question: string;
+  answer: string;
+  category: "service" | "ac_rent" | "product" | "policy";
+  status: true | false;
+}
+
 export interface IBannerSliderImage {
   id: number;
   type: "slider" | "banner";
