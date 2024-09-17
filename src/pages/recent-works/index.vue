@@ -151,7 +151,10 @@ const upperCaseFirstLetter = (word: string) => {
         <Column field="client" header="Client" />
         <Column header="Type">
           <template #body="{ data }">
-            <Tag :value="upperCaseFirstLetter(data.type)" severity="success" />
+            <Tag
+              :value="upperCaseFirstLetter(data.type)"
+              :severity="data.type === 'residential' ? 'success' : 'info'"
+            />
           </template>
         </Column>
         <Column field="from_date" header="Project Start Date" />
@@ -159,7 +162,7 @@ const upperCaseFirstLetter = (word: string) => {
           <template #body="{ data }">
             <Tag
               :value="data.status === true ? 'Public' : 'Hidden'"
-              :severity="getSeverity(data.visibility_status)"
+              :severity="getSeverity(data.status)"
             />
           </template>
         </Column>

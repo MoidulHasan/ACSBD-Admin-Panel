@@ -30,5 +30,5 @@ export interface IWorkData {
   completed_by: string;
   client: string;
   image: File[] | string[];
-  gallery_image: File[] | string[] | IWorkImage[];
+  gallery_images: File[] | string[] | IWorkImage[];
 }

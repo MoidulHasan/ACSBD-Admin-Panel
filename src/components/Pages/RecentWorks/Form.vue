@@ -12,6 +12,7 @@ const props = defineProps<IProps>();
 
 const emits = defineEmits<{
   (e: "onFormSubmit"): void;
+  (e: "onImageDelete"): void;
 }>();
 
 const { $apiClient } = useNuxtApp();
@@ -224,7 +225,20 @@ const deleteImage = async (fileUrl: string) => {
   );
 
   if (response?.status) {
-    props?.workData?.gallery_images.slice(imageIdx, 1);
+    // emits("onImageDelete");
+
+    // console.log(imageIdx, props.workData?.gallery_images, "Gallery Image");
+    // props?.workData?.gallery_images.splice(imageIdx, 1);
+    // console.log(props?.workData?.gallery_images, "After SPLICE");
+
+    // props.workData.gallery_images.splice(imageIdx, 1);
+    // props.workData.gallery_images = [...props.workData.gallery_images];
+
+    // Update the gallery images to trigger reactivity
+    props.workData.gallery_images = [
+      ...props.workData.gallery_images.slice(0, imageIdx),
+      ...props.workData.gallery_images.slice(imageIdx + 1),
+    ];
 
     toast.add({
       severity: "success",

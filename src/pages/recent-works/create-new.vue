@@ -6,11 +6,15 @@ definePageMeta({
 useHead({
   title: "Create New Work History",
 });
+
+const redirect = async () => {
+  await navigateTo({ name: "recent-works" });
+};
 </script>
 
 <template>
   <div>
-    <PagesRecentWorksForm />
+    <PagesRecentWorksForm @on-form-submit="redirect" />
   </div>
 </template>
 
