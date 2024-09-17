@@ -68,3 +68,9 @@ export interface IFAQ {
   category: "service" | "ac_rent" | "product" | "policy";
   status: true | false;
 }
+
+export interface IBannerSliderImage {
+  id: number;
+  type: "slider" | "banner";
+  path: string;
+}
