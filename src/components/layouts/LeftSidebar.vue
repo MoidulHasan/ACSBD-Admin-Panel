@@ -99,6 +99,18 @@ const items = ref<IMenuItem[]>([
     icon: "pi pi-globe",
     items: [
       {
+        label: "Banner Images",
+        navigateTo: "/website-management/banner-images",
+      },
+      {
+        label: "Slider Images",
+        navigateTo: "/website-management/slider-images",
+      },
+      {
+        label: "Our Blogs",
+        navigateTo: "/website-management/our-blogs",
+      },
+      {
         label: "Our Clients",
         navigateTo: "/website-management/our-clients",
       },

@@ -1,18 +1,14 @@
 <script setup lang="ts">
 import { FilterMatchMode } from "primevue/api";
 import { useToast } from "primevue/usetoast";
-import type {
-  IDataResponse,
-  IDeleteResponse,
-  IFAQ,
-} from "~/app/interfaces/common";
-import { getSeverity } from "~/utils/getVisibilitySeverity";
+import type { IDataResponse, IDeleteResponse } from "~/app/interfaces/common";
+import type { IBlog } from "~/app/interfaces/webManagement";
 
 useHead({
-  title: "F.A.Q.s ",
+  title: "Blogs | Website Management",
 });
 definePageMeta({
-  name: "faqs",
+  name: "our-blogs",
 });
 
 const { $apiClient } = useNuxtApp();
@@ -20,55 +16,56 @@ const store = useStore();
 const toast = useToast();
 
 const currentPage = ref(0);
-const showFaqModal = ref<boolean>(false);
 const showDeleteConfirmModal = ref<boolean>(false);
-const editableFaqData = ref<IFAQ | null>(null);
-const faqIdToDelete = ref<number | null>(null);
+const blogSlugToDelete = ref<string | null>(null);
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
 });
 
 const {
-  data: faqs,
+  data: blogs,
   error,
   pending,
-  refresh,
-} = await useAsyncData<IDataResponse<IFAQ[]>>("faqs", () =>
-  $apiClient(`/admin/faqs`),
+  refresh: refreshBlogList,
+} = await useAsyncData<IDataResponse<IBlog[]>>("our-blogs", () =>
+  $apiClient(`/admin/blogs`, {
+    params: {
+      is_latest: true,
+    },
+  }),
 );
 
-const handleEditButtonClick = (faq: IFAQ) => {
-  editableFaqData.value = faq;
-  showFaqModal.value = true;
+const handleEditButtonClick = async (slug: string) => {
+  await navigateTo({
+    name: "blog-edit",
+    params: {
+      slug,
+    },
+  });
 };
 
-const handleFormSubmit = () => {
-  showFaqModal.value = false;
-  editableFaqData.value = null;
-  refresh();
-};
-
-const handleDeleteButtonClick = (slug: number) => {
-  faqIdToDelete.value = slug;
+const handleDeleteButtonClick = (slug: string) => {
+  blogSlugToDelete.value = slug;
   showDeleteConfirmModal.value = true;
 };
 const hideDeleteConfirmModal = () => {
-  faqIdToDelete.value = null;
+  blogSlugToDelete.value = null;
   showDeleteConfirmModal.value = false;
 };
 
 const handleDeleteConfirmation = async () => {
-  if (!faqIdToDelete.value) return;
+  if (!blogSlugToDelete.value) return;
 
   try {
     store.loading = true;
     const response = await $apiClient<IDeleteResponse>(
-      `admin/faqs/${faqIdToDelete.value}`,
+      `admin/blogs/${blogSlugToDelete.value}`,
       {
         method: "DELETE",
       },
     );
-    await refresh();
+    console.log(response);
+    await refreshBlogList();
     store.loading = false;
 
     toast.add({
@@ -95,25 +92,9 @@ const changePage = (e: { page: number }) => {
   currentPage.value = e.page;
 };
 
-const makeFirstLetterOfAWord = (str: string) => {
-  return str.charAt(0).toUpperCase() + str.slice(1);
+const navigateToBrandCreatePage = async () => {
+  await navigateTo({ name: "create-new-blog" });
 };
-
-// const getCategorySeverity = (str: string) => {
-//   switch (str) {
-//     case "service":
-//       return "success";
-//
-//     case "ac_rent":
-//       return "warning";
-//
-//     case "product":
-//       return "contrast";
-//
-//     case "policy":
-//       return "info";
-//   }
-// };
 </script>
 
 <template>
@@ -121,11 +102,11 @@ const makeFirstLetterOfAWord = (str: string) => {
     <div class="table-container">
       <DataTable
         v-model:filters="filters"
-        :value="faqs?.data"
+        :value="blogs?.data?.data"
         table-style="min-width: 50rem"
         data-key="id"
         :loading="pending || store.loading"
-        :global-filter-fields="['question', 'category']"
+        :global-filter-fields="['title', 'category', 'tags']"
         striped-rows
         :rows="10"
         paginator
@@ -134,9 +115,9 @@ const makeFirstLetterOfAWord = (str: string) => {
         <template #header>
           <CommonDataTableHeader
             v-model:search-text="filters['global'].value"
-            :add-button-label="'Add FAQ'"
-            :table-header="'Website FAQS'"
-            @on-add-button-clicked="showFaqModal = true"
+            :add-button-label="'Add Blog'"
+            :table-header="'Our Blogs'"
+            @on-add-button-clicked="navigateToBrandCreatePage"
           />
         </template>
 
@@ -151,22 +132,31 @@ const makeFirstLetterOfAWord = (str: string) => {
             </div>
           </template>
         </Column>
-
-        <Column field="question" header="Question" style="min-height: 20%" />
-        <Column field="answer" header="Answer" style="min-height: 20%" />
-        <Column header="Category">
-          <template #body="{ data }">
-            <Tag
-              :value="makeFirstLetterOfAWord(data.category)"
-              severity="success"
+        <Column header="Brand Image">
+          <template #body="slotProps">
+            <img
+              class="brand-image h-12 w-44"
+              :src="slotProps.data.image"
+              :alt="slotProps.data.title"
             />
           </template>
         </Column>
-        <Column header="Status">
+
+        <Column field="title" header="Title" style="min-height: 40%" />
+        <Column field="sub_title" header="Sub Title" style="min-height: 40%" />
+        <Column header="Category">
+          <template #body="{ data }">
+            <Tag :value="data.category" severity="info" />
+          </template>
+        </Column>
+        <Column header="Tags">
           <template #body="{ data }">
             <Tag
-              :value="data.status === true ? 'Public' : 'Hidden'"
-              :severity="getSeverity(data.status)"
+              v-for="tag in data.tags"
+              :key="tag"
+              class="m-1"
+              :value="tag"
+              severity="success"
             />
           </template>
         </Column>
@@ -175,14 +165,14 @@ const makeFirstLetterOfAWord = (str: string) => {
             <div class="flex items-center gap-2">
               <button
                 class="table-action-button option-action-button"
-                @click="handleEditButtonClick(slotProps.data)"
+                @click="handleEditButtonClick(slotProps.data.slug)"
               >
                 <i class="pi pi-file-edit" />
               </button>
 
               <button
                 class="table-action-button option-action-button delete-btn"
-                @click="() => handleDeleteButtonClick(slotProps.data.id)"
+                @click="() => handleDeleteButtonClick(slotProps.data.slug)"
               >
                 <i class="pi pi-trash" />
               </button>
@@ -196,18 +186,6 @@ const makeFirstLetterOfAWord = (str: string) => {
       </div>
 
       <ClientOnly>
-        <Dialog
-          v-model:visible="showFaqModal"
-          modal
-          :draggable="false"
-          header="Add a FAQ"
-          @hide="() => (editableFaqData = null)"
-        >
-          <PagesWebManagementFaqForm
-            :faq-data="editableFaqData"
-            @on-form-submit="handleFormSubmit"
-          />
-        </Dialog>
         <CommonDeleteConfirmationModal
           v-model:visible="showDeleteConfirmModal"
           :disabled="store.loading"
