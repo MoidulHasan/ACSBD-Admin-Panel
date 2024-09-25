@@ -301,6 +301,7 @@ const deleteImage = async (fileUrl: string) => {
         >
           <Calendar
             v-model="fromDate"
+            :max-date="toDate ? toDate : ''"
             show-icon
             icon-display="input"
             :invalid="!!errors.fromDate"
@@ -314,6 +315,7 @@ const deleteImage = async (fileUrl: string) => {
         >
           <Calendar
             v-model="toDate"
+            :min-date="fromDate ? fromDate : ''"
             show-icon
             icon-display="input"
             :invalid="!!errors.toDate"
