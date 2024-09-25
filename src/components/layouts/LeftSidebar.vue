@@ -117,6 +117,11 @@ const items = ref<IMenuItem[]>([
     ],
   },
   {
+    label: "Recent Works",
+    icon: "pi pi-briefcase",
+    navigateTo: "/recent-works",
+  },
+  {
     label: "Work Pricing",
     icon: "li:work-pricing",
     navigateTo: "/work-pricing",
