@@ -8,7 +8,7 @@ definePageMeta({
 });
 
 const redirectToBlogList = async () => {
-  await navigateTo({ name: "our-blogs" });
+  await navigateTo({ name: "blogs" });
 };
 </script>
 

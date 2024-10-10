@@ -107,7 +107,7 @@ const onSubmit = handleSubmit(async (values, actions) => {
 
       emits("onFormSubmit");
       if (props?.blogData) {
-        await navigateTo({ name: "our-blogs" });
+        await navigateTo({ name: "blogs" });
         return;
       }
 

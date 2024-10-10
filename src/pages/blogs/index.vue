@@ -8,7 +8,7 @@ useHead({
   title: "Blogs | Website Management",
 });
 definePageMeta({
-  name: "our-blogs",
+  name: "blogs",
 });
 
 const { $apiClient } = useNuxtApp();
@@ -27,7 +27,7 @@ const {
   error,
   pending,
   refresh: refreshBlogList,
-} = await useAsyncData<IDataResponse<IBlog[]>>("our-blogs", () =>
+} = await useAsyncData<IDataResponse<IBlog[]>>("blogs", () =>
   $apiClient(`/admin/blogs`, {
     params: {
       is_latest: true,

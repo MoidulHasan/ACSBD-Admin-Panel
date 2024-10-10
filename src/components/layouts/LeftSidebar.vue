@@ -107,10 +107,6 @@ const items = ref<IMenuItem[]>([
         navigateTo: "/website-management/slider-images",
       },
       {
-        label: "Our Blogs",
-        navigateTo: "/website-management/our-blogs",
-      },
-      {
         label: "Our Clients",
         navigateTo: "/website-management/our-clients",
       },
@@ -130,6 +126,11 @@ const items = ref<IMenuItem[]>([
     label: "Contact Us",
     icon: "li:contact-us",
     navigateTo: "/contact-us",
+  },
+  {
+    label: "Blogs",
+    icon: "li:blog",
+    navigateTo: "/blogs",
   },
   {
     label: "FAQs",
