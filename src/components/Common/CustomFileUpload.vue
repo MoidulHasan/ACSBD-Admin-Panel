@@ -12,8 +12,7 @@ interface IProps {
 
 withDefaults(defineProps<IProps>(), {
   multiple: false,
-  fileLimit: 1,
-  maxFileSize: 1000000,
+  maxFileSize: 100000000,
   required: false,
 });
 
@@ -53,15 +52,18 @@ const removeExistingFile = (fileUrl: string) => {
 
 const onFileSelect = (event: any) => {
   model.value = [...model.value, ...event.files];
+  clearFiles();
 };
+
+function clearFiles() {
+  inputItem.value?.clear();
+  inputItem.value.uploadedFileCount = 0;
+}
 
 watch(
   () => model.value,
   () => {
-    if (!model.value.length) {
-      inputItem.value.clear();
-      inputItem.value.uploadedFileCount = 0;
-    }
+    if (!model.value.length) clearFiles();
   },
 );
 </script>
@@ -85,7 +87,7 @@ watch(
               icon="pi pi-images"
               rounded
               outlined
-              :disabled="model?.length === fileLimit"
+              :disabled="model?.length && model?.length === fileLimit"
               @click="chooseCallback"
             />
           </div>

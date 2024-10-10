@@ -13,12 +13,9 @@ definePageMeta({
 
 const { $apiClient } = useNuxtApp();
 
-const {
-  data: bannerImages,
-  error,
-  pending,
-  refresh,
-} = await useAsyncData<IDataResponse<IBannerSliderImage[]>>(
+const { data: bannerImages, refresh } = await useAsyncData<
+  IDataResponse<IBannerSliderImage[]>
+>(
   "banner-image",
   () =>
     $apiClient(`/admin/banner-and-sliders`, {
@@ -37,7 +34,7 @@ const {
     },
   },
 );
-console.log("IMAGES", bannerImages);
+
 const maxItemsToUpload = computed(() => {
   return 3 - bannerImages.value?.data.length;
 });

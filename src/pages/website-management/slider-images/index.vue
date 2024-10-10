@@ -16,7 +16,6 @@ const { $apiClient } = useNuxtApp();
 const {
   data: sliderImages,
   error,
-  pending,
   refresh,
 } = await useAsyncData<IDataResponse<IBannerSliderImage[]>>(
   "slider-image",

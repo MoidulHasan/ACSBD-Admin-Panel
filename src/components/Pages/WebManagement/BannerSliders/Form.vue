@@ -47,8 +47,6 @@ const { value: images } = useField<File[] | string[]>("images");
 const onSubmit = handleSubmit(async (values, actions) => {
   try {
     if (values.images?.length) {
-      console.log(values.images, "IMAGES");
-
       // Create an array of promises for all image uploads
       const uploadPromises = values.images.map((file) => {
         const formData = new FormData();
@@ -198,7 +196,10 @@ const hideDeleteConfirmModal = () => {
 
     <form
       v-if="
-        (type === 'banner' && props.heroImages.length < 3) || type === 'slider'
+        (type === 'banner' &&
+          props.heroImages &&
+          props.heroImages.length < 3) ||
+        type === 'slider'
       "
       @submit.prevent="onSubmit"
     >

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { IPaginatedResponse } from "~/app/interfaces/common";
-import type { IProduct } from "~/app/interfaces/products";
 import type { IBlog } from "~/app/interfaces/webManagement";
 
 useHead({

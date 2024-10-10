@@ -422,6 +422,7 @@ watch(computedFinalPrice, (newVal) => setFinalPrice(newVal));
             :options="categoryOptions"
             :invalid="!!errors.category"
             :loading="store.loading"
+            filter
             option-label="name"
             option-value="id"
             placeholder="Select Category"
@@ -455,6 +456,7 @@ watch(computedFinalPrice, (newVal) => setFinalPrice(newVal));
             option-value="id"
             placeholder="Select Brand"
             :invalid="!!errors.brand"
+            filter
           >
             <template #option="slotProps">
               <div class="flex items-center gap-2">
