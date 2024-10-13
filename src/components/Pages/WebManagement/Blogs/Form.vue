@@ -159,7 +159,7 @@ const onSubmit = handleSubmit(async (values, actions) => {
   }
 });
 
-const deleteImage = async (fileUrl: string) => {
+const deleteImage = (fileUrl: string) => {
   if (
     image.value &&
     typeof image.value[0] === "string" &&
@@ -187,21 +187,21 @@ const deleteImage = async (fileUrl: string) => {
           <InputText
             id="title"
             v-model="title"
-            placeholder="Enter Blog title"
+            placeholder="Enter blog title"
             :invalid="!!errors.title"
           />
         </CommonFormInput>
 
         <CommonFormInput
           id="sub_title"
-          label="Blog sub_title"
+          label="Blog Subtitle"
           required
           :error="errors.sub_title"
         >
           <Textarea
             id="sub_title"
             v-model="sub_title"
-            placeholder="Enter Blog sub_title"
+            placeholder="Enter blog subtitle"
             :invalid="!!errors.sub_title"
           />
         </CommonFormInput>
@@ -217,7 +217,7 @@ const deleteImage = async (fileUrl: string) => {
           <InputText
             id="category"
             v-model="category"
-            placeholder="Enter Blog Category"
+            placeholder="Enter blog category"
             :invalid="!!errors.category"
           />
         </CommonFormInput>
@@ -225,7 +225,7 @@ const deleteImage = async (fileUrl: string) => {
           <Chips
             id="metaTitle"
             v-model="tags"
-            placeholder="Meta Title"
+            placeholder="Meta title"
             :invalid="!!errors.tags"
           />
         </CommonFormInput>
@@ -259,7 +259,7 @@ const deleteImage = async (fileUrl: string) => {
             v-model="description"
             :readonly="store.loading"
             :height="200"
-            placeholder="Write Blog description"
+            placeholder="Write blog description"
           />
         </CommonFormInput>
       </div>
