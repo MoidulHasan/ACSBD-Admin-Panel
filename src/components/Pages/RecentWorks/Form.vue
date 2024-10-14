@@ -133,7 +133,6 @@ const onSubmit = handleSubmit(async (values, actions) => {
       });
     }
 
-    console.log(formData, "FORM DATA");
     const response = await createOrUpdateWork(formData);
 
     if (!response.errors && response.message) {

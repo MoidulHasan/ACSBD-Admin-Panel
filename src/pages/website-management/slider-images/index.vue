@@ -31,9 +31,9 @@ const {
     },
   },
 );
-console.log("IMAGES", sliderImages);
+
 if (error.value) {
-  console.error(error.value);
+  throw createError(error.value);
 }
 </script>
 
