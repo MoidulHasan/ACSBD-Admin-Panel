@@ -83,6 +83,13 @@
             color: var(--color-danger)
         }
     }
+
+    &:disabled{
+        opacity: 0.5;
+        cursor: not-allowed;
+        pointer-events: none;
+        background: transparent;
+    }
 }
 
 .table-container {

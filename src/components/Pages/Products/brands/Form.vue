@@ -8,6 +8,7 @@ const { $apiClient } = useNuxtApp();
 interface IProps {
   brandData?: IBrand;
 }
+
 const props = defineProps<IProps>();
 const emits = defineEmits<{
   (e: "onFormSubmit"): void;
@@ -162,7 +163,7 @@ const onSelectedFiles = (event: any) => {
           v-model="name"
           class="mt-1 w-full"
           aria-describedby="text-name"
-          placeholder="Enter Brand Name"
+          placeholder="Enter brand name"
           required
           type="text"
         />
@@ -277,12 +278,12 @@ const onSelectedFiles = (event: any) => {
             id="meta-title"
             v-model="metaTitle"
             aria-describedby="text-meta-title"
-            placeholder="Enter Meta-title of the brand"
+            placeholder="Enter meta title of the brand"
             type="text"
           />
-          <span class="text-red-400 text-xs pt-1 w-full">{{
-            errors.metaTitle
-          }}</span>
+          <span class="text-red-400 text-xs pt-1 w-full">
+            {{ errors.metaTitle }}
+          </span>
         </div>
         <div class="flex flex-col gap-1">
           <label for="status-dropdown">Brand Visibility Status</label>
@@ -292,7 +293,7 @@ const onSelectedFiles = (event: any) => {
             :options="statusOptions"
             option-label="name"
             option-value="value"
-            placeholder="Select a Status"
+            placeholder="Select a status"
             checkmark
             :highlight-on-select="false"
           />
@@ -305,7 +306,7 @@ const onSelectedFiles = (event: any) => {
           v-model="metaDescription"
           aria-describedby="text-meta-description"
           auto-resize
-          placeholder="Enter Meta Description"
+          placeholder="Enter meta description"
           rows="3"
         />
       </div>
@@ -336,6 +337,7 @@ const onSelectedFiles = (event: any) => {
   background: var(--primary-color-envitect-sam-blue);
   color: var(--primary-color-white);
 }
+
 :deep(.p-rating-icon) {
   color: var(--color-orange);
 }

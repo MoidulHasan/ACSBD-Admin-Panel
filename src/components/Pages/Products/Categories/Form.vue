@@ -197,7 +197,7 @@ const onSelectedFiles = (event: any) => {
         v-model="categoryName"
         class="mt-1"
         aria-describedby="text-name"
-        placeholder="Enter Category Name"
+        placeholder="Enter category name"
         required
         type="text"
       />
@@ -310,7 +310,7 @@ const onSelectedFiles = (event: any) => {
             id="meta-title"
             v-model="categoryMetaTitle"
             aria-describedby="text-meta-title"
-            placeholder="Enter Meta-title of the category"
+            placeholder="Enter meta title of the category"
             type="text"
             class="w-full"
           />

@@ -115,6 +115,10 @@ const handleDeleteConfirmation = async () => {
           />
         </template>
 
+        <template #empty>
+          <CommonNoDataFound />
+        </template>
+
         <Column
           field="name"
           header="Name"
@@ -166,13 +170,19 @@ const handleDeleteConfirmation = async () => {
                 />
               </button>
 
-              <button class="action-button">
+              <button
+                :disabled="slotProps.node?.children?.length"
+                class="option-action-button delete-btn"
+                :title="
+                  slotProps.node?.children?.length
+                    ? 'This category has subcategories and cannot be deleted.'
+                    : 'Delete this category'
+                "
+                @click="() => handleDeleteButtonClick(slotProps.node.data.slug)"
+              >
                 <i
                   class="pi pi-trash block block-delete"
                   title="Delete This Category"
-                  @click="
-                    () => handleDeleteButtonClick(slotProps.node.data.slug)
-                  "
                 />
               </button>
             </div>

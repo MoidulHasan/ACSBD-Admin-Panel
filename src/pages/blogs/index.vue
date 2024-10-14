@@ -64,7 +64,7 @@ const handleDeleteConfirmation = async () => {
         method: "DELETE",
       },
     );
-    console.log(response);
+
     await refreshBlogList();
     store.loading = false;
 
