@@ -6,6 +6,7 @@ import type {
   IStock,
   IStockWithName,
 } from "~/app/interfaces/products";
+
 useHead({
   title: "Stock Management | Product",
 });
@@ -31,7 +32,7 @@ const filters = ref({
 const {
   data: stocks,
   error,
-  pending,
+  status,
   refresh,
 } = await useAsyncData<IDataResponse<IStock[]>>("stocks", () =>
   $apiClient(`/admin/stocks`),
@@ -94,7 +95,7 @@ const changePage = (e: { page: number }) => {
         :value="stocks?.data"
         table-style="min-width: 50rem"
         data-key="id"
-        :loading="pending || store.loading"
+        :loading="status === 'pending' || store.loading"
         :global-filter-fields="['product_id', 'quantity']"
         striped-rows
         :rows="10"

@@ -151,7 +151,14 @@ const handleDeleteConfirmation = async () => {
           <span class="mr-1">
             {{ `TK ${parseInt(slotProps.data.price.final_price)}` }}
           </span>
-          <span class="line-through text-gray-400">
+
+          <span
+            v-if="
+              slotProps.data.price.final_price !==
+              slotProps.data.price.base_price
+            "
+            class="line-through text-gray-400"
+          >
             {{ `TK ${parseInt(slotProps.data.price.base_price)}` }}
           </span>
         </template>
