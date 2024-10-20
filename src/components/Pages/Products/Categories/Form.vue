@@ -55,13 +55,7 @@ const validationSchema = yup.object({
   categoryVisibilityStatus: yup
     .string()
     .required("Visibility Status is required"),
-  categoryImage: yup
-    .mixed()
-    .test("required", "Image is required", function (value) {
-      return (
-        fileToUp.value !== null || (typeof value === "string" && value !== "")
-      );
-    }),
+  categoryImage: yup.mixed(),
   categoryParent: yup.mixed(),
 });
 
@@ -194,18 +188,23 @@ const onSelectedFiles = (event: any) => {
       enctype="multipart/form-data"
       @submit.prevent="onSubmit"
     >
-      <InputText
-        v-model="categoryName"
-        class="mt-1"
-        aria-describedby="text-name"
-        placeholder="Enter category name"
-        required
-        type="text"
-      />
-      <span class="text-red-400 text-xs">{{ errors.categoryName }}</span>
-
-      <div class="card">
+      <div class="flex flex-col">
+        <label for="category-name">*Category Name</label>
+        <InputText
+          id="category-name"
+          v-model="categoryName"
+          class="mt-1"
+          aria-describedby="text-name"
+          placeholder="Enter category name"
+          required
+          type="text"
+        />
+        <span class="text-red-400 text-xs">{{ errors.categoryName }}</span>
+      </div>
+      <div class="flex flex-col gap-1">
+        <label for="category-image-uploader">Category Image </label>
         <FileUpload
+          class="category-image-uploader"
           :file-limit="1"
           name="categoryImage"
           url="/api/upload"
@@ -306,7 +305,8 @@ const onSelectedFiles = (event: any) => {
       <span class="text-red-400 text-xs">{{ errors.categoryImage }}</span>
 
       <div class="grid grid-cols-2 gap-3">
-        <div>
+        <div class="flex flex-col gap-1">
+          <label for="meta-title">Category Meta Title</label>
           <InputText
             id="meta-title"
             v-model="categoryMetaTitle"
@@ -319,8 +319,10 @@ const onSelectedFiles = (event: any) => {
             {{ errors.categoryMetaTitle }}
           </span>
         </div>
-        <div>
+        <div class="flex flex-col gap-1">
+          <label for="category-status">*Visibility Status</label>
           <Dropdown
+            id="category-status"
             v-model="categoryVisibilityStatus"
             :options="statusOptions"
             option-label="name"
@@ -328,7 +330,7 @@ const onSelectedFiles = (event: any) => {
             placeholder="Select a Status"
             checkmark
             :highlight-on-select="false"
-            class="w-full"
+            class="w-full p-[1px]"
           />
           <span class="text-red-400 text-xs">
             {{ errors.categoryVisibilityStatus }}
@@ -336,20 +338,23 @@ const onSelectedFiles = (event: any) => {
         </div>
       </div>
 
-      <Dropdown
-        id="parent"
-        v-model="categoryParent"
-        :options="[
-          { id: '', name: 'None', parent_id: null },
-          ...flattenCategories.filter((cat) => cat.id !== categoryData?.id),
-        ]"
-        filter
-        option-label="name"
-        option-value="id"
-        placeholder="Select Parent Category"
-        checkmark
-      />
-      <span class="text-red-400 text-xs">{{ errors.categoryParent }}</span>
+      <div class="flex flex-col gap-1">
+        <label for="Parent Category">Parent Category</label>
+        <Dropdown
+          id="parent"
+          v-model="categoryParent"
+          :options="[
+            { id: '', name: 'None', parent_id: null },
+            ...flattenCategories.filter((cat) => cat.id !== categoryData?.id),
+          ]"
+          filter
+          option-label="name"
+          option-value="id"
+          placeholder="Select Parent Category"
+          checkmark
+        />
+        <span class="text-red-400 text-xs">{{ errors.categoryParent }}</span>
+      </div>
 
       <Textarea
         v-model="categoryMetaDescription"

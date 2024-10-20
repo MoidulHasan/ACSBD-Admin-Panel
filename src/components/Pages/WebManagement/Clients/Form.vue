@@ -137,19 +137,22 @@ const onSelectedFiles = (event: any) => {
       @submit.prevent="onSubmit"
     >
       <div class="">
+        <label for="client-name">*Client Name</label>
         <InputText
           v-model="name"
           class="mt-1 w-full"
           aria-describedby="text-name"
-          placeholder="Enter Reviewer Name"
+          placeholder="Enter Client Name"
           required
           type="text"
         />
         <span class="text-red-400 text-xs pt-1 w-full">{{ errors.name }}</span>
       </div>
 
-      <div class="card">
+      <div class="flex flex-col gap-1">
+        <label for="client-image">*Client Photo</label>
         <FileUpload
+          id="client-image"
           :file-limit="1"
           name="image"
           url="/api/upload"

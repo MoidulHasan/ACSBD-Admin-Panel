@@ -174,7 +174,9 @@ const onSelectedFiles = (event: any) => {
     >
       <div class="grid grid-cols-2 gap-3">
         <div class="">
+          <label for="reviewer-name">*Reviewer Name</label>
           <InputText
+            id="reviewer-name"
             v-model="reviewerName"
             class="mt-1 w-full"
             aria-describedby="text-name"
@@ -187,7 +189,9 @@ const onSelectedFiles = (event: any) => {
           }}</span>
         </div>
         <div class="">
+          <label for="reviewer-title">*Reviewer Title</label>
           <InputText
+            id="reviewer-title"
             v-model="reviewerTitle"
             class="mt-1 w-full"
             aria-describedby="text-name"
@@ -201,8 +205,10 @@ const onSelectedFiles = (event: any) => {
         </div>
       </div>
 
-      <div class="card">
+      <div class="flex flex-col gap-1">
+        <label for="reviewer-image">*Reviewer Photo</label>
         <FileUpload
+          id="reviewer-image"
           :file-limit="1"
           name="reviewerImage"
           url="/api/upload"
@@ -306,10 +312,12 @@ const onSelectedFiles = (event: any) => {
       <span class="text-red-400 text-xs pt-1">{{ errors.reviewerImage }}</span>
 
       <div class="grid grid-cols-2 gap-3">
-        <div class="flex flex-col">
+        <div class="flex flex-col gap-1">
+          <label for="review_star">*Review Stars</label>
           <Rating
             id="review_star"
             v-model="reviewStars"
+            class="pt-2"
             aria-describedby="Star Review"
             title="Click to give reviews in stars"
             required
@@ -318,8 +326,10 @@ const onSelectedFiles = (event: any) => {
             errors.reviewStars
           }}</span>
         </div>
-        <div>
+        <div class="flex flex-col gap-1">
+          <label for="review-status">*Review Visibility Status</label>
           <Dropdown
+            id="review-status"
             v-model="reviewStatus"
             :options="statusOptions"
             option-label="name"
@@ -335,15 +345,19 @@ const onSelectedFiles = (event: any) => {
         </div>
       </div>
 
-      <Textarea
-        v-model="review"
-        aria-describedby="review-description"
-        auto-resize
-        placeholder="Enter Full Review"
-        required
-        rows="3"
-      />
-      <span class="text-red-400 text-xs pt-1">{{ errors.review }}</span>
+      <div class="flex flex-col gap-1">
+        <label for="review-message">*Review Message</label>
+        <Textarea
+          id="review-message"
+          v-model="review"
+          aria-describedby="review-description"
+          auto-resize
+          placeholder="Enter Full Review"
+          required
+          rows="3"
+        />
+        <span class="text-red-400 text-xs pt-1">{{ errors.review }}</span>
+      </div>
 
       <div class="mt-5 flex justify-end gap-2">
         <Button

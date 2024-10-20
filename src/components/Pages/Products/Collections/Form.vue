@@ -108,7 +108,7 @@ const onSubmit = handleSubmit(async (values, actions) => {
   <div class="bg-white">
     <form @submit.prevent="onSubmit">
       <div class="flex flex-col gap-2">
-        <label for="coll-name">Collection Name</label>
+        <label for="coll-name">*Collection Name</label>
         <InputText
           id="coll-name"
           v-model="collectionTitle"
@@ -118,7 +118,7 @@ const onSubmit = handleSubmit(async (values, actions) => {
         <span class="text-red-400 text-xs">{{ errors.collectionTitle }}</span>
       </div>
       <div class="mt-5 flex flex-col gap-2">
-        <label for="coll-status">Collection Status</label>
+        <label for="coll-status">*Collection Status</label>
         <Dropdown
           id="coll-status"
           v-model="collectionStatus"

@@ -223,9 +223,9 @@ const deleteImage = (fileUrl: string) => {
         </CommonFormInput>
         <CommonFormInput id="tags" label="Tags" :error="errors.tags">
           <Chips
-            id="metaTitle"
+            id="tags"
             v-model="tags"
-            placeholder="Meta title"
+            placeholder="Meta Tags"
             :invalid="!!errors.tags"
           />
         </CommonFormInput>
