@@ -32,7 +32,7 @@ const { handleSubmit, errors, handleReset, meta } = useForm({
   validationSchema,
   initialValues: {
     productId: props.stockData?.product_id ?? "",
-    quantity: "",
+    quantity: 0,
   },
 });
 const { value: productId } = useField("productId");
