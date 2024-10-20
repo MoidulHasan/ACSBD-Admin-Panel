@@ -144,6 +144,7 @@ const onSubmit = handleSubmit(async (values, actions) => {
             </InputGroupAddon>
             <InputNumber
               v-model="quantity"
+              class="stock-number-input"
               :invalid="!!errors[`quantity`]"
               :placeholder="
                 operationType === 'Increase'
@@ -183,5 +184,8 @@ const onSubmit = handleSubmit(async (values, actions) => {
 .submit-button {
   background: var(--primary-color-envitect-sam-blue);
   color: var(--primary-color-white);
+}
+.stock-number-input :deep(.p-inputnumber-input) {
+  max-width: 98%;
 }
 </style>
