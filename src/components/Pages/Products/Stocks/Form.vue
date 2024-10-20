@@ -38,6 +38,18 @@ const { handleSubmit, errors, handleReset, meta } = useForm({
 const { value: productId } = useField("productId");
 const { value: quantity } = useField("quantity");
 
+const modifyQuantity = () => {
+  let quantityInNumber = Number(quantity.value);
+  if (props.operationType === "Increase") {
+    if (quantityInNumber >= 0 && quantityInNumber <= 100000) {
+      quantityInNumber += 1;
+    }
+  } else if (quantityInNumber > 0) {
+    quantityInNumber -= 1;
+  }
+  quantity.value = quantityInNumber;
+};
+
 const onSubmit = handleSubmit(async (values, actions) => {
   const formData = new FormData();
   formData.append("product_id", values.productId);
@@ -108,7 +120,7 @@ const onSubmit = handleSubmit(async (values, actions) => {
             id="productId"
             v-model="productId"
             :class="{ 'cursor-not-allowed': stockData?.product_id }"
-            :disabled="stockData?.product_id"
+            :disabled="!!stockData?.product_id"
             :invalid="!!errors[`productId`]"
             placeholder="Enter Product Id"
           />
@@ -124,7 +136,7 @@ const onSubmit = handleSubmit(async (values, actions) => {
             id="productName"
             :title="stockData?.name"
             :value="stockData?.name"
-            :disabled="stockData?.product_id"
+            :disabled="!!stockData?.product_id"
           />
         </div>
         <div class="flex flex-col gap-2">
@@ -135,7 +147,12 @@ const onSubmit = handleSubmit(async (values, actions) => {
             <InputGroupAddon>
               Existing Stock: {{ stockData?.quantity }}
             </InputGroupAddon>
-            <InputGroupAddon>
+            <InputGroupAddon
+              :class="[
+                errors.quantity ? 'cursor-not-allowed' : 'cursor-pointer',
+              ]"
+              @click="modifyQuantity"
+            >
               <i
                 :class="
                   operationType === 'Increase' ? 'pi pi-plus' : 'pi pi-minus'
