@@ -13,6 +13,7 @@ export interface PropCategory {
   slug: string;
   visibility_status: string;
 }
+
 interface Props {
   categoryData?: PropCategory;
 }
@@ -340,7 +341,7 @@ const onSelectedFiles = (event: any) => {
         v-model="categoryParent"
         :options="[
           { id: '', name: 'None', parent_id: null },
-          ...flattenCategories,
+          ...flattenCategories.filter((cat) => cat.id !== categoryData?.id),
         ]"
         filter
         option-label="name"
