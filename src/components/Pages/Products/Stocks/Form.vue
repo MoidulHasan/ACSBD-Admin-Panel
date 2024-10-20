@@ -32,11 +32,23 @@ const { handleSubmit, errors, handleReset, meta } = useForm({
   validationSchema,
   initialValues: {
     productId: props.stockData?.product_id ?? "",
-    quantity: "",
+    quantity: 0,
   },
 });
 const { value: productId } = useField("productId");
 const { value: quantity } = useField("quantity");
+
+const modifyQuantity = () => {
+  let quantityInNumber = Number(quantity.value);
+  if (props.operationType === "Increase") {
+    if (quantityInNumber >= 0 && quantityInNumber <= 100000) {
+      quantityInNumber += 1;
+    }
+  } else if (quantityInNumber > 0) {
+    quantityInNumber -= 1;
+  }
+  quantity.value = quantityInNumber;
+};
 
 const onSubmit = handleSubmit(async (values, actions) => {
   const formData = new FormData();
@@ -103,12 +115,12 @@ const onSubmit = handleSubmit(async (values, actions) => {
     <form @submit.prevent="onSubmit">
       <div class="grid grid-cols-2 gap-2">
         <div class="flex flex-col gap-2">
-          <label for="productId">Product Id</label>
+          <label for="productId">*Product Id</label>
           <InputNumber
             id="productId"
             v-model="productId"
             :class="{ 'cursor-not-allowed': stockData?.product_id }"
-            :disabled="stockData?.product_id"
+            :disabled="!!stockData?.product_id"
             :invalid="!!errors[`productId`]"
             placeholder="Enter Product Id"
           />
@@ -119,23 +131,28 @@ const onSubmit = handleSubmit(async (values, actions) => {
           :title="stockData?.name"
           :class="{ 'cursor-not-allowed': stockData?.product_id }"
         >
-          <label for="productName">Product Name</label>
+          <label for="productName">*Product Name</label>
           <InputText
             id="productName"
             :title="stockData?.name"
             :value="stockData?.name"
-            :disabled="stockData?.product_id"
+            :disabled="!!stockData?.product_id"
           />
         </div>
         <div class="flex flex-col gap-2">
           <label for="quantity">
-            {{ operationType }} Product Stock Quantity
+            *{{ operationType }} Product Stock Quantity
           </label>
           <InputGroup id="quantity" class="w-full md:w-30rem">
             <InputGroupAddon>
               Existing Stock: {{ stockData?.quantity }}
             </InputGroupAddon>
-            <InputGroupAddon>
+            <InputGroupAddon
+              :class="[
+                errors.quantity ? 'cursor-not-allowed' : 'cursor-pointer',
+              ]"
+              @click="modifyQuantity"
+            >
               <i
                 :class="
                   operationType === 'Increase' ? 'pi pi-plus' : 'pi pi-minus'
@@ -144,6 +161,7 @@ const onSubmit = handleSubmit(async (values, actions) => {
             </InputGroupAddon>
             <InputNumber
               v-model="quantity"
+              class="stock-number-input"
               :invalid="!!errors[`quantity`]"
               :placeholder="
                 operationType === 'Increase'
@@ -183,5 +201,8 @@ const onSubmit = handleSubmit(async (values, actions) => {
 .submit-button {
   background: var(--primary-color-envitect-sam-blue);
   color: var(--primary-color-white);
+}
+.stock-number-input :deep(.p-inputnumber-input) {
+  max-width: 98%;
 }
 </style>

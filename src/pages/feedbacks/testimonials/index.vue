@@ -190,7 +190,7 @@ const changePage = (e: { page: number }) => {
           v-model:visible="showTestimonialFormModal"
           modal
           :draggable="false"
-          header="Add A Collection"
+          header="Include a New Testimonial"
           @hide="() => (editableTestimonial = null)"
         >
           <PagesFeedbacksTestimonialsForm

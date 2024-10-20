@@ -17,6 +17,7 @@ const emits = defineEmits<{
 
 const toast = useToast();
 const stockData = ref<Stock[]>([]);
+const stockTouched = ref<boolean[]>([]);
 const store = useStore();
 
 const addStockField = () => {
@@ -24,10 +25,16 @@ const addStockField = () => {
     product_id: 0,
     quantity: 1,
   });
+  stockTouched.value.push(false);
 };
 
 const deleteStockField = (index: number) => {
   stockData.value.splice(index, 1);
+  stockTouched.value.splice(index, 1);
+};
+
+const handleProductChange = (index: number) => {
+  stockTouched.value[index] = true; // Set touched flag when a product is selected or the dropdown is interacted with
 };
 
 const onSubmit = async () => {
@@ -97,7 +104,7 @@ const filteredProductData = (index: number) => {
         class="grid grid-cols-12 gap-4 mt-5"
       >
         <div class="col-span-5 flex flex-col gap-2">
-          <label :for="`productId-${index}`">Product Name</label>
+          <label :for="`productId-${index}`">*Product Name</label>
           <Dropdown
             :id="`productId-${index}`"
             v-model="stock.product_id"
@@ -108,13 +115,17 @@ const filteredProductData = (index: number) => {
             option-value="id"
             :virtual-scroller-options="{ itemSize: 40 }"
             class="w-full md:w-14rem"
+            @change="handleProductChange(index)"
           />
-          <span v-if="stock.product_id < 1" class="text-red-400 text-xs">
+          <span
+            v-if="stockTouched[index] && stock.product_id < 1"
+            class="text-red-400 text-xs"
+          >
             Invalid Product Name
           </span>
         </div>
         <div class="col-span-5 flex flex-col gap-2">
-          <label :for="`quantity-${index}`">Product Stock Quantity</label>
+          <label :for="`quantity-${index}`">*Product Stock Quantity</label>
           <InputNumber
             :id="`quantity-${index}`"
             v-model="stock.quantity"

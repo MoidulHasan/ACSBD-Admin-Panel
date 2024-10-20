@@ -124,9 +124,10 @@ const onSubmit = handleSubmit(async (values, actions) => {
       enctype="multipart/form-data"
       @submit.prevent="onSubmit"
     >
-      <label for="meta-title">Question</label>
-      <div class="">
+      <div class="flex flex-col gap-1">
+        <label for="meta-title">*Question</label>
         <InputText
+          id="question"
           v-model="question"
           class="w-full"
           aria-describedby="text-question"
@@ -140,13 +141,14 @@ const onSubmit = handleSubmit(async (values, actions) => {
       </div>
 
       <div class="flex flex-col gap-1">
-        <label for="meta-title">Question Answer</label>
+        <label for="answer">*Answer to the Question Above</label>
         <Textarea
           id="answer"
           v-model="answer"
           aria-describedby="text-answer"
           placeholder="Enter Answer of the question"
           type="text"
+          required
         />
         <span class="text-red-400 text-xs pt-1 w-full">{{
           errors.answer
@@ -155,9 +157,9 @@ const onSubmit = handleSubmit(async (values, actions) => {
 
       <div class="grid grid-cols-2 gap-3 mt-1">
         <div class="flex flex-col gap-1">
-          <label for="meta-desc">Question Category</label>
+          <label for="cat-dropdown">*Question Category</label>
           <Dropdown
-            id="status-dropdown"
+            id="cat-dropdown"
             v-model="category"
             :options="categoryOptions"
             option-label="name"
@@ -165,10 +167,11 @@ const onSubmit = handleSubmit(async (values, actions) => {
             placeholder="Select a Question Category"
             checkmark
             :highlight-on-select="false"
+            required
           />
         </div>
         <div class="flex flex-col gap-1">
-          <label for="status-dropdown">Question Visibility Status</label>
+          <label for="status-dropdown">*Question Visibility Status</label>
           <Dropdown
             id="status-dropdown"
             v-model="status"
@@ -178,6 +181,7 @@ const onSubmit = handleSubmit(async (values, actions) => {
             placeholder="Select a Status"
             checkmark
             :highlight-on-select="false"
+            required
           />
         </div>
       </div>

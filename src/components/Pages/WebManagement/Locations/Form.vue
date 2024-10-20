@@ -132,9 +132,10 @@ const onSubmit = handleSubmit(async (values, actions) => {
       @submit.prevent="onSubmit"
     >
       <div class="grid grid-cols-2 gap-3">
-        <div>
+        <div class="flex flex-col gap-1">
+          <label for="location-type">*Location Type</label>
           <Dropdown
-            id="coll-status"
+            id="location-type"
             v-model="locationType"
             :options="locationTypes"
             :invalid="!!errors[`locationType`]"
@@ -142,11 +143,14 @@ const onSubmit = handleSubmit(async (values, actions) => {
             checkmark
             :highlight-on-select="false"
             class="w-full"
+            required
           />
           <span class="text-red-400 text-xs">{{ errors.locationType }}</span>
         </div>
-        <div class="">
+        <div class="flex flex-col gap-1">
+          <label for="location-title">*Location Title</label>
           <InputText
+            id="location-title"
             v-model="title"
             class="w-full"
             aria-describedby="location-tite"
@@ -160,8 +164,10 @@ const onSubmit = handleSubmit(async (values, actions) => {
         </div>
       </div>
       <div class="grid grid-cols-2 gap-3">
-        <div class="">
+        <div class="flex flex-col gap-1">
+          <label for="location-subtitle">*Location Sub Title</label>
           <InputText
+            id="location-subtitle"
             v-model="subTitle"
             class="w-full"
             aria-describedby="location-subtitle"
@@ -173,8 +179,10 @@ const onSubmit = handleSubmit(async (values, actions) => {
             errors.subTitle
           }}</span>
         </div>
-        <div class="">
+        <div class="flex flex-col gap-1">
+          <label for="location-phone">*Location Contact Number</label>
           <InputText
+            id="location-phone"
             v-model="phone"
             class="w-full"
             aria-describedby="location-number"
@@ -187,8 +195,10 @@ const onSubmit = handleSubmit(async (values, actions) => {
           }}</span>
         </div>
       </div>
-      <div>
+      <div class="flex flex-col gap-1">
+        <label for="address">*Location Address</label>
         <Textarea
+          id="address"
           v-model="address"
           class="w-full"
           aria-describedby="location address"
@@ -201,8 +211,10 @@ const onSubmit = handleSubmit(async (values, actions) => {
           errors.address
         }}</span>
       </div>
-      <div>
+      <div class="flex flex-col gap-1">
+        <label for="url">*Location Map Embed Html URL</label>
         <Textarea
+          id="url"
           v-model="mapUrl"
           class="w-full"
           aria-describedby="review-description"

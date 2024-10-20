@@ -159,7 +159,9 @@ const onSelectedFiles = (event: any) => {
       @submit.prevent="onSubmit"
     >
       <div class="">
+        <label for="brand-name">*Brand Name</label>
         <InputText
+          id="brand-name"
           v-model="name"
           class="mt-1 w-full"
           aria-describedby="text-name"
@@ -170,8 +172,10 @@ const onSelectedFiles = (event: any) => {
         <span class="text-red-400 text-xs pt-1 w-full">{{ errors.name }}</span>
       </div>
 
-      <div class="card">
+      <div class="flex flex-col gap-1">
+        <label for="brand-image-uploader">*Brand Image</label>
         <FileUpload
+          id="brand-image-uploader"
           :file-limit="1"
           name="image"
           url="/api/upload"
@@ -286,7 +290,7 @@ const onSelectedFiles = (event: any) => {
           </span>
         </div>
         <div class="flex flex-col gap-1">
-          <label for="status-dropdown">Brand Visibility Status</label>
+          <label for="status-dropdown">*Brand Visibility Status</label>
           <Dropdown
             id="status-dropdown"
             v-model="visibilityStatus"

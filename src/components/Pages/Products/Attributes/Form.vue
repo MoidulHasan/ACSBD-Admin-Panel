@@ -121,7 +121,7 @@ const onSubmit = handleSubmit(async (values, actions) => {
   <div class="bg-white">
     <form @submit.prevent="onSubmit">
       <div class="flex flex-col gap-2">
-        <label for="attr-name">Attribute Name</label>
+        <label for="attr-name">*Attribute Name</label>
 
         <InputText
           id="attr-name"
@@ -133,7 +133,7 @@ const onSubmit = handleSubmit(async (values, actions) => {
 
       <div class="mt-5">
         <p class="flex justify-between">
-          <label for="attr-values">Attribute Values</label>
+          <label for="attr-values">*Attribute Values</label>
           <span v-if="meta.dirty" class="text-red-400 text-xs">
             {{ errors.attributeValues }}
           </span>
