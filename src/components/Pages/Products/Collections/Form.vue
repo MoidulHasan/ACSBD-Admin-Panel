@@ -7,6 +7,7 @@ import { useCollectionStore } from "~/stores/collectionStore";
 interface IProps {
   collectionData?: ICollection;
 }
+
 const props = defineProps<IProps>();
 const emits = defineEmits<{
   (e: "onFormSubmit"): void;
@@ -25,7 +26,7 @@ const statuses = ref<IStatus[]>([
 const validationSchema = yup.object({
   collectionTitle: yup
     .string()
-    .required("Collection Name Is Required")
+    .required("Collection name is required")
     .test("isExit", "The name has already been taken", (value) => {
       return !collections.some((collection) => {
         const lowerCaseValue = value.toLowerCase();
@@ -41,7 +42,9 @@ const validationSchema = yup.object({
         return lowerCaseValue === collectionTitle;
       });
     }),
-  collectionStatus: yup.string().required("Collection Status Is Required"),
+  collectionStatus: yup.string().required("Collection status is required"),
+  isFeatured: yup.boolean().required("Feature status is required"),
+  campaignEndingDate: yup.string().nullable(),
 });
 
 const { handleSubmit, errors, handleReset, meta } = useForm({
@@ -49,15 +52,23 @@ const { handleSubmit, errors, handleReset, meta } = useForm({
   initialValues: {
     collectionTitle: props.collectionData?.title ?? "",
     collectionStatus: props.collectionData?.status ?? "",
+    isFeatured: props.collectionData?.is_featured ?? false,
+    campaignEndingDate: props.collectionData?.campaign_ending_date ?? null,
   },
 });
-const { value: collectionTitle } = useField("collectionTitle");
+const { value: collectionTitle } = useField<string>("collectionTitle");
 const { value: collectionStatus } = useField("collectionStatus");
+const { value: isFeatured } = useField<boolean>("isFeatured");
+const { value: campaignEndingDate } = useField<null | Date>(
+  "campaignEndingDate",
+);
 
 const onSubmit = handleSubmit(async (values, actions) => {
   const requestBody = {
     title: values.collectionTitle,
     status: values.collectionStatus,
+    is_featured: values.isFeatured,
+    campaign_ending_date: values.campaignEndingDate,
   };
 
   const response = props.collectionData
@@ -107,32 +118,78 @@ const onSubmit = handleSubmit(async (values, actions) => {
 <template>
   <div class="bg-white">
     <form @submit.prevent="onSubmit">
-      <div class="flex flex-col gap-2">
-        <label for="coll-name">*Collection Name</label>
+      <CommonFormInput
+        id="collectionTitle"
+        label="Collection Title"
+        required
+        :error="errors.collectionTitle"
+      >
         <InputText
-          id="coll-name"
+          id="collectionTitle"
           v-model="collectionTitle"
-          :invalid="!!errors[`collectionTitle`]"
-          placeholder="Summer Collection"
+          placeholder="Enter collection title"
+          :invalid="!!errors.collectionTitle"
         />
-        <span class="text-red-400 text-xs">{{ errors.collectionTitle }}</span>
+      </CommonFormInput>
+
+      <div class="grid grid-cols-3 gap-2 mt-5">
+        <CommonFormInput
+          id="collectionStatus"
+          label="Status"
+          required
+          :error="errors.collectionStatus"
+        >
+          <Dropdown
+            id="coll-status"
+            v-model="collectionStatus"
+            :options="statuses"
+            :invalid="!!errors[`collectionStatus`]"
+            option-label="name"
+            option-value="code"
+            placeholder="Select status"
+            checkmark
+            :highlight-on-select="false"
+            class="w-full"
+          />
+        </CommonFormInput>
+
+        <CommonFormInput
+          id="isFeatured"
+          label="Featured Collection"
+          required
+          :error="errors.isFeatured"
+        >
+          <SelectButton
+            v-model="isFeatured"
+            input-id="isPercent"
+            :options="[
+              { label: 'Yes', value: true },
+              { label: 'No', value: false },
+            ]"
+            class="select-button"
+            option-label="label"
+            option-value="value"
+          />
+        </CommonFormInput>
+
+        <CommonFormInput
+          id="campaignEndingDate"
+          label="End Date"
+          required
+          :error="errors.campaignEndingDate"
+        >
+          <Calendar
+            v-model="campaignEndingDate"
+            show-icon
+            show-time
+            icon-display="input"
+            :invalid="!!errors.campaignEndingDate"
+            date-format="yy-mm-dd"
+            class="w-full"
+          />
+        </CommonFormInput>
       </div>
-      <div class="mt-5 flex flex-col gap-2">
-        <label for="coll-status">*Collection Status</label>
-        <Dropdown
-          id="coll-status"
-          v-model="collectionStatus"
-          :options="statuses"
-          :invalid="!!errors[`collectionStatus`]"
-          option-label="name"
-          option-value="code"
-          placeholder="Select a Status"
-          checkmark
-          :highlight-on-select="false"
-          class="w-full"
-        />
-        <span class="text-red-400 text-xs">{{ errors.collectionStatus }}</span>
-      </div>
+
       <div class="mt-5 flex justify-end gap-2">
         <Button
           :disabled="store.loading"
@@ -159,5 +216,18 @@ const onSubmit = handleSubmit(async (values, actions) => {
 .submit-button {
   background: var(--primary-color-envitect-sam-blue);
   color: var(--primary-color-white);
+}
+</style>
+
+<style>
+.select-button {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+
+  .p-button {
+    width: 100%;
+  }
 }
 </style>

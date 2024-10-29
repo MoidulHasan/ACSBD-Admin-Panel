@@ -96,6 +96,8 @@ export interface ICollection {
   title: string;
   status: string;
   slug?: string;
+  is_featured?: boolean;
+  campaign_ending_date?: string | null;
 }
 
 export interface IProduct {
